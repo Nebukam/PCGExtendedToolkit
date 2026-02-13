@@ -122,10 +122,8 @@ void APCGExValencyEditorActorBase::BeginDragContainedAssets()
 		return;
 	}
 
-	DragAssetTransaction = MakeUnique<FScopedTransaction>(
-		NSLOCTEXT("PCGExValency", "MoveCageWithAssets", "Move Cage With Contained Assets"));
-
-	Modify();
+	// Snapshot contained actors into the editor's already-active gizmo drag transaction.
+	// No separate FScopedTransaction — that conflicts with the editor's transaction on release.
 	for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
 	{
 		if (AActor* Actor = WeakActor.Get())
@@ -141,7 +139,6 @@ void APCGExValencyEditorActorBase::EndDragContainedAssets()
 {
 	bIsDraggingAssets = false;
 	DraggedActors.Reset();
-	DragAssetTransaction.Reset();
 }
 
 void APCGExValencyEditorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

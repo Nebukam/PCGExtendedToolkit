@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Math/PCGExMathDistances.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"
 
 
@@ -81,12 +82,23 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 
 bool PCGExPointFilter::FDistanceFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
-	PCGExData::FConstPoint TargetPt;
+	const FVector ProbeLocation = Point.GetLocation();
+	const double B = TypedFilterFactory->Config.DistanceThresholdConstant;
+	const double SearchExtent = B + TypedFilterFactory->Config.Tolerance;
+	const FBoxCenterAndExtent QueryBounds(ProbeLocation, FVector(SearchExtent));
 
 	double BestDist = MAX_dbl;
-	TargetsHandler->FindClosestTarget(Point.GetLocation(), TargetPt, BestDist, &IgnoreList);
+	const PCGExMath::IDistances* Dist = TargetsHandler->GetDistances();
 
-	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), TypedFilterFactory->Config.DistanceThresholdConstant, TypedFilterFactory->Config.Tolerance);
+	TargetsHandler->FindElementsWithBoundsTest(QueryBounds, [&](const PCGExData::FConstPoint& CandidatePoint)
+	{
+		if (const double D = FVector::DistSquared(Dist->GetTargetCenter(CandidatePoint, CandidatePoint.GetLocation(), ProbeLocation), ProbeLocation); BestDist > D)
+		{
+			BestDist = D;
+		}
+	}, &IgnoreList);
+
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), B, TypedFilterFactory->Config.Tolerance);
 }
 
 bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
@@ -98,9 +110,15 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 
 	const double B = DistanceThresholdGetter->Read(PointIndex);
 
-	// FindClosestTarget returns squared distance; sqrt converts to world units for threshold comparison.
+	// Use bounded search with threshold as extent so FindElementsWithBoundsTest is used
+	// instead of FindNearbyElements, which can miss targets when the probe falls outside
+	// the octree's root bounds. Targets beyond threshold+tolerance fail the comparison
+	// anyway, so the bounded search is sufficient for all comparison types.
+	const double SearchExtent = B + TypedFilterFactory->Config.Tolerance;
+	const FBoxCenterAndExtent QueryBounds(InTransforms[PointIndex].GetLocation(), FVector(SearchExtent));
+
 	double BestDist = MAX_dbl;
-	TargetsHandler->FindClosestTarget(SourcePt, TargetPt, BestDist, &IgnoreList);
+	TargetsHandler->FindClosestTarget(SourcePt, QueryBounds, TargetPt, BestDist, &IgnoreList);
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), B, TypedFilterFactory->Config.Tolerance);
 }

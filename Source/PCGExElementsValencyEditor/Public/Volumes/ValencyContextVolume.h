@@ -147,9 +147,30 @@ public:
 	 */
 	static bool IsValencyModeActive();
 
+	/**
+	 * Check if this volume has a deferred PCG regeneration that is ready to execute.
+	 * Returns true when at least one full frame has passed since the last regeneration request,
+	 * ensuring no rapid-fire slider ticks are still incoming.
+	 */
+	bool ShouldExecutePendingRegenerate() const { return PendingRegenerateFrame > 0 && GFrameCounter > PendingRegenerateFrame; }
+
+	/**
+	 * Execute the deferred PCG regeneration (flush + cleanup + generate).
+	 * Called by the editor mode tick when at least one frame has passed since the request.
+	 */
+	void ExecutePendingRegenerate();
+
 protected:
-	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
+	/** Request PCG regeneration — defers actual work by one frame to avoid async flush races */
 	void RegeneratePCGActors();
+
+	/** Execute the actual flush + cleanup + generate cycle */
+	void ExecuteRegenerate();
+
 	/** Notify contained cages that volume properties changed */
 	void NotifyContainedCages();
+
+private:
+	/** Frame counter when regeneration was last requested (0 = none pending) */
+	uint64 PendingRegenerateFrame = 0;
 };

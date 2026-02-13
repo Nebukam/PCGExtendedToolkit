@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ScopedTransaction.h"
 #include "GameFramework/Actor.h"
 
 #include "PCGExValencyEditorActorBase.generated.h"
@@ -80,9 +79,6 @@ private:
 
 	/** Actors being dragged along with the cage */
 	TArray<TWeakObjectPtr<AActor>> DraggedActors;
-
-	/** Transaction scope for the entire drag operation (commits on reset) */
-	TUniquePtr<FScopedTransaction> DragAssetTransaction;
 
 	void BeginDragContainedAssets();
 	void EndDragContainedAssets();

@@ -80,6 +80,4 @@ namespace PCGExMath
 		FDistancesStatic();
 	};
 
-	// Static instance triggers initialization at module load
-	static FDistancesStatic GDistancesStatic;
 }

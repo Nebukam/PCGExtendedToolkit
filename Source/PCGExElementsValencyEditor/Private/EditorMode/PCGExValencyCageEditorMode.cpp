@@ -355,6 +355,22 @@ void UPCGExValencyCageEditorMode::ModeTick(float DeltaTime)
 	{
 		RedrawViewports();
 	}
+
+	// Execute deferred PCG regeneration for volumes that have been quiet for at least one frame.
+	// During rapid interactive changes (slider drags), RegeneratePCGActors just resets the
+	// pending frame counter each tick. The actual flush+generate only runs here once the
+	// slider stops and a full frame passes without a new request.
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			if (Volume->ShouldExecutePendingRegenerate())
+			{
+				Volume->ExecutePendingRegenerate();
+				RedrawViewports();
+			}
+		}
+	}
 }
 
 void UPCGExValencyCageEditorMode::CollectCagesFromLevel()
