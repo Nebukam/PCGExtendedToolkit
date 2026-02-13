@@ -5,7 +5,7 @@
 
 #pragma region FPCGExValencyGrowthRandom
 
-int32 FPCGExValencyGrowthRandom::SelectNextSocket(TArray<FPCGExOpenSocket>& Frontier)
+int32 FPCGExValencyGrowthRandom::SelectNextConnector(TArray<FPCGExOpenConnector>& Frontier)
 {
 	if (Frontier.IsEmpty()) { return INDEX_NONE; }
 

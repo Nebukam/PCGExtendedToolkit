@@ -1,10 +1,10 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/PCGExWriteValencyOrbitals.h"
 
 #include "Core/PCGExCachedOrbitalCache.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyOrbitalCache.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
@@ -35,11 +35,11 @@ void FPCGExWriteValencyOrbitalsContext::RegisterAssetDependencies()
 			AddAssetDependency(Settings->OrbitalSet.ToSoftObjectPath());
 		}
 	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 	{
-		if (!Settings->SocketRules.IsNull())
+		if (!Settings->ConnectorSet.IsNull())
 		{
-			AddAssetDependency(Settings->SocketRules.ToSoftObjectPath());
+			AddAssetDependency(Settings->ConnectorSet.ToSoftObjectPath());
 		}
 	}
 }
@@ -63,11 +63,11 @@ bool FPCGExWriteValencyOrbitalsElement::Boot(FPCGExContext* InContext) const
 			return false;
 		}
 	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 	{
-		if (Settings->SocketRules.IsNull())
+		if (Settings->ConnectorSet.IsNull())
 		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Socket Rules provided.")); }
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
 			return false;
 		}
 	}
@@ -88,11 +88,11 @@ void FPCGExWriteValencyOrbitalsElement::PostLoadAssetsDependencies(FPCGExContext
 			Context->OrbitalSet = Settings->OrbitalSet.Get();
 		}
 	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 	{
-		if (!Context->SocketRules && !Settings->SocketRules.IsNull())
+		if (!Context->ConnectorSet && !Settings->ConnectorSet.IsNull())
 		{
-			Context->SocketRules = Settings->SocketRules.Get();
+			Context->ConnectorSet = Settings->ConnectorSet.Get();
 		}
 	}
 }
@@ -126,34 +126,34 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 			return false;
 		}
 	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 	{
-		if (!Context->SocketRules)
+		if (!Context->ConnectorSet)
 		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Socket Rules provided.")); }
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
 			return false;
 		}
 
-		// Validate socket rules
+		// Validate connector set
 		TArray<FText> ValidationErrors;
-		if (!Context->SocketRules->Validate(ValidationErrors))
+		if (!Context->ConnectorSet->Validate(ValidationErrors))
 		{
 			for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
 			return false;
 		}
 
-		// Compile socket rules to assign bit indices
-		Context->SocketRules->Compile();
+		// Compile connector set to assign bit indices
+		Context->ConnectorSet->Compile();
 
-		// Build socket type to orbital index mapping
-		// In socket mode, each socket type maps directly to an orbital index (0-63)
-		const int32 NumSocketTypes = Context->SocketRules->Num();
-		Context->SocketToOrbitalMap.SetNum(NumSocketTypes);
-		for (int32 i = 0; i < NumSocketTypes; ++i)
+		// Build connector type to orbital index mapping
+		// In connector mode, each connector type maps directly to an orbital index (0-63)
+		const int32 NumConnectorTypes = Context->ConnectorSet->Num();
+		Context->ConnectorToOrbitalMap.SetNum(NumConnectorTypes);
+		for (int32 i = 0; i < NumConnectorTypes; ++i)
 		{
-			// Socket type index directly maps to orbital index
+			// Connector type index directly maps to orbital index
 			// This allows the solver to work identically - it just sees orbital indices
-			Context->SocketToOrbitalMap[i] = i;
+			Context->ConnectorToOrbitalMap[i] = i;
 		}
 	}
 
@@ -197,21 +197,21 @@ namespace PCGExWriteValencyOrbitals
 		{
 			IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
 		}
-		else // Socket mode
+		else // Connector mode
 		{
-			// In socket mode, we still write orbital indices to the same attribute pattern
+			// In connector mode, we still write orbital indices to the same attribute pattern
 			// This ensures downstream solver compatibility
-			IdxAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *Context->SocketRules->LayerName.ToString()));
+			IdxAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *Context->ConnectorSet->LayerName.ToString()));
 
-			// Create socket reader for input packed socket references
-			SocketReader = EdgeDataFacade->GetReadable<int64>(Settings->SocketAttributeName);
-			if (!SocketReader)
+			// Create connector reader for input packed connector references
+			ConnectorReader = EdgeDataFacade->GetReadable<int64>(Settings->ConnectorAttributeName);
+			if (!ConnectorReader)
 			{
-				if (!Settings->bQuietMissingSocketAttribute)
+				if (!Settings->bQuietMissingConnectorAttribute)
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
-						FTEXT("Socket attribute '{0}' not found on edges. Using fallback behavior."),
-						FText::FromName(Settings->SocketAttributeName)));
+						FTEXT("Connector attribute '{0}' not found on edges. Using fallback behavior."),
+						FText::FromName(Settings->ConnectorAttributeName)));
 				}
 			}
 		}
@@ -287,14 +287,14 @@ namespace PCGExWriteValencyOrbitals
 				}
 			}
 		}
-		else // Socket mode
+		else // Connector mode
 		{
-			// ========== SOCKET MODE ==========
-			// Read socket references from edge attribute and map to orbital indices
-			const bool bHasSocketData = SocketReader != nullptr;
+			// ========== CONNECTOR MODE ==========
+			// Read connector references from edge attribute and map to orbital indices
+			const bool bHasConnectorData = ConnectorReader != nullptr;
 
-			const TArray<int32>& SocketToOrbital = Context->SocketToOrbitalMap;
-			const int32 MaxSocketTypes = Context->SocketRules ? Context->SocketRules->Num() : 0;
+			const TArray<int32>& ConnectorToOrbital = Context->ConnectorToOrbitalMap;
+			const int32 MaxConnectorTypes = Context->ConnectorSet ? Context->ConnectorSet->Num() : 0;
 
 			PCGEX_SCOPE_LOOP(Index)
 			{
@@ -314,42 +314,42 @@ namespace PCGExWriteValencyOrbitals
 
 					uint8 OrbitalIndex = PCGExValency::NO_ORBITAL_MATCH;
 
-					if (bHasSocketData)
+					if (bHasConnectorData)
 					{
-						// Read the packed socket reference for this edge
-						const int64 PackedSocket = SocketReader->Read(EdgeIndex);
+						// Read the packed connector reference for this edge
+						const int64 PackedConnector = ConnectorReader->Read(EdgeIndex);
 
-						if (PCGExValencySocket::IsValid(PackedSocket))
+						if (PCGExValencyConnector::IsValid(PackedConnector))
 						{
-							// Extract socket index from packed reference
-							// Note: RulesIndex is ignored here - we assume single SocketRules context
-							const uint16 SocketTypeIndex = PCGExValencySocket::GetSocketIndex(PackedSocket);
+							// Extract connector index from packed reference
+							// Note: RulesIndex is ignored here - we assume single ConnectorSet context
+							const uint16 ConnectorTypeIndex = PCGExValencyConnector::GetConnectorIndex(PackedConnector);
 
-							// Map socket type to orbital index
-							if (SocketTypeIndex < MaxSocketTypes && SocketToOrbital.IsValidIndex(SocketTypeIndex))
+							// Map connector type to orbital index
+							if (ConnectorTypeIndex < MaxConnectorTypes && ConnectorToOrbital.IsValidIndex(ConnectorTypeIndex))
 							{
-								OrbitalIndex = static_cast<uint8>(SocketToOrbital[SocketTypeIndex]);
+								OrbitalIndex = static_cast<uint8>(ConnectorToOrbital[ConnectorTypeIndex]);
 							}
 							else
 							{
-								FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+								FPlatformAtomics::InterlockedIncrement(&InvalidConnectorCount);
 							}
 						}
 						else
 						{
-							FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+							FPlatformAtomics::InterlockedIncrement(&InvalidConnectorCount);
 						}
 					}
 					else
 					{
-						// No socket data - mark as invalid
-						FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+						// No connector data - mark as invalid
+						FPlatformAtomics::InterlockedIncrement(&InvalidConnectorCount);
 					}
 
 					// Write orbital index
 					if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH)
 					{
-						// Build orbital mask (socket type index = orbital index, so bitmask = 1 << index)
+						// Build orbital mask (connector type index = orbital index, so bitmask = 1 << index)
 						OrbitalMask |= (1LL << OrbitalIndex);
 						PackedBytes[ByteOffset] = OrbitalIndex;
 					}
@@ -382,14 +382,14 @@ namespace PCGExWriteValencyOrbitals
 					FText::AsNumber(NoMatchCount)));
 			}
 		}
-		// Socket mode warnings
-		else if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+		// Connector mode warnings
+		else if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 		{
-			if (InvalidSocketCount > 0 && Settings->bWarnOnNoMatch)
+			if (InvalidConnectorCount > 0 && Settings->bWarnOnNoMatch)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
-					FTEXT("Valency Sockets: {0} edges had invalid or missing socket references."),
-					FText::AsNumber(InvalidSocketCount)));
+					FTEXT("Valency Connectors: {0} edges had invalid or missing connector references."),
+					FText::AsNumber(InvalidConnectorCount)));
 			}
 		}
 
@@ -442,11 +442,11 @@ namespace PCGExWriteValencyOrbitals
 			if (!Context->OrbitalSet) { return; }
 			MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
 		}
-		else // Socket mode
+		else // Connector mode
 		{
-			if (!Context->SocketRules) { return; }
+			if (!Context->ConnectorSet) { return; }
 			// Use same attribute pattern as orbitals for solver compatibility
-			MaskAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Mask/%s"), *Context->SocketRules->LayerName.ToString()));
+			MaskAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Mask/%s"), *Context->ConnectorSet->LayerName.ToString()));
 		}
 
 		// Create vertex mask writer

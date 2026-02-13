@@ -31,10 +31,10 @@ public:
 
 	TSharedPtr<FUICommandInfo> CleanupConnections;
 
-	TSharedPtr<FUICommandInfo> AddSocket;
-	TSharedPtr<FUICommandInfo> RemoveSocket;
-	TSharedPtr<FUICommandInfo> DuplicateSocket;
-	TSharedPtr<FUICommandInfo> ToggleSocketDirection;
+	TSharedPtr<FUICommandInfo> AddConnector;
+	TSharedPtr<FUICommandInfo> RemoveConnector;
+	TSharedPtr<FUICommandInfo> DuplicateConnector;
+	TSharedPtr<FUICommandInfo> CycleConnectorPolarity;
 };
 
 /**

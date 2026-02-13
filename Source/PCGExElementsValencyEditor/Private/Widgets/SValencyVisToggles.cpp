@@ -64,9 +64,9 @@ void SValencyVisToggles::Construct(const FArguments& InArgs)
 			.Padding(2)
 			[
 				MakeToggleButton(
-					NSLOCTEXT("PCGExValency", "ToggleSockets", "Sockets"),
-					NSLOCTEXT("PCGExValency", "ToggleSocketsTip", "Show socket component diamonds"),
-					&Flags.bShowSockets)
+					NSLOCTEXT("PCGExValency", "ToggleConnectors", "Connectors"),
+					NSLOCTEXT("PCGExValency", "ToggleConnectorsTip", "Show connector component diamonds"),
+					&Flags.bShowConnectors)
 			]
 			+ SWrapBox::Slot()
 			.Padding(2)

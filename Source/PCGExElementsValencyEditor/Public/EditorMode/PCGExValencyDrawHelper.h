@@ -15,7 +15,7 @@ class APCGExValencyCagePattern;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
-class UPCGExValencyCageSocketComponent;
+class UPCGExValencyCageConnectorComponent;
 
 /**
  * Stateless helper class for Valency editor mode drawing operations.
@@ -34,12 +34,12 @@ public:
 	static void DrawCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
 
 	/**
-	 * Draw socket component diamonds and direction arrows for a cage.
+	 * Draw connector component diamonds and direction arrows for a cage.
 	 * Bypasses the component visualizer to work for ALL cages (selected and unselected).
 	 * @param PDI Primitive draw interface
-	 * @param Cage The cage whose sockets to draw
+	 * @param Cage The cage whose connectors to draw
 	 */
-	static void DrawCageSockets(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
+	static void DrawCageConnectors(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
 
 	/**
 	 * Draw a volume's wireframe bounds.

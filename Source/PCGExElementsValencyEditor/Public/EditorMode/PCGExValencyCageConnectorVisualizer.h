@@ -1,4 +1,4 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -6,28 +6,26 @@
 #include "CoreMinimal.h"
 #include "ComponentVisualizer.h"
 
-class UPCGExValencyCageSocketComponent;
+class UPCGExValencyCageConnectorComponent;
 
 /**
- * Hit proxy for socket component visualizer.
- * Inherits HComponentVisProxy so the standard component selection pipeline works.
+ * Hit proxy for connector component visualizer.
  */
-struct HPCGExSocketHitProxy : public HComponentVisProxy
+struct HPCGExConnectorHitProxy : public HComponentVisProxy
 {
 	DECLARE_HIT_PROXY();
 
-	HPCGExSocketHitProxy(const UActorComponent* InComponent)
+	HPCGExConnectorHitProxy(const UActorComponent* InComponent)
 		: HComponentVisProxy(InComponent, HPP_Wireframe)
 	{
 	}
 };
 
 /**
- * Component visualizer for UPCGExValencyCageSocketComponent.
- * Draws a diamond shape at the socket's world position with a direction arrow.
- * Enables click-to-select and transform gizmo interaction.
+ * Component visualizer for UPCGExValencyCageConnectorComponent.
+ * Draws a diamond shape at the connector's world position with polarity-aware arrows.
  */
-class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageSocketVisualizer : public FComponentVisualizer
+class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageConnectorVisualizer : public FComponentVisualizer
 {
 public:
 	//~ Begin FComponentVisualizer Interface
@@ -38,9 +36,6 @@ public:
 	//~ End FComponentVisualizer Interface
 
 private:
-	/** Currently selected socket component (for gizmo placement) */
-	TWeakObjectPtr<UPCGExValencyCageSocketComponent> SelectedSocket;
-
-	/** Draw a diamond/rhombus shape at a world position */
+	TWeakObjectPtr<UPCGExValencyCageConnectorComponent> SelectedConnector;
 	static void DrawDiamond(FPrimitiveDrawInterface* PDI, const FVector& Center, float Size, const FLinearColor& Color, float Thickness);
 };

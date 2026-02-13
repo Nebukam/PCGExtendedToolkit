@@ -5,13 +5,13 @@
 
 #include "Editor.h"
 #include "Components/SceneComponent.h"
-#include "Components/PCGExValencyCageSocketComponent.h"
+#include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshSocket.h"
 #include "EngineUtils.h"
 #include "PCGExValencyEditorCommon.h"
 #include "PCGExValencyMacros.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyLog.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
@@ -949,33 +949,40 @@ void APCGExValencyCageBase::RequestRebuild(EValencyRebuildReason Reason)
 	PCGEX_VALENCY_VERBOSE(Rebuild, "RequestRebuild from '%s' (reason: %s)", *GetCageDisplayName(), ReasonName);
 }
 
-// ========== Socket Methods (Component-based) ==========
+// ========== Connector Methods (Component-based) ==========
 
-UPCGExValencySocketRules* APCGExValencyCageBase::GetEffectiveSocketRules() const
+UPCGExValencyConnectorSet* APCGExValencyCageBase::GetEffectiveConnectorSet() const
 {
 	// Check explicit override first
-	if (SocketRulesOverride)
+	if (ConnectorSetOverride)
 	{
-		return SocketRulesOverride;
+		return ConnectorSetOverride;
 	}
 
-	// TODO: Check containing volumes for SocketRules
-	// For now, return nullptr - volumes don't have SocketRules yet
+	// Resolve through effective BondingRules
+	if (const UPCGExValencyBondingRules* Rules = GetEffectiveBondingRules())
+	{
+		if (Rules->ConnectorSet)
+		{
+			return Rules->ConnectorSet;
+		}
+	}
+
 	return nullptr;
 }
 
-void APCGExValencyCageBase::GetSocketComponents(TArray<UPCGExValencyCageSocketComponent*>& OutComponents) const
+void APCGExValencyCageBase::GetConnectorComponents(TArray<UPCGExValencyCageConnectorComponent*>& OutComponents) const
 {
 	// Use const_cast because GetComponents doesn't have a const overload that returns non-const pointers
-	const_cast<APCGExValencyCageBase*>(this)->GetComponents<UPCGExValencyCageSocketComponent>(OutComponents);
+	const_cast<APCGExValencyCageBase*>(this)->GetComponents<UPCGExValencyCageConnectorComponent>(OutComponents);
 }
 
-bool APCGExValencyCageBase::HasSockets() const
+bool APCGExValencyCageBase::HasConnectors() const
 {
-	TArray<UPCGExValencyCageSocketComponent*> Components;
-	GetSocketComponents(Components);
+	TArray<UPCGExValencyCageConnectorComponent*> Components;
+	GetConnectorComponents(Components);
 
-	for (const UPCGExValencyCageSocketComponent* Comp : Components)
+	for (const UPCGExValencyCageConnectorComponent* Comp : Components)
 	{
 		if (Comp && Comp->bEnabled)
 		{
@@ -985,14 +992,14 @@ bool APCGExValencyCageBase::HasSockets() const
 	return false;
 }
 
-bool APCGExValencyCageBase::HasOutputSockets() const
+bool APCGExValencyCageBase::HasPlugConnectors() const
 {
-	TArray<UPCGExValencyCageSocketComponent*> Components;
-	GetSocketComponents(Components);
+	TArray<UPCGExValencyCageConnectorComponent*> Components;
+	GetConnectorComponents(Components);
 
-	for (const UPCGExValencyCageSocketComponent* Comp : Components)
+	for (const UPCGExValencyCageConnectorComponent* Comp : Components)
 	{
-		if (Comp && Comp->bEnabled && Comp->bIsOutputSocket)
+		if (Comp && Comp->bEnabled && Comp->Polarity == EPCGExConnectorPolarity::Plug)
 		{
 			return true;
 		}
@@ -1000,14 +1007,14 @@ bool APCGExValencyCageBase::HasOutputSockets() const
 	return false;
 }
 
-UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const FName& SocketName) const
+UPCGExValencyCageConnectorComponent* APCGExValencyCageBase::FindConnectorByName(const FName& ConnectorName) const
 {
-	TArray<UPCGExValencyCageSocketComponent*> Components;
-	GetSocketComponents(Components);
+	TArray<UPCGExValencyCageConnectorComponent*> Components;
+	GetConnectorComponents(Components);
 
-	for (UPCGExValencyCageSocketComponent* Comp : Components)
+	for (UPCGExValencyCageConnectorComponent* Comp : Components)
 	{
-		if (Comp && Comp->SocketName == SocketName)
+		if (Comp && Comp->ConnectorName == ConnectorName)
 		{
 			return Comp;
 		}
@@ -1015,14 +1022,14 @@ UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const 
 	return nullptr;
 }
 
-UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByType(const FName& SocketType) const
+UPCGExValencyCageConnectorComponent* APCGExValencyCageBase::FindConnectorByType(const FName& ConnectorType) const
 {
-	TArray<UPCGExValencyCageSocketComponent*> Components;
-	GetSocketComponents(Components);
+	TArray<UPCGExValencyCageConnectorComponent*> Components;
+	GetConnectorComponents(Components);
 
-	for (UPCGExValencyCageSocketComponent* Comp : Components)
+	for (UPCGExValencyCageConnectorComponent* Comp : Components)
 	{
-		if (Comp && Comp->SocketType == SocketType)
+		if (Comp && Comp->ConnectorType == ConnectorType)
 		{
 			return Comp;
 		}
@@ -1030,7 +1037,7 @@ UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByType(const 
 	return nullptr;
 }
 
-int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultSocketType, bool bAsOutput)
+int32 APCGExValencyCageBase::CreateConnectorComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultConnectorType, EPCGExConnectorPolarity DefaultPolarity)
 {
 	if (!Mesh)
 	{
@@ -1048,17 +1055,17 @@ int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, c
 			continue;
 		}
 
-		// Check if a socket component with this name already exists
-		if (FindSocketByName(MeshSocket->SocketName))
+		// Check if a connector component with this name already exists
+		if (FindConnectorByName(MeshSocket->SocketName))
 		{
 			continue; // Skip duplicate
 		}
 
-		// Create a new socket component
-		UPCGExValencyCageSocketComponent* NewComponent = NewObject<UPCGExValencyCageSocketComponent>(
+		// Create a new connector component
+		UPCGExValencyCageConnectorComponent* NewComponent = NewObject<UPCGExValencyCageConnectorComponent>(
 			this,
-			UPCGExValencyCageSocketComponent::StaticClass(),
-			MakeUniqueObjectName(this, UPCGExValencyCageSocketComponent::StaticClass(), MeshSocket->SocketName)
+			UPCGExValencyCageConnectorComponent::StaticClass(),
+			MakeUniqueObjectName(this, UPCGExValencyCageConnectorComponent::StaticClass(), MeshSocket->SocketName)
 		);
 
 		if (!NewComponent)
@@ -1067,9 +1074,9 @@ int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, c
 		}
 
 		// Configure the component
-		NewComponent->SocketName = MeshSocket->SocketName;
-		NewComponent->SocketType = DefaultSocketType;
-		NewComponent->bIsOutputSocket = bAsOutput;
+		NewComponent->ConnectorName = MeshSocket->SocketName;
+		NewComponent->ConnectorType = DefaultConnectorType;
+		NewComponent->Polarity = DefaultPolarity;
 		NewComponent->bEnabled = true;
 		NewComponent->MeshSocketName = MeshSocket->SocketName; // Link to mesh socket for sync
 
@@ -1088,7 +1095,7 @@ int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, c
 		CreatedCount++;
 	}
 
-	// Request rebuild if we created any socket components
+	// Request rebuild if we created any connector components
 	if (CreatedCount > 0)
 	{
 		RequestRebuild(EValencyRebuildReason::AssetChange);

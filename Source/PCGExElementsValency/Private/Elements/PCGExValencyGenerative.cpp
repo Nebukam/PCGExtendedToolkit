@@ -1,4 +1,4 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/PCGExValencyGenerative.h"
@@ -55,9 +55,9 @@ void FPCGExValencyGenerativeContext::RegisterAssetDependencies()
 		AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
 	}
 
-	if (!Settings->SocketRules.IsNull())
+	if (!Settings->ConnectorSet.IsNull())
 	{
-		AddAssetDependency(Settings->SocketRules.ToSoftObjectPath());
+		AddAssetDependency(Settings->ConnectorSet.ToSoftObjectPath());
 	}
 }
 
@@ -78,9 +78,9 @@ bool FPCGExValencyGenerativeElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	if (Settings->SocketRules.IsNull())
+	if (Settings->ConnectorSet.IsNull())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No Socket Rules provided."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided."));
 		return false;
 	}
 
@@ -88,7 +88,7 @@ bool FPCGExValencyGenerativeElement::Boot(FPCGExContext* InContext) const
 
 	// Load assets
 	PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->BondingRules, InContext);
-	PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->SocketRules, InContext);
+	PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->ConnectorSet, InContext);
 
 	return true;
 }
@@ -100,7 +100,7 @@ void FPCGExValencyGenerativeElement::PostLoadAssetsDependencies(FPCGExContext* I
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyGenerative)
 
 	Context->BondingRules = Settings->BondingRules.Get();
-	Context->SocketRules = Settings->SocketRules.Get();
+	Context->ConnectorSet = Settings->ConnectorSet.Get();
 }
 
 bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
@@ -115,9 +115,9 @@ bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	if (!Context->SocketRules)
+	if (!Context->ConnectorSet)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Socket Rules."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Connector Set."));
 		return false;
 	}
 
@@ -153,8 +153,8 @@ bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	// Compile socket rules
-	Context->SocketRules->Compile();
+	// Compile connector set
+	Context->ConnectorSet->Compile();
 
 	// Build module local bounds cache from collection staging data
 	const int32 ModuleCount = Context->CompiledRules->ModuleCount;
@@ -314,12 +314,12 @@ namespace PCGExValencyGenerative
 				}
 			}
 
-			// If no filtering or no match, use all modules that have sockets
+			// If no filtering or no match, use all modules that have connectors
 			if (CandidateModules.IsEmpty())
 			{
 				for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
 				{
-					if (CompiledRules->GetModuleSocketCount(ModuleIdx) > 0)
+					if (CompiledRules->GetModuleConnectorCount(ModuleIdx) > 0)
 					{
 						CandidateModules.Add(ModuleIdx);
 					}
@@ -370,7 +370,7 @@ namespace PCGExValencyGenerative
 		FPCGExBoundsTracker BoundsTracker;
 
 		// Initialize growth operation with per-dataset state
-		GrowthOp->Initialize(CompiledRules, Context->SocketRules, BoundsTracker, Budget, Settings->Seed);
+		GrowthOp->Initialize(CompiledRules, Context->ConnectorSet, BoundsTracker, Budget, Settings->Seed);
 		GrowthOp->ModuleLocalBounds = Context->ModuleLocalBounds;
 
 		// Build placed module entries from resolved seeds
@@ -388,8 +388,8 @@ namespace PCGExValencyGenerative
 			SeedModule.WorldTransform = SeedTransforms[Index];
 			SeedModule.WorldBounds = GrowthOp->ComputeWorldBounds(SelectedModule, SeedModule.WorldTransform);
 			SeedModule.ParentIndex = -1;
-			SeedModule.ParentSocketIndex = -1;
-			SeedModule.ChildSocketIndex = -1;
+			SeedModule.ParentConnectorIndex = -1;
+			SeedModule.ChildConnectorIndex = -1;
 			SeedModule.Depth = 0;
 			SeedModule.SeedIndex = SeedIdx;
 			SeedModule.CumulativeWeight = CompiledRules->ModuleWeights[SelectedModule];

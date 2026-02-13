@@ -8,7 +8,7 @@
 #include "Factories/PCGExOperation.h"
 #include "Core/PCGExValencyCommon.h"
 #include "Core/PCGExValencyBondingRules.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencySolverOperation.h"
 #include "PCGExValencyGenerativeCommon.h"
 
@@ -16,13 +16,13 @@
 
 /**
  * Base class for Valency growth operations.
- * Subclass this and override SelectNextSocket() to create custom growth strategies.
+ * Subclass this and override SelectNextConnector() to create custom growth strategies.
  *
  * Growth operations expand structures from seed modules by:
- * 1. Selecting an open socket from the frontier
- * 2. Finding compatible modules for that socket
+ * 1. Selecting an open connector from the frontier
+ * 2. Finding compatible modules for that connector
  * 3. Computing attachment transforms and checking bounds
- * 4. Placing modules or marking sockets as failed
+ * 4. Placing modules or marking connectors as failed
  */
 class PCGEXELEMENTSVALENCY_API FPCGExValencyGrowthOperation : public FPCGExOperation
 {
@@ -35,7 +35,7 @@ public:
 	 */
 	virtual void Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledRules,
-		const UPCGExValencySocketRules* InSocketRules,
+		const UPCGExValencyConnectorSet* InConnectorSet,
 		FPCGExBoundsTracker& InBoundsTracker,
 		FPCGExGrowthBudget& InBudget,
 		int32 InSeed);
@@ -56,49 +56,49 @@ public:
 	TArray<FBox> ModuleLocalBounds;
 
 protected:
-	/** Subclass interface: pick next socket from frontier. Return INDEX_NONE if empty. */
-	virtual int32 SelectNextSocket(TArray<FPCGExOpenSocket>& Frontier) PCGEX_NOT_IMPLEMENTED_RET(SelectNextSocket, INDEX_NONE);
+	/** Subclass interface: pick next connector from frontier. Return INDEX_NONE if empty. */
+	virtual int32 SelectNextConnector(TArray<FPCGExOpenConnector>& Frontier) PCGEX_NOT_IMPLEMENTED_RET(SelectNextConnector, INDEX_NONE);
 
 	// ========== Shared Utilities ==========
 
 	/**
-	 * Find all modules whose sockets are compatible with the given socket type.
-	 * @param SocketType The socket type to find compatible modules for
-	 * @param OutModuleIndices Module indices that have a compatible socket
-	 * @param OutSocketIndices Corresponding socket indices on those modules
+	 * Find all modules whose connectors are compatible with the given connector type.
+	 * @param ConnectorType The connector type to find compatible modules for
+	 * @param OutModuleIndices Module indices that have a compatible connector
+	 * @param OutConnectorIndices Corresponding connector indices on those modules
 	 */
 	void FindCompatibleModules(
-		FName SocketType,
+		FName ConnectorType,
 		TArray<int32>& OutModuleIndices,
-		TArray<int32>& OutSocketIndices) const;
+		TArray<int32>& OutConnectorIndices) const;
 
 	/**
-	 * Compute world transform for placing a child module attached at a socket.
-	 * Uses plug/receptacle semantics: sockets face each other.
+	 * Compute world transform for placing a child module attached at a connector.
+	 * Uses plug/receptacle semantics: connectors face each other.
 	 */
 	FTransform ComputeAttachmentTransform(
-		const FPCGExOpenSocket& ParentSocket,
+		const FPCGExOpenConnector& ParentConnector,
 		int32 ChildModuleIndex,
-		int32 ChildSocketIndex) const;
+		int32 ChildConnectorIndex) const;
 
 	/**
-	 * Try to place a module at a socket. Returns true if placed.
+	 * Try to place a module at a connector. Returns true if placed.
 	 */
 	bool TryPlaceModule(
-		const FPCGExOpenSocket& Socket,
+		const FPCGExOpenConnector& Connector,
 		int32 ModuleIndex,
-		int32 ChildSocketIndex,
+		int32 ChildConnectorIndex,
 		TArray<FPCGExPlacedModule>& OutPlaced,
-		TArray<FPCGExOpenSocket>& OutFrontier);
+		TArray<FPCGExOpenConnector>& OutFrontier);
 
 	/**
-	 * Add a placed module's remaining sockets to the frontier.
+	 * Add a placed module's remaining connectors to the frontier.
 	 */
 	void ExpandFrontier(
 		const FPCGExPlacedModule& Placed,
 		int32 PlacedIndex,
-		int32 UsedSocketIndex,
-		TArray<FPCGExOpenSocket>& OutFrontier);
+		int32 UsedConnectorIndex,
+		TArray<FPCGExOpenConnector>& OutFrontier);
 
 	/**
 	 * Weighted random module selection from candidates.
@@ -109,7 +109,7 @@ protected:
 	// ========== State ==========
 
 	const FPCGExValencyBondingRulesCompiled* CompiledRules = nullptr;
-	const UPCGExValencySocketRules* SocketRules = nullptr;
+	const UPCGExValencyConnectorSet* ConnectorSet = nullptr;
 	FPCGExBoundsTracker* BoundsTracker = nullptr;
 	FPCGExGrowthBudget* Budget = nullptr;
 	FRandomStream RandomStream;

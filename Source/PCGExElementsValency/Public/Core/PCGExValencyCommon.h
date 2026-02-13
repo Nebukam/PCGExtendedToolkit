@@ -7,7 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "UObject/SoftObjectPath.h"
 #include "StructUtils/InstancedStruct.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 
 #include "PCGExValencyCommon.generated.h"
 
@@ -539,13 +539,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	TArray<FName> Tags;
 
 	/**
-	 * Socket definitions for this module.
-	 * Sockets are non-directional connection points that map to orbital indices.
-	 * Used for socket-based orbital assignment (alternative to direction-based).
-	 * Populated from cage socket components during building.
+	 * Connector definitions for this module.
+	 * Connectors are typed connection points that map to orbital indices.
+	 * Used for connector-based orbital assignment (alternative to direction-based).
+	 * Populated from cage connector components during building.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Sockets")
-	TArray<FPCGExValencyModuleSocket> Sockets;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Connectors")
+	TArray<FPCGExValencyModuleConnector> Connectors;
 
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const
@@ -567,57 +567,57 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 		return FString::Printf(TEXT("%s_%lld"), *Asset.ToSoftObjectPath().ToString(), Mask);
 	}
 
-	/** Check if this module has any sockets defined */
-	bool HasSockets() const { return Sockets.Num() > 0; }
+	/** Check if this module has any connectors defined */
+	bool HasConnectors() const { return Connectors.Num() > 0; }
 
-	/** Check if this module has any output sockets (for chaining) */
-	bool HasOutputSockets() const
+	/** Check if this module has any plug connectors (for chaining) */
+	bool HasPlugConnectors() const
 	{
-		for (const FPCGExValencyModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (Socket.bIsOutputSocket) { return true; }
+			if (Connector.Polarity == EPCGExConnectorPolarity::Plug) { return true; }
 		}
 		return false;
 	}
 
-	/** Find a socket by instance name */
-	const FPCGExValencyModuleSocket* FindSocketByName(const FName& SocketName) const
+	/** Find a connector by instance name */
+	const FPCGExValencyModuleConnector* FindConnectorByName(const FName& ConnectorName) const
 	{
-		for (const FPCGExValencyModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (Socket.SocketName == SocketName) { return &Socket; }
+			if (Connector.ConnectorName == ConnectorName) { return &Connector; }
 		}
 		return nullptr;
 	}
 
-	/** Find a socket by type (returns first match) */
-	const FPCGExValencyModuleSocket* FindSocketByType(const FName& SocketType) const
+	/** Find a connector by type (returns first match) */
+	const FPCGExValencyModuleConnector* FindConnectorByType(const FName& ConnectorType) const
 	{
-		for (const FPCGExValencyModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (Socket.SocketType == SocketType) { return &Socket; }
+			if (Connector.ConnectorType == ConnectorType) { return &Connector; }
 		}
 		return nullptr;
 	}
 
-	/** Get all output sockets */
-	TArray<const FPCGExValencyModuleSocket*> GetOutputSockets() const
+	/** Get all plug connectors */
+	TArray<const FPCGExValencyModuleConnector*> GetPlugConnectors() const
 	{
-		TArray<const FPCGExValencyModuleSocket*> Result;
-		for (const FPCGExValencyModuleSocket& Socket : Sockets)
+		TArray<const FPCGExValencyModuleConnector*> Result;
+		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (Socket.bIsOutputSocket) { Result.Add(&Socket); }
+			if (Connector.Polarity == EPCGExConnectorPolarity::Plug) { Result.Add(&Connector); }
 		}
 		return Result;
 	}
 
-	/** Get all input sockets */
-	TArray<const FPCGExValencyModuleSocket*> GetInputSockets() const
+	/** Get all port connectors */
+	TArray<const FPCGExValencyModuleConnector*> GetPortConnectors() const
 	{
-		TArray<const FPCGExValencyModuleSocket*> Result;
-		for (const FPCGExValencyModuleSocket& Socket : Sockets)
+		TArray<const FPCGExValencyModuleConnector*> Result;
+		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (!Socket.bIsOutputSocket) { Result.Add(&Socket); }
+			if (Connector.Polarity == EPCGExConnectorPolarity::Port) { Result.Add(&Connector); }
 		}
 		return Result;
 	}

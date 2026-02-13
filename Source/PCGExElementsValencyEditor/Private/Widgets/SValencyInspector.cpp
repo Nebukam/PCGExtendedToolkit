@@ -21,7 +21,7 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-#include "Components/PCGExValencyCageSocketComponent.h"
+#include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 
 void SValencyInspector::Construct(const FArguments& InArgs)
@@ -71,14 +71,14 @@ void SValencyInspector::RefreshContent()
 
 	if (GEditor)
 	{
-		// Check for selected components first (socket)
+		// Check for selected components first (connector)
 		if (USelection* CompSelection = GEditor->GetSelectedComponents())
 		{
 			for (FSelectionIterator It(*CompSelection); It; ++It)
 			{
-				if (UPCGExValencyCageSocketComponent* Socket = Cast<UPCGExValencyCageSocketComponent>(*It))
+				if (UPCGExValencyCageConnectorComponent* Connector = Cast<UPCGExValencyCageConnectorComponent>(*It))
 				{
-					NewContent = BuildSocketContent(Socket);
+					NewContent = BuildConnectorContent(Connector);
 					bFoundSpecificContent = true;
 					break;
 				}
@@ -224,11 +224,11 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 				FText::AsNumber(static_cast<int32>(Cage->GetEffectiveProbeRadius()))))
 	];
 
-	// Socket components - interactive section
-	TArray<UPCGExValencyCageSocketComponent*> SocketComponents;
-	Cage->GetSocketComponents(SocketComponents);
+	// Connector components - interactive section
+	TArray<UPCGExValencyCageConnectorComponent*> ConnectorComponents;
+	Cage->GetConnectorComponents(ConnectorComponents);
 	{
-		// Header row with socket count and Add button
+		// Header row with connector count and Add button
 		Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
 		[
 			SNew(SHorizontalBox)
@@ -237,23 +237,23 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 			.VAlign(VAlign_Center)
 			[
 				MakeSectionHeader(FText::Format(
-					NSLOCTEXT("PCGExValency", "CageSockets", "Sockets ({0})"),
-					FText::AsNumber(SocketComponents.Num())))
+					NSLOCTEXT("PCGExValency", "CageConnectors", "Connectors ({0})"),
+					FText::AsNumber(ConnectorComponents.Num())))
 			]
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				MakeAddSocketButton(Cage)
+				MakeAddConnectorButton(Cage)
 			]
 		];
 
-		for (UPCGExValencyCageSocketComponent* Socket : SocketComponents)
+		for (UPCGExValencyCageConnectorComponent* ConnectorComp : ConnectorComponents)
 		{
-			if (!Socket) continue;
+			if (!ConnectorComp) continue;
 
 			Content->AddSlot().AutoHeight()
 			[
-				MakeSocketRow(Socket)
+				MakeConnectorRow(ConnectorComp)
 			];
 		}
 	}
@@ -300,14 +300,14 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 	return Content;
 }
 
-TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocketComponent* Socket)
+TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageConnectorComponent* Connector)
 {
-	if (!Socket)
+	if (!Connector)
 	{
 		return BuildSceneStatsContent();
 	}
 
-	TWeakObjectPtr<UPCGExValencyCageSocketComponent> WeakSocket(Socket);
+	TWeakObjectPtr<UPCGExValencyCageConnectorComponent> WeakConnector(Connector);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
 	TSharedRef<SVerticalBox> Content = SNew(SVerticalBox);
@@ -317,10 +317,10 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 	[
 		SNew(SButton)
 		.Text(NSLOCTEXT("PCGExValency", "BackToCage", "<< Back to Cage"))
-		.ToolTipText(NSLOCTEXT("PCGExValency", "BackToCageTip", "Return to the cage socket list"))
-		.OnClicked_Lambda([WeakSocket]() -> FReply
+		.ToolTipText(NSLOCTEXT("PCGExValency", "BackToCageTip", "Return to the cage connector list"))
+		.OnClicked_Lambda([WeakConnector]() -> FReply
 		{
-			if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+			if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 			{
 				if (GEditor && S->GetOwner())
 				{
@@ -335,17 +335,17 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 	Content->AddSlot().AutoHeight()
 	[
 		MakeSectionHeader(FText::Format(
-			NSLOCTEXT("PCGExValency", "SocketHeader", "Socket: {0}"),
-			FText::FromName(Socket->SocketName)))
+			NSLOCTEXT("PCGExValency", "ConnectorHeader", "Connector: {0}"),
+			FText::FromName(Connector->ConnectorName)))
 	];
 
 	// Owning cage
-	if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(Socket->GetOwner()))
+	if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
 	{
 		Content->AddSlot().AutoHeight()
 		[
 			MakeLabeledRow(
-				NSLOCTEXT("PCGExValency", "SocketOwner", "Cage"),
+				NSLOCTEXT("PCGExValency", "ConnectorOwner", "Cage"),
 				FText::FromString(OwnerCage->GetCageDisplayName()))
 		];
 	}
@@ -362,7 +362,7 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 			.WidthOverride(100)
 			[
 				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "SocketName", "Name"))
+				.Text(NSLOCTEXT("PCGExValency", "ConnectorName", "Name"))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 			]
@@ -372,16 +372,16 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.Padding(4, 0)
 		[
 			SNew(SEditableTextBox)
-			.Text(FText::FromName(Socket->SocketName))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketNameTip", "Unique socket identifier within this cage"))
+			.Text(FText::FromName(Connector->ConnectorName))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorNameTip", "Unique connector identifier within this cage"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-			.OnTextCommitted_Lambda([WeakSocket, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+			.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RenameSocket", "Rename Socket"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RenameConnector", "Rename Connector"));
 					S->Modify();
-					S->SocketName = FName(*NewText.ToString());
+					S->ConnectorName = FName(*NewText.ToString());
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -407,7 +407,7 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 			.WidthOverride(100)
 			[
 				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "SocketType", "Type"))
+				.Text(NSLOCTEXT("PCGExValency", "ConnectorType", "Type"))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 			]
@@ -417,16 +417,16 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.Padding(4, 0)
 		[
 			SNew(SEditableTextBox)
-			.Text(FText::FromName(Socket->SocketType))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketTypeTip", "Socket type name \u2014 determines compatibility during solving. Must match a type defined in the cage's Socket Rules."))
+			.Text(FText::FromName(Connector->ConnectorType))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorTypeTip", "Connector type name \u2014 determines compatibility during solving. Must match a type defined in the cage's Connector Rules."))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-			.OnTextCommitted_Lambda([WeakSocket, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+			.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeSocketType", "Change Socket Type"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorType", "Change Connector Type"));
 					S->Modify();
-					S->SocketType = FName(*NewText.ToString());
+					S->ConnectorType = FName(*NewText.ToString());
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -440,7 +440,18 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		]
 	];
 
-	// Direction toggle
+	// Polarity cycling
+	auto GetPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
+	{
+		switch (P)
+		{
+		case EPCGExConnectorPolarity::Universal: return NSLOCTEXT("PCGExValency", "PolarityUniversalDetail", "Universal *");
+		case EPCGExConnectorPolarity::Plug:      return NSLOCTEXT("PCGExValency", "PolarityPlugDetail", "Plug >>");
+		case EPCGExConnectorPolarity::Port:      return NSLOCTEXT("PCGExValency", "PolarityPortDetail", "<< Port");
+		default:                                 return FText::GetEmpty();
+		}
+	};
+
 	Content->AddSlot().AutoHeight().Padding(0, 2)
 	[
 		SNew(SHorizontalBox)
@@ -452,7 +463,7 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 			.WidthOverride(100)
 			[
 				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "SocketDirection", "Direction"))
+				.Text(NSLOCTEXT("PCGExValency", "ConnectorPolarity", "Polarity"))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 			]
@@ -462,17 +473,21 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.Padding(4, 0)
 		[
 			SNew(SButton)
-			.Text(Socket->bIsOutputSocket
-				? NSLOCTEXT("PCGExValency", "SocketOutArrow", "Outward >>")
-				: NSLOCTEXT("PCGExValency", "SocketInArrow", "<< Inward"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketDirTip", "Toggle between providing connections (arrow outward) and receiving connections (arrow inward)"))
-			.OnClicked_Lambda([WeakSocket, WeakMode]() -> FReply
+			.Text(GetPolarityLabel(Connector->Polarity))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorPolarityTip", "Cycle polarity: Universal (connects to any), Plug (outward), Port (inward)"))
+			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleDir", "Toggle Socket Direction"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CyclePolarity", "Cycle Connector Polarity"));
 					S->Modify();
-					S->bIsOutputSocket = !S->bIsOutputSocket;
+					// Universal -> Plug -> Port -> Universal
+					switch (S->Polarity)
+					{
+					case EPCGExConnectorPolarity::Universal: S->Polarity = EPCGExConnectorPolarity::Plug; break;
+					case EPCGExConnectorPolarity::Plug:      S->Polarity = EPCGExConnectorPolarity::Port; break;
+					case EPCGExConnectorPolarity::Port:      S->Polarity = EPCGExConnectorPolarity::Universal; break;
+					}
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -500,7 +515,7 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 			.WidthOverride(100)
 			[
 				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "SocketEnabled", "Enabled"))
+				.Text(NSLOCTEXT("PCGExValency", "ConnectorEnabled", "Enabled"))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 			]
@@ -510,13 +525,13 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.Padding(4, 0)
 		[
 			SNew(SCheckBox)
-			.IsChecked(Socket->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketEnabledTip", "Disabled sockets are ignored during compilation"))
-			.OnCheckStateChanged_Lambda([WeakSocket, WeakMode](ECheckBoxState NewState)
+			.IsChecked(Connector->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorEnabledTip", "Disabled connectors are ignored during compilation"))
+			.OnCheckStateChanged_Lambda([WeakConnector, WeakMode](ECheckBoxState NewState)
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Socket Enabled"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Connector Enabled"));
 					S->Modify();
 					S->bEnabled = (NewState == ECheckBoxState::Checked);
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
@@ -534,12 +549,12 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 	];
 
 	// Local offset (read-only, edited via viewport gizmo)
-	const FTransform SocketTransform = Socket->GetRelativeTransform();
+	const FTransform ConnectorTransform = Connector->GetRelativeTransform();
 	Content->AddSlot().AutoHeight()
 	[
 		MakeLabeledRow(
-			NSLOCTEXT("PCGExValency", "SocketLocation", "Local Offset"),
-			FText::FromString(SocketTransform.GetLocation().ToString()))
+			NSLOCTEXT("PCGExValency", "ConnectorLocation", "Local Offset"),
+			FText::FromString(ConnectorTransform.GetLocation().ToString()))
 	];
 
 	// Action buttons
@@ -551,15 +566,15 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.Padding(0, 0, 4, 0)
 		[
 			SNew(SButton)
-			.Text(NSLOCTEXT("PCGExValency", "DuplicateSocket", "Duplicate"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "DuplicateSocketTip", "Create a copy of this socket with a small offset (Ctrl+D)"))
-			.OnClicked_Lambda([WeakSocket, WeakMode]() -> FReply
+			.Text(NSLOCTEXT("PCGExValency", "DuplicateConnector", "Duplicate"))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "DuplicateConnectorTip", "Create a copy of this connector with a small offset (Ctrl+D)"))
+			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
 					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 					{
-						Mode->DuplicateSocket(S);
+						Mode->DuplicateConnector(S);
 					}
 				}
 				return FReply::Handled();
@@ -569,15 +584,15 @@ TSharedRef<SWidget> SValencyInspector::BuildSocketContent(UPCGExValencyCageSocke
 		.AutoWidth()
 		[
 			SNew(SButton)
-			.Text(NSLOCTEXT("PCGExValency", "RemoveSocketBtn", "Remove"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "RemoveSocketTip", "Delete this socket from the cage (Delete key)"))
-			.OnClicked_Lambda([WeakSocket, WeakMode]() -> FReply
+			.Text(NSLOCTEXT("PCGExValency", "RemoveConnectorBtn", "Remove"))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "RemoveConnectorTip", "Delete this connector from the cage (Delete key)"))
+			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
 					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 					{
-						Mode->RemoveSocket(S);
+						Mode->RemoveConnector(S);
 					}
 				}
 				return FReply::Handled();
@@ -709,17 +724,28 @@ TSharedRef<SWidget> SValencyInspector::BuildPaletteContent(APCGExValencyAssetPal
 	return Content;
 }
 
-TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComponent* Socket)
+TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnectorComponent* ConnectorComp)
 {
-	TWeakObjectPtr<UPCGExValencyCageSocketComponent> WeakSocket(Socket);
+	TWeakObjectPtr<UPCGExValencyCageConnectorComponent> WeakConnector(ConnectorComp);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
-	const FLinearColor TextColor = Socket->bEnabled
+	const FLinearColor TextColor = ConnectorComp->bEnabled
 		? FLinearColor::White
 		: FLinearColor(0.5f, 0.5f, 0.5f);
 
+	auto GetCompactPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
+	{
+		switch (P)
+		{
+		case EPCGExConnectorPolarity::Universal: return NSLOCTEXT("PCGExValency", "PolarityUniversalCompact", "*");
+		case EPCGExConnectorPolarity::Plug:      return NSLOCTEXT("PCGExValency", "PolarityPlugCompact", ">>");
+		case EPCGExConnectorPolarity::Port:      return NSLOCTEXT("PCGExValency", "PolarityPortCompact", "<<");
+		default:                                 return FText::GetEmpty();
+		}
+	};
+
 	return SNew(SHorizontalBox)
-		// Clickable socket name - selects the socket in viewport
+		// Clickable connector name - selects the connector in viewport
 		+ SHorizontalBox::Slot()
 		.FillWidth(1.0f)
 		.VAlign(VAlign_Center)
@@ -727,10 +753,10 @@ TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComp
 		[
 			SNew(SButton)
 			.ContentPadding(FMargin(2, 0))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketRowNameTip", "Click to select this socket in the viewport"))
-			.OnClicked_Lambda([WeakSocket]() -> FReply
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowNameTip", "Click to select this connector in the viewport"))
+			.OnClicked_Lambda([WeakConnector]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
 					if (GEditor)
 					{
@@ -746,31 +772,35 @@ TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComp
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(FString::Printf(TEXT("%s [%s]"),
-					*Socket->SocketName.ToString(),
-					*Socket->SocketType.ToString())))
+					*ConnectorComp->ConnectorName.ToString(),
+					*ConnectorComp->ConnectorType.ToString())))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(TextColor))
 			]
 		]
-		// Direction toggle button
+		// Polarity cycling button
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.VAlign(VAlign_Center)
 		.Padding(2, 0)
 		[
 			SNew(SButton)
-			.Text(Socket->bIsOutputSocket
-				? NSLOCTEXT("PCGExValency", "OutArrow", ">>")
-				: NSLOCTEXT("PCGExValency", "InArrow", "<<"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketRowDirTip", "Toggle between providing connections (arrow outward) and receiving connections (arrow inward)"))
+			.Text(GetCompactPolarityLabel(ConnectorComp->Polarity))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowPolarityTip", "Cycle polarity: Universal (connects to any), Plug (outward), Port (inward)"))
 			.ContentPadding(FMargin(4, 1))
-			.OnClicked_Lambda([WeakSocket, WeakMode]() -> FReply
+			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleDir", "Toggle Socket Direction"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CyclePolarity", "Cycle Connector Polarity"));
 					S->Modify();
-					S->bIsOutputSocket = !S->bIsOutputSocket;
+					// Universal -> Plug -> Port -> Universal
+					switch (S->Polarity)
+					{
+					case EPCGExConnectorPolarity::Universal: S->Polarity = EPCGExConnectorPolarity::Plug; break;
+					case EPCGExConnectorPolarity::Plug:      S->Polarity = EPCGExConnectorPolarity::Port; break;
+					case EPCGExConnectorPolarity::Port:      S->Polarity = EPCGExConnectorPolarity::Universal; break;
+					}
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -791,13 +821,13 @@ TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComp
 		.Padding(2, 0)
 		[
 			SNew(SCheckBox)
-			.IsChecked(Socket->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketRowEnabledTip", "Enable/disable this socket"))
-			.OnCheckStateChanged_Lambda([WeakSocket, WeakMode](ECheckBoxState NewState)
+			.IsChecked(ConnectorComp->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowEnabledTip", "Enable/disable this connector"))
+			.OnCheckStateChanged_Lambda([WeakConnector, WeakMode](ECheckBoxState NewState)
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Socket Enabled"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Connector Enabled"));
 					S->Modify();
 					S->bEnabled = (NewState == ECheckBoxState::Checked);
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
@@ -820,15 +850,15 @@ TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComp
 		[
 			SNew(SButton)
 			.Text(NSLOCTEXT("PCGExValency", "RemoveX", "x"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "SocketRowRemoveTip", "Remove this socket"))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowRemoveTip", "Remove this connector"))
 			.ContentPadding(FMargin(4, 1))
-			.OnClicked_Lambda([WeakSocket, WeakMode]() -> FReply
+			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
 			{
-				if (UPCGExValencyCageSocketComponent* S = WeakSocket.Get())
+				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
 					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 					{
-						Mode->RemoveSocket(S);
+						Mode->RemoveConnector(S);
 					}
 				}
 				return FReply::Handled();
@@ -836,14 +866,14 @@ TSharedRef<SWidget> SValencyInspector::MakeSocketRow(UPCGExValencyCageSocketComp
 		];
 }
 
-TSharedRef<SWidget> SValencyInspector::MakeAddSocketButton(APCGExValencyCageBase* Cage)
+TSharedRef<SWidget> SValencyInspector::MakeAddConnectorButton(APCGExValencyCageBase* Cage)
 {
 	TWeakObjectPtr<APCGExValencyCageBase> WeakCage(Cage);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
 	return SNew(SButton)
-		.Text(NSLOCTEXT("PCGExValency", "AddSocket", "+ Add"))
-		.ToolTipText(NSLOCTEXT("PCGExValency", "AddSocketTip", "Add a new socket to this cage (Ctrl+Shift+A)"))
+		.Text(NSLOCTEXT("PCGExValency", "AddConnector", "+ Add"))
+		.ToolTipText(NSLOCTEXT("PCGExValency", "AddConnectorTip", "Add a new connector to this cage (Ctrl+Shift+A)"))
 		.ContentPadding(FMargin(4, 1))
 		.OnClicked_Lambda([WeakCage, WeakMode]() -> FReply
 		{
@@ -851,7 +881,7 @@ TSharedRef<SWidget> SValencyInspector::MakeAddSocketButton(APCGExValencyCageBase
 			{
 				if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 				{
-					Mode->AddSocketToCage(C);
+					Mode->AddConnectorToCage(C);
 				}
 			}
 			return FReply::Handled();

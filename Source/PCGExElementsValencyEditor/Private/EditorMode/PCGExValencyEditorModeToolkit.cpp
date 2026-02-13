@@ -22,10 +22,10 @@
 void FValencyEditorCommands::RegisterCommands()
 {
 	UI_COMMAND(CleanupConnections, "Cleanup Connections", "Remove stale manual connections from all cages", EUserInterfaceActionType::Button, FInputChord(EKeys::C, EModifierKey::Control | EModifierKey::Shift));
-	UI_COMMAND(AddSocket, "Add Socket", "Add a new socket to the selected cage", EUserInterfaceActionType::Button, FInputChord(EKeys::A, EModifierKey::Control | EModifierKey::Shift));
-	UI_COMMAND(RemoveSocket, "Remove Socket", "Remove the selected socket component", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete));
-	UI_COMMAND(DuplicateSocket, "Duplicate Socket", "Duplicate the selected socket with offset", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control));
-	UI_COMMAND(ToggleSocketDirection, "Toggle Socket Direction", "Flip socket between Input and Output", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control | EModifierKey::Shift));
+	UI_COMMAND(AddConnector, "Add Connector", "Add a new connector to the selected cage", EUserInterfaceActionType::Button, FInputChord(EKeys::A, EModifierKey::Control | EModifierKey::Shift));
+	UI_COMMAND(RemoveConnector, "Remove Connector", "Remove the selected connector component", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete));
+	UI_COMMAND(DuplicateConnector, "Duplicate Connector", "Duplicate the selected connector with offset", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control));
+	UI_COMMAND(CycleConnectorPolarity, "Cycle Connector Polarity", "Cycle polarity: Universal, Plug, Port", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control | EModifierKey::Shift));
 }
 
 #pragma endregion

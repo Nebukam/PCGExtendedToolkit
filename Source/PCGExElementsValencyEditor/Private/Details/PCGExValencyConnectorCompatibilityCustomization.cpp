@@ -1,13 +1,13 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Details/PCGExValencySocketCompatibilityCustomization.h"
+#include "Details/PCGExValencyConnectorCompatibilityCustomization.h"
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SComboButton.h"
@@ -20,16 +20,16 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SSeparator.h"
 
-#define LOCTEXT_NAMESPACE "PCGExValencySocketCompatibility"
+#define LOCTEXT_NAMESPACE "PCGExValencyConnectorCompatibility"
 
-#pragma region FPCGExValencySocketDefinitionCustomization
+#pragma region FPCGExValencyConnectorEntryCustomization
 
-TSharedRef<IPropertyTypeCustomization> FPCGExValencySocketDefinitionCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExValencyConnectorEntryCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExValencySocketDefinitionCustomization());
+	return MakeShareable(new FPCGExValencyConnectorEntryCustomization());
 }
 
-void FPCGExValencySocketDefinitionCustomization::CustomizeHeader(
+void FPCGExValencyConnectorEntryCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
@@ -40,15 +40,14 @@ void FPCGExValencySocketDefinitionCustomization::CustomizeHeader(
 	];
 }
 
-void FPCGExValencySocketDefinitionCustomization::CustomizeChildren(
+void FPCGExValencyConnectorEntryCustomization::CustomizeChildren(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	UPCGExValencySocketRules* SocketRules = GetOuterSocketRules(PropertyHandle);
+	UPCGExValencyConnectorSet* ConnectorSet = GetOuterConnectorSet(PropertyHandle);
 
-	// Get the TypeId for this socket definition
-	TSharedPtr<IPropertyHandle> TypeIdHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, TypeId));
+	TSharedPtr<IPropertyHandle> TypeIdHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExValencyConnectorEntry, TypeId));
 	int32 CurrentTypeId = 0;
 	if (TypeIdHandle.IsValid())
 	{
@@ -68,14 +67,12 @@ void FPCGExValencySocketDefinitionCustomization::CustomizeChildren(
 
 		const FName PropertyName = ChildHandle->GetProperty()->GetFName();
 
-		// Hide TypeId (internal)
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, TypeId))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencyConnectorEntry, TypeId))
 		{
 			continue;
 		}
 
-		// Custom widget for CompatibleTypeIds
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, CompatibleTypeIds))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencyConnectorEntry, CompatibleTypeIds))
 		{
 			ChildBuilder.AddCustomRow(LOCTEXT("CompatibleWith", "Compatible With"))
 				.NameContent()
@@ -87,41 +84,40 @@ void FPCGExValencySocketDefinitionCustomization::CustomizeChildren(
 				.ValueContent()
 				.MinDesiredWidth(200)
 				[
-					BuildCompatibilityDropdown(ChildHandle, SocketRules, CurrentTypeId)
+					BuildCompatibilityDropdown(ChildHandle, ConnectorSet, CurrentTypeId)
 				];
 		}
 		else
 		{
-			// Default display for other properties
 			ChildBuilder.AddProperty(ChildHandle.ToSharedRef());
 		}
 	}
 }
 
-UPCGExValencySocketRules* FPCGExValencySocketDefinitionCustomization::GetOuterSocketRules(TSharedRef<IPropertyHandle> PropertyHandle) const
+UPCGExValencyConnectorSet* FPCGExValencyConnectorEntryCustomization::GetOuterConnectorSet(TSharedRef<IPropertyHandle> PropertyHandle) const
 {
 	TArray<UObject*> OuterObjects;
 	PropertyHandle->GetOuterObjects(OuterObjects);
 
 	for (UObject* Outer : OuterObjects)
 	{
-		if (UPCGExValencySocketRules* SocketRules = Cast<UPCGExValencySocketRules>(Outer))
+		if (UPCGExValencyConnectorSet* ConnectorSet = Cast<UPCGExValencyConnectorSet>(Outer))
 		{
-			return SocketRules;
+			return ConnectorSet;
 		}
 	}
 
 	return nullptr;
 }
 
-TSharedRef<SWidget> FPCGExValencySocketDefinitionCustomization::BuildCompatibilityDropdown(
+TSharedRef<SWidget> FPCGExValencyConnectorEntryCustomization::BuildCompatibilityDropdown(
 	TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-	UPCGExValencySocketRules* SocketRules,
+	UPCGExValencyConnectorSet* ConnectorSet,
 	int32 CurrentTypeId)
 {
-	if (!SocketRules)
+	if (!ConnectorSet)
 	{
-		return SNew(STextBlock).Text(LOCTEXT("NoSocketRules", "No Socket Rules"));
+		return SNew(STextBlock).Text(LOCTEXT("NoConnectorSet", "No Connector Set"));
 	}
 
 	TSharedRef<SComboButton> ComboButton = SNew(SComboButton)
@@ -130,33 +126,32 @@ TSharedRef<SWidget> FPCGExValencySocketDefinitionCustomization::BuildCompatibili
 		.ButtonContent()
 		[
 			SNew(STextBlock)
-			.Text_Lambda([this, CompatibleTypeIdsHandle, SocketRules]()
+			.Text_Lambda([this, CompatibleTypeIdsHandle, ConnectorSet]()
 			{
-				return GetCompatibilitySummary(CompatibleTypeIdsHandle, SocketRules);
+				return GetCompatibilitySummary(CompatibleTypeIdsHandle, ConnectorSet);
 			})
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.MenuContent()
 		[
-			SNew(SValencySocketCompatibilityDropdown)
+			SNew(SValencyConnectorCompatibilityDropdown)
 			.CompatibleTypeIdsHandle(CompatibleTypeIdsHandle)
-			.SocketRules(SocketRules)
+			.ConnectorSet(ConnectorSet)
 			.CurrentTypeId(CurrentTypeId)
 		];
 
 	return ComboButton;
 }
 
-FText FPCGExValencySocketDefinitionCustomization::GetCompatibilitySummary(
+FText FPCGExValencyConnectorEntryCustomization::GetCompatibilitySummary(
 	TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-	UPCGExValencySocketRules* SocketRules) const
+	UPCGExValencyConnectorSet* ConnectorSet) const
 {
-	if (!CompatibleTypeIdsHandle.IsValid() || !SocketRules)
+	if (!CompatibleTypeIdsHandle.IsValid() || !ConnectorSet)
 	{
 		return LOCTEXT("None", "None");
 	}
 
-	// Get the array of compatible type IDs
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
 	if (!ArrayHandle.IsValid())
 	{
@@ -171,23 +166,21 @@ FText FPCGExValencySocketDefinitionCustomization::GetCompatibilitySummary(
 		return LOCTEXT("None", "None");
 	}
 
-	// Build summary string
 	TArray<FString> TypeNames;
-	for (uint32 i = 0; i < NumElements && i < 3; ++i) // Show max 3 names
+	for (uint32 i = 0; i < NumElements && i < 3; ++i)
 	{
 		TSharedRef<IPropertyHandle> ElementHandle = ArrayHandle->GetElement(i);
 		int32 TypeId = 0;
 		ElementHandle->GetValue(TypeId);
 
-		const FText DisplayName = SocketRules->GetSocketTypeDisplayNameById(TypeId);
-		if (!DisplayName.IsEmpty() && !DisplayName.EqualTo(FText::FromName(NAME_None)))
+		const FText DisplayNameText = ConnectorSet->GetConnectorTypeDisplayNameById(TypeId);
+		if (!DisplayNameText.IsEmpty() && !DisplayNameText.EqualTo(FText::FromName(NAME_None)))
 		{
-			TypeNames.Add(DisplayName.ToString());
+			TypeNames.Add(DisplayNameText.ToString());
 		}
 		else
 		{
-			// Try to find index for unnamed type
-			const int32 TypeIndex = SocketRules->FindSocketTypeIndexById(TypeId);
+			const int32 TypeIndex = ConnectorSet->FindConnectorTypeIndexById(TypeId);
 			if (TypeIndex != INDEX_NONE)
 			{
 				TypeNames.Add(FString::Printf(TEXT("Type %d"), TypeIndex));
@@ -211,18 +204,17 @@ FText FPCGExValencySocketDefinitionCustomization::GetCompatibilitySummary(
 
 #pragma endregion
 
-#pragma region SValencySocketCompatibilityDropdown
+#pragma region SValencyConnectorCompatibilityDropdown
 
-void SValencySocketCompatibilityDropdown::Construct(const FArguments& InArgs)
+void SValencyConnectorCompatibilityDropdown::Construct(const FArguments& InArgs)
 {
 	CompatibleTypeIdsHandle = InArgs._CompatibleTypeIdsHandle;
-	SocketRulesWeak = InArgs._SocketRules;
+	ConnectorSetWeak = InArgs._ConnectorSet;
 	CurrentTypeId = InArgs._CurrentTypeId;
 
 	ChildSlot
 	[
 		SNew(SVerticalBox)
-		// Search box (shown if >16 types)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(4, 2)
@@ -230,12 +222,11 @@ void SValencySocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 			SNew(SSearchBox)
 			.Visibility_Lambda([this]()
 			{
-				UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
-				return (Rules && Rules->SocketTypes.Num() > 16) ? EVisibility::Visible : EVisibility::Collapsed;
+				UPCGExValencyConnectorSet* Rules = ConnectorSetWeak.Get();
+				return (Rules && Rules->ConnectorTypes.Num() > 16) ? EVisibility::Visible : EVisibility::Collapsed;
 			})
-			.OnTextChanged(this, &SValencySocketCompatibilityDropdown::OnSearchTextChanged)
+			.OnTextChanged(this, &SValencyConnectorCompatibilityDropdown::OnSearchTextChanged)
 		]
-		// Quick action buttons
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(4, 2)
@@ -268,14 +259,12 @@ void SValencySocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 				.OnClicked_Lambda([this]() { OnClearAll(); return FReply::Handled(); })
 			]
 		]
-		// Separator
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(4, 2)
 		[
 			SNew(SSeparator)
 		]
-		// Scrollable checkbox list
 		+ SVerticalBox::Slot()
 		.MaxHeight(300)
 		[
@@ -290,37 +279,35 @@ void SValencySocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 	RebuildCheckboxList();
 }
 
-void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
+void SValencyConnectorCompatibilityDropdown::RebuildCheckboxList()
 {
 	CheckboxContainer->ClearChildren();
 
-	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
-	if (!SocketRules)
+	UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get();
+	if (!ConnectorSet)
 	{
 		return;
 	}
 
-	for (int32 i = 0; i < SocketRules->SocketTypes.Num(); ++i)
+	for (int32 i = 0; i < ConnectorSet->ConnectorTypes.Num(); ++i)
 	{
-		const FPCGExValencySocketDefinition& TypeDef = SocketRules->SocketTypes[i];
-		const FString DisplayName = TypeDef.GetDisplayName().ToString();
+		const FPCGExValencyConnectorEntry& TypeDef = ConnectorSet->ConnectorTypes[i];
+		const FString DisplayNameStr = TypeDef.GetDisplayName().ToString();
 
-		// Apply search filter
-		if (!SearchFilter.IsEmpty() && !DisplayName.Contains(SearchFilter, ESearchCase::IgnoreCase))
+		if (!SearchFilter.IsEmpty() && !DisplayNameStr.Contains(SearchFilter, ESearchCase::IgnoreCase))
 		{
 			continue;
 		}
 
 		const int32 TypeId = TypeDef.TypeId;
 		const bool bIsSelf = (TypeId == CurrentTypeId);
-		const int32 TypeIndex = i; // Capture index for lambda
+		const int32 TypeIndex = i;
 
 		CheckboxContainer->AddSlot()
 		.AutoHeight()
 		.Padding(4, 1)
 		[
 			SNew(SHorizontalBox)
-			// Color dot indicator (rounded)
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
@@ -331,10 +318,10 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 				.DesiredSizeOverride(FVector2D(10, 10))
 				.ColorAndOpacity_Lambda([this, TypeIndex]()
 				{
-					UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
-					if (Rules && Rules->SocketTypes.IsValidIndex(TypeIndex))
+					UPCGExValencyConnectorSet* Rules = ConnectorSetWeak.Get();
+					if (Rules && Rules->ConnectorTypes.IsValidIndex(TypeIndex))
 					{
-						return FSlateColor(Rules->SocketTypes[TypeIndex].DebugColor);
+						return FSlateColor(Rules->ConnectorTypes[TypeIndex].DebugColor);
 					}
 					return FSlateColor(FLinearColor::White);
 				})
@@ -353,51 +340,49 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 					ToggleTypeCompatibility(TypeId);
 				})
 			]
-			// Fixed-width symbol column for alignment
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			.Padding(4, 0, 0, 0)
 			[
 				SNew(SBox)
-				.WidthOverride(18) // Fixed width for symbol
+				.WidthOverride(18)
 				.HAlign(HAlign_Center)
 				[
 					SNew(STextBlock)
 					.Text_Lambda([this, TypeIndex, bIsSelf]()
 					{
-						UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
-						if (!Rules || !Rules->SocketTypes.IsValidIndex(TypeIndex))
+						UPCGExValencyConnectorSet* Rules = ConnectorSetWeak.Get();
+						if (!Rules || !Rules->ConnectorTypes.IsValidIndex(TypeIndex))
 						{
 							return FText::FromString(TEXT(" "));
 						}
 
-						const FPCGExValencySocketDefinition& TypeDef = Rules->SocketTypes[TypeIndex];
-						const bool bWeConnectToThem = IsTypeCompatible(TypeDef.TypeId);
-						const bool bTheyConnectToUs = DoesTypeConnectToUs(TypeDef.TypeId);
+						const FPCGExValencyConnectorEntry& TypeDef2 = Rules->ConnectorTypes[TypeIndex];
+						const bool bWeConnectToThem = IsTypeCompatible(TypeDef2.TypeId);
+						const bool bTheyConnectToUs = DoesTypeConnectToUs(TypeDef2.TypeId);
 
 						if (bIsSelf)
 						{
-							return FText::FromString(TEXT("\u25C9")); // ◉ self
+							return FText::FromString(TEXT("\u25C9"));
 						}
 						else if (bWeConnectToThem && bTheyConnectToUs)
 						{
-							return FText::FromString(TEXT("\u2194")); // ↔ bidirectional
+							return FText::FromString(TEXT("\u2194"));
 						}
 						else if (bWeConnectToThem)
 						{
-							return FText::FromString(TEXT("\u2192")); // → outgoing
+							return FText::FromString(TEXT("\u2192"));
 						}
 						else if (bTheyConnectToUs)
 						{
-							return FText::FromString(TEXT("\u2190")); // ← incoming
+							return FText::FromString(TEXT("\u2190"));
 						}
-						return FText::FromString(TEXT("\u25CB")); // ○ no connection
+						return FText::FromString(TEXT("\u25CB"));
 					})
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			]
-			// Type name
 			+ SHorizontalBox::Slot()
 			.FillWidth(1.0f)
 			.VAlign(VAlign_Center)
@@ -406,32 +391,28 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 				SNew(STextBlock)
 				.Text_Lambda([this, TypeIndex, bIsSelf]()
 				{
-					UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
-					if (!Rules || !Rules->SocketTypes.IsValidIndex(TypeIndex))
+					UPCGExValencyConnectorSet* Rules = ConnectorSetWeak.Get();
+					if (!Rules || !Rules->ConnectorTypes.IsValidIndex(TypeIndex))
 					{
 						return LOCTEXT("InvalidType", "<invalid>");
 					}
 
-					const FPCGExValencySocketDefinition& TypeDef = Rules->SocketTypes[TypeIndex];
-
-					// Get display name
+					const FPCGExValencyConnectorEntry& TypeDef2 = Rules->ConnectorTypes[TypeIndex];
 					FString Name;
-					const FText DisplayNameText = TypeDef.GetDisplayName();
-					if (!DisplayNameText.IsEmpty() && !DisplayNameText.EqualTo(FText::FromName(NAME_None)))
+					const FText DisplayNameText2 = TypeDef2.GetDisplayName();
+					if (!DisplayNameText2.IsEmpty() && !DisplayNameText2.EqualTo(FText::FromName(NAME_None)))
 					{
-						Name = DisplayNameText.ToString();
+						Name = DisplayNameText2.ToString();
 					}
 					else
 					{
 						Name = FString::Printf(TEXT("Type %d"), TypeIndex);
 					}
-
 					return FText::FromString(Name);
 				})
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 				.ColorAndOpacity_Lambda([bIsSelf]()
 				{
-					// Dim self, normal for others
 					if (bIsSelf)
 					{
 						return FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.0f));
@@ -443,77 +424,50 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 	}
 }
 
-void SValencySocketCompatibilityDropdown::OnSearchTextChanged(const FText& NewText)
+void SValencyConnectorCompatibilityDropdown::OnSearchTextChanged(const FText& NewText)
 {
 	SearchFilter = NewText.ToString();
 	RebuildCheckboxList();
 }
 
-bool SValencySocketCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
+bool SValencyConnectorCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
 {
-	if (!CompatibleTypeIdsHandle.IsValid())
-	{
-		return false;
-	}
-
+	if (!CompatibleTypeIdsHandle.IsValid()) return false;
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
-	if (!ArrayHandle.IsValid())
-	{
-		return false;
-	}
+	if (!ArrayHandle.IsValid()) return false;
 
 	uint32 NumElements = 0;
 	ArrayHandle->GetNumElements(NumElements);
-
 	for (uint32 i = 0; i < NumElements; ++i)
 	{
 		TSharedRef<IPropertyHandle> ElementHandle = ArrayHandle->GetElement(i);
 		int32 StoredTypeId = 0;
 		ElementHandle->GetValue(StoredTypeId);
-		if (StoredTypeId == TypeId)
-		{
-			return true;
-		}
+		if (StoredTypeId == TypeId) return true;
 	}
-
 	return false;
 }
 
-bool SValencySocketCompatibilityDropdown::DoesTypeConnectToUs(int32 OtherTypeId) const
+bool SValencyConnectorCompatibilityDropdown::DoesTypeConnectToUs(int32 OtherTypeId) const
 {
-	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
-	if (!SocketRules)
-	{
-		return false;
-	}
-
-	// Find the other type's definition and check if it has us in its compatible list
-	for (const FPCGExValencySocketDefinition& TypeDef : SocketRules->SocketTypes)
+	UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get();
+	if (!ConnectorSet) return false;
+	for (const FPCGExValencyConnectorEntry& TypeDef : ConnectorSet->ConnectorTypes)
 	{
 		if (TypeDef.TypeId == OtherTypeId)
 		{
-			// Check if CurrentTypeId is in their CompatibleTypeIds
 			return TypeDef.CompatibleTypeIds.Contains(CurrentTypeId);
 		}
 	}
-
 	return false;
 }
 
-void SValencySocketCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
+void SValencyConnectorCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
 {
-	if (!CompatibleTypeIdsHandle.IsValid())
-	{
-		return;
-	}
-
+	if (!CompatibleTypeIdsHandle.IsValid()) return;
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
-	if (!ArrayHandle.IsValid())
-	{
-		return;
-	}
+	if (!ArrayHandle.IsValid()) return;
 
-	// Check if already in list
 	uint32 NumElements = 0;
 	ArrayHandle->GetNumElements(NumElements);
 
@@ -532,44 +486,32 @@ void SValencySocketCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
 
 	if (FoundIndex != INDEX_NONE)
 	{
-		// Remove from list
 		ArrayHandle->DeleteItem(FoundIndex);
 	}
 	else
 	{
-		// Add to list
 		ArrayHandle->AddItem();
 		ArrayHandle->GetNumElements(NumElements);
 		TSharedRef<IPropertyHandle> NewElement = ArrayHandle->GetElement(NumElements - 1);
 		NewElement->SetValue(TypeId);
 	}
 
-	// Trigger compile on the outer object
-	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
+	if (UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get())
 	{
-		SocketRules->Compile();
-		SocketRules->MarkPackageDirty();
+		ConnectorSet->Compile();
+		ConnectorSet->MarkPackageDirty();
 	}
 }
 
-void SValencySocketCompatibilityDropdown::OnSelectAll()
+void SValencyConnectorCompatibilityDropdown::OnSelectAll()
 {
-	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
-	if (!SocketRules || !CompatibleTypeIdsHandle.IsValid())
-	{
-		return;
-	}
-
+	UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get();
+	if (!ConnectorSet || !CompatibleTypeIdsHandle.IsValid()) return;
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
-	if (!ArrayHandle.IsValid())
-	{
-		return;
-	}
+	if (!ArrayHandle.IsValid()) return;
 
-	// Clear and add all type IDs
 	ArrayHandle->EmptyArray();
-
-	for (const FPCGExValencySocketDefinition& TypeDef : SocketRules->SocketTypes)
+	for (const FPCGExValencyConnectorEntry& TypeDef : ConnectorSet->ConnectorTypes)
 	{
 		ArrayHandle->AddItem();
 		uint32 NumElements = 0;
@@ -577,54 +519,32 @@ void SValencySocketCompatibilityDropdown::OnSelectAll()
 		TSharedRef<IPropertyHandle> NewElement = ArrayHandle->GetElement(NumElements - 1);
 		NewElement->SetValue(TypeDef.TypeId);
 	}
-
-	SocketRules->Compile();
-	SocketRules->MarkPackageDirty();
-
-	// Rebuild to refresh checkbox states
+	ConnectorSet->Compile();
+	ConnectorSet->MarkPackageDirty();
 	RebuildCheckboxList();
 }
 
-void SValencySocketCompatibilityDropdown::OnClearAll()
+void SValencyConnectorCompatibilityDropdown::OnClearAll()
 {
-	if (!CompatibleTypeIdsHandle.IsValid())
-	{
-		return;
-	}
-
+	if (!CompatibleTypeIdsHandle.IsValid()) return;
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
-	if (ArrayHandle.IsValid())
+	if (ArrayHandle.IsValid()) ArrayHandle->EmptyArray();
+	if (UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get())
 	{
-		ArrayHandle->EmptyArray();
+		ConnectorSet->Compile();
+		ConnectorSet->MarkPackageDirty();
 	}
-
-	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
-	{
-		SocketRules->Compile();
-		SocketRules->MarkPackageDirty();
-	}
-
-	// Rebuild to refresh checkbox states
 	RebuildCheckboxList();
 }
 
-void SValencySocketCompatibilityDropdown::OnSelfOnly()
+void SValencyConnectorCompatibilityDropdown::OnSelfOnly()
 {
-	if (!CompatibleTypeIdsHandle.IsValid())
-	{
-		return;
-	}
-
+	if (!CompatibleTypeIdsHandle.IsValid()) return;
 	TSharedPtr<IPropertyHandleArray> ArrayHandle = CompatibleTypeIdsHandle->AsArray();
-	if (!ArrayHandle.IsValid())
-	{
-		return;
-	}
+	if (!ArrayHandle.IsValid()) return;
 
-	// Clear and add only self
 	ArrayHandle->EmptyArray();
 	ArrayHandle->AddItem();
-
 	uint32 NumElements = 0;
 	ArrayHandle->GetNumElements(NumElements);
 	if (NumElements > 0)
@@ -632,14 +552,11 @@ void SValencySocketCompatibilityDropdown::OnSelfOnly()
 		TSharedRef<IPropertyHandle> NewElement = ArrayHandle->GetElement(0);
 		NewElement->SetValue(CurrentTypeId);
 	}
-
-	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
+	if (UPCGExValencyConnectorSet* ConnectorSet = ConnectorSetWeak.Get())
 	{
-		SocketRules->Compile();
-		SocketRules->MarkPackageDirty();
+		ConnectorSet->Compile();
+		ConnectorSet->MarkPackageDirty();
 	}
-
-	// Rebuild to refresh checkbox states
 	RebuildCheckboxList();
 }
 

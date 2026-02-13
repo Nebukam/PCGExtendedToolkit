@@ -19,7 +19,7 @@
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-#include "Components/PCGExValencyCageSocketComponent.h"
+#include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExValencyCageEditorMode)
@@ -75,24 +75,24 @@ void UPCGExValencyCageEditorMode::Enter()
 				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCleanupCommand));
 
 			CommandList->MapAction(
-				FValencyEditorCommands::Get().AddSocket,
-				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteAddSocket),
-				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteAddSocket));
+				FValencyEditorCommands::Get().AddConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteAddConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteAddConnector));
 
 			CommandList->MapAction(
-				FValencyEditorCommands::Get().RemoveSocket,
-				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteRemoveSocket),
-				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteRemoveSocket));
+				FValencyEditorCommands::Get().RemoveConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteRemoveConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteRemoveConnector));
 
 			CommandList->MapAction(
-				FValencyEditorCommands::Get().DuplicateSocket,
-				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteDuplicateSocket),
-				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteDuplicateSocket));
+				FValencyEditorCommands::Get().DuplicateConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteDuplicateConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteDuplicateConnector));
 
 			CommandList->MapAction(
-				FValencyEditorCommands::Get().ToggleSocketDirection,
-				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteToggleSocketDirection),
-				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteToggleSocketDirection));
+				FValencyEditorCommands::Get().CycleConnectorPolarity,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCycleConnectorPolarity),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteCycleConnectorPolarity));
 		}
 	}
 
@@ -228,14 +228,14 @@ void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* Rende
 		}
 	}
 
-	// Draw sockets for all cages
-	if (VisibilityFlags.bShowSockets)
+	// Draw connectors for all cages
+	if (VisibilityFlags.bShowConnectors)
 	{
 		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 		{
 			if (APCGExValencyCageBase* Cage = CagePtr.Get())
 			{
-				FPCGExValencyDrawHelper::DrawCageSockets(PDI, Cage);
+				FPCGExValencyDrawHelper::DrawCageConnectors(PDI, Cage);
 			}
 		}
 	}
@@ -805,9 +805,9 @@ bool UPCGExValencyCageEditorMode::ShouldDrawWidget() const
 	return true;
 }
 
-// ========== Socket Management ==========
+// ========== Connector Management ==========
 
-UPCGExValencyCageSocketComponent* UPCGExValencyCageEditorMode::GetSelectedSocket()
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::GetSelectedConnector()
 {
 	if (!GEditor)
 	{
@@ -818,9 +818,9 @@ UPCGExValencyCageSocketComponent* UPCGExValencyCageEditorMode::GetSelectedSocket
 	{
 		for (FSelectionIterator It(*CompSelection); It; ++It)
 		{
-			if (UPCGExValencyCageSocketComponent* Socket = Cast<UPCGExValencyCageSocketComponent>(*It))
+			if (UPCGExValencyCageConnectorComponent* Connector = Cast<UPCGExValencyCageConnectorComponent>(*It))
 			{
-				return Socket;
+				return Connector;
 			}
 		}
 	}
@@ -847,56 +847,56 @@ APCGExValencyCageBase* UPCGExValencyCageEditorMode::GetSelectedCage()
 	return nullptr;
 }
 
-UPCGExValencyCageSocketComponent* UPCGExValencyCageEditorMode::AddSocketToCage(APCGExValencyCageBase* Cage)
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::AddConnectorToCage(APCGExValencyCageBase* Cage)
 {
 	if (!Cage || !GEditor)
 	{
 		return nullptr;
 	}
 
-	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "AddSocket", "Add Socket"));
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "AddConnector", "Add Connector"));
 	Cage->Modify();
 
-	UPCGExValencyCageSocketComponent* NewSocket = NewObject<UPCGExValencyCageSocketComponent>(Cage, NAME_None, RF_Transactional);
-	NewSocket->CreationMethod = EComponentCreationMethod::Instance;
-	NewSocket->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	NewSocket->RegisterComponent();
-	Cage->AddInstanceComponent(NewSocket);
+	UPCGExValencyCageConnectorComponent* NewConnector = NewObject<UPCGExValencyCageConnectorComponent>(Cage, NAME_None, RF_Transactional);
+	NewConnector->CreationMethod = EComponentCreationMethod::Instance;
+	NewConnector->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	NewConnector->RegisterComponent();
+	Cage->AddInstanceComponent(NewConnector);
 
-	// Select the new socket
+	// Select the new connector
 	GEditor->SelectActor(Cage, true, true);
-	GEditor->SelectComponent(NewSocket, true, true);
+	GEditor->SelectComponent(NewConnector, true, true);
 
 	// Trigger rebuild and refresh
 	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 	OnSceneChanged.Broadcast();
 	RedrawViewports();
 
-	return NewSocket;
+	return NewConnector;
 }
 
-void UPCGExValencyCageEditorMode::RemoveSocket(UPCGExValencyCageSocketComponent* Socket)
+void UPCGExValencyCageEditorMode::RemoveConnector(UPCGExValencyCageConnectorComponent* Connector)
 {
-	if (!Socket || !GEditor)
+	if (!Connector || !GEditor)
 	{
 		return;
 	}
 
-	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Socket->GetOwner());
+	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner());
 	if (!Cage)
 	{
 		return;
 	}
 
-	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RemoveSocket", "Remove Socket"));
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RemoveConnector", "Remove Connector"));
 	Cage->Modify();
-	Socket->Modify();
+	Connector->Modify();
 
 	// Clear selection before destroy
-	GEditor->SelectComponent(Socket, false, true);
+	GEditor->SelectComponent(Connector, false, true);
 
-	Cage->RemoveInstanceComponent(Socket);
-	Socket->DestroyComponent();
+	Cage->RemoveInstanceComponent(Connector);
+	Connector->DestroyComponent();
 
 	// Trigger rebuild and refresh
 	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -904,105 +904,112 @@ void UPCGExValencyCageEditorMode::RemoveSocket(UPCGExValencyCageSocketComponent*
 	RedrawViewports();
 }
 
-UPCGExValencyCageSocketComponent* UPCGExValencyCageEditorMode::DuplicateSocket(UPCGExValencyCageSocketComponent* Socket)
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::DuplicateConnector(UPCGExValencyCageConnectorComponent* Connector)
 {
-	if (!Socket || !GEditor)
+	if (!Connector || !GEditor)
 	{
 		return nullptr;
 	}
 
-	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Socket->GetOwner());
+	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner());
 	if (!Cage)
 	{
 		return nullptr;
 	}
 
-	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "DuplicateSocket", "Duplicate Socket"));
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "DuplicateConnector", "Duplicate Connector"));
 	Cage->Modify();
 
-	UPCGExValencyCageSocketComponent* NewSocket = NewObject<UPCGExValencyCageSocketComponent>(Cage, NAME_None, RF_Transactional);
-	NewSocket->CreationMethod = EComponentCreationMethod::Instance;
-	NewSocket->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	NewSocket->RegisterComponent();
-	Cage->AddInstanceComponent(NewSocket);
+	UPCGExValencyCageConnectorComponent* NewConnector = NewObject<UPCGExValencyCageConnectorComponent>(Cage, NAME_None, RF_Transactional);
+	NewConnector->CreationMethod = EComponentCreationMethod::Instance;
+	NewConnector->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	NewConnector->RegisterComponent();
+	Cage->AddInstanceComponent(NewConnector);
 
 	// Copy properties from source
-	NewSocket->SocketType = Socket->SocketType;
-	NewSocket->bIsOutputSocket = Socket->bIsOutputSocket;
-	NewSocket->bEnabled = Socket->bEnabled;
-	NewSocket->DebugColorOverride = Socket->DebugColorOverride;
+	NewConnector->ConnectorType = Connector->ConnectorType;
+	NewConnector->Polarity = Connector->Polarity;
+	NewConnector->bEnabled = Connector->bEnabled;
+	NewConnector->DebugColorOverride = Connector->DebugColorOverride;
 
 	// Offset the duplicate slightly in local X
-	FTransform SourceTransform = Socket->GetRelativeTransform();
+	FTransform SourceTransform = Connector->GetRelativeTransform();
 	SourceTransform.AddToTranslation(FVector(20.0, 0.0, 0.0));
-	NewSocket->SetRelativeTransform(SourceTransform);
+	NewConnector->SetRelativeTransform(SourceTransform);
 
-	// Select the new socket
+	// Select the new connector
 	GEditor->SelectActor(Cage, true, true);
-	GEditor->SelectComponent(NewSocket, true, true);
+	GEditor->SelectComponent(NewConnector, true, true);
 
 	// Trigger rebuild and refresh
 	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 	OnSceneChanged.Broadcast();
 	RedrawViewports();
 
-	return NewSocket;
+	return NewConnector;
 }
 
-// ========== Socket Command Execute/CanExecute ==========
+// ========== Connector Command Execute/CanExecute ==========
 
-void UPCGExValencyCageEditorMode::ExecuteAddSocket()
+void UPCGExValencyCageEditorMode::ExecuteAddConnector()
 {
 	if (APCGExValencyCageBase* Cage = GetSelectedCage())
 	{
-		AddSocketToCage(Cage);
+		AddConnectorToCage(Cage);
 	}
 }
 
-bool UPCGExValencyCageEditorMode::CanExecuteAddSocket() const
+bool UPCGExValencyCageEditorMode::CanExecuteAddConnector() const
 {
 	return GetSelectedCage() != nullptr;
 }
 
-void UPCGExValencyCageEditorMode::ExecuteRemoveSocket()
+void UPCGExValencyCageEditorMode::ExecuteRemoveConnector()
 {
-	if (UPCGExValencyCageSocketComponent* Socket = GetSelectedSocket())
+	if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
 	{
-		RemoveSocket(Socket);
+		RemoveConnector(Connector);
 	}
 }
 
-bool UPCGExValencyCageEditorMode::CanExecuteRemoveSocket() const
+bool UPCGExValencyCageEditorMode::CanExecuteRemoveConnector() const
 {
-	return GetSelectedSocket() != nullptr;
+	return GetSelectedConnector() != nullptr;
 }
 
-void UPCGExValencyCageEditorMode::ExecuteDuplicateSocket()
+void UPCGExValencyCageEditorMode::ExecuteDuplicateConnector()
 {
-	if (UPCGExValencyCageSocketComponent* Socket = GetSelectedSocket())
+	if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
 	{
-		DuplicateSocket(Socket);
+		DuplicateConnector(Connector);
 	}
 }
 
-bool UPCGExValencyCageEditorMode::CanExecuteDuplicateSocket() const
+bool UPCGExValencyCageEditorMode::CanExecuteDuplicateConnector() const
 {
-	return GetSelectedSocket() != nullptr;
+	return GetSelectedConnector() != nullptr;
 }
 
-void UPCGExValencyCageEditorMode::ExecuteToggleSocketDirection()
+void UPCGExValencyCageEditorMode::ExecuteCycleConnectorPolarity()
 {
-	UPCGExValencyCageSocketComponent* Socket = GetSelectedSocket();
-	if (!Socket)
+	UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector();
+	if (!Connector)
 	{
 		return;
 	}
 
-	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleSocketDir", "Toggle Socket Direction"));
-	Socket->Modify();
-	Socket->bIsOutputSocket = !Socket->bIsOutputSocket;
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CycleConnectorPolarity", "Cycle Connector Polarity"));
+	Connector->Modify();
 
-	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Socket->GetOwner()))
+	// Cycle polarity: Universal -> Plug -> Port -> Universal
+	switch (Connector->Polarity)
+	{
+	case EPCGExConnectorPolarity::Universal: Connector->Polarity = EPCGExConnectorPolarity::Plug; break;
+	case EPCGExConnectorPolarity::Plug: Connector->Polarity = EPCGExConnectorPolarity::Port; break;
+	case EPCGExConnectorPolarity::Port: Connector->Polarity = EPCGExConnectorPolarity::Universal; break;
+	}
+
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
 	{
 		Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 	}
@@ -1011,7 +1018,7 @@ void UPCGExValencyCageEditorMode::ExecuteToggleSocketDirection()
 	RedrawViewports();
 }
 
-bool UPCGExValencyCageEditorMode::CanExecuteToggleSocketDirection() const
+bool UPCGExValencyCageEditorMode::CanExecuteCycleConnectorPolarity() const
 {
-	return GetSelectedSocket() != nullptr;
+	return GetSelectedConnector() != nullptr;
 }

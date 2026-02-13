@@ -1,0 +1,83 @@
+﻿// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/SceneComponent.h"
+#include "Core/PCGExValencyConnectorSet.h"
+
+#include "PCGExValencyCageConnectorComponent.generated.h"
+
+class UPCGExValencyConnectorSet;
+class UStaticMesh;
+
+/**
+ * A connector component attached to a Valency cage.
+ * Connectors are non-directional connection points that map to orbitals during compilation.
+ * Unlike orbitals (which are direction-based), connectors have explicit transforms and type identity.
+ */
+UCLASS(BlueprintType, ClassGroup = PCGEx, meta = (BlueprintSpawnableComponent), HideCategories = (Mobility, LOD, Collision, Physics, Rendering, Navigation, Cooking))
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageConnectorComponent : public USceneComponent
+{
+	GENERATED_BODY()
+
+public:
+	UPCGExValencyCageConnectorComponent();
+
+	//~ Begin UActorComponent Interface
+	virtual void OnRegister() override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~ End UActorComponent Interface
+
+	// ========== Connector Properties ==========
+
+	/** Connector instance name (unique per cage). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
+	FName ConnectorName;
+
+	/** Connector type (references ConnectorSet.ConnectorTypes). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
+	FName ConnectorType;
+
+	/** Connector polarity - determines connection compatibility */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
+	EPCGExConnectorPolarity Polarity = EPCGExConnectorPolarity::Universal;
+
+	/** Whether this connector is enabled (disabled connectors are ignored during compilation) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
+	bool bEnabled = true;
+
+	// ========== Mesh Integration ==========
+
+	/** Optional reference to a mesh socket name to inherit transform from. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector|Mesh Integration", AdvancedDisplay)
+	FName MeshSocketName;
+
+	/** If enabled, automatically match and inherit transform from a mesh socket. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector|Mesh Integration", AdvancedDisplay)
+	bool bMatchMeshSocketTransform = false;
+
+	/** If enabled, this connector component overrides any auto-extracted connector with the same name. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector|Mesh Integration", AdvancedDisplay)
+	bool bOverrideAutoExtracted = true;
+
+	// ========== Visualization ==========
+
+	/** Debug visualization color override. If (0,0,0,0), uses the color from ConnectorSet. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector|Visualization", AdvancedDisplay)
+	FLinearColor DebugColorOverride = FLinearColor(0, 0, 0, 0);
+
+	// ========== Methods ==========
+
+	FLinearColor GetEffectiveDebugColor(const UPCGExValencyConnectorSet* ConnectorSet) const;
+	FTransform GetConnectorWorldTransform() const { return GetComponentTransform(); }
+	FTransform GetConnectorLocalTransform() const { return GetRelativeTransform(); }
+	bool SyncTransformFromMeshSocket(UStaticMesh* Mesh);
+
+protected:
+	void GenerateDefaultConnectorName();
+	void RequestCageRebuild();
+};

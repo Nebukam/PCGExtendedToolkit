@@ -17,7 +17,7 @@ class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class FPCGExValencyEditorModeToolkit;
 class IToolsContextRenderAPI;
-class UPCGExValencyCageSocketComponent;
+class UPCGExValencyCageConnectorComponent;
 
 /** Delegate fired when the scene cache (cages/volumes/palettes) changes */
 DECLARE_MULTICAST_DELEGATE(FOnValencySceneChanged);
@@ -30,7 +30,7 @@ struct FValencyVisibilityFlags
 {
 	bool bShowConnections = true;
 	bool bShowLabels = true;
-	bool bShowSockets = true;
+	bool bShowConnectors = true;
 	bool bShowVolumes = true;
 	bool bShowGhostMeshes = true;
 	bool bShowPatterns = true;
@@ -72,19 +72,19 @@ public:
 	virtual bool ShouldDrawWidget() const override;
 	//~ End UBaseLegacyWidgetEdMode Widget Interface
 
-	// ========== Socket Management ==========
+	// ========== Connector Management ==========
 
-	/** Add a new socket to the given cage at its origin. Returns the new component. */
-	UPCGExValencyCageSocketComponent* AddSocketToCage(APCGExValencyCageBase* Cage);
+	/** Add a new connector to the given cage at its origin. Returns the new component. */
+	UPCGExValencyCageConnectorComponent* AddConnectorToCage(APCGExValencyCageBase* Cage);
 
-	/** Remove a socket component from its owning cage. */
-	void RemoveSocket(UPCGExValencyCageSocketComponent* Socket);
+	/** Remove a connector component from its owning cage. */
+	void RemoveConnector(UPCGExValencyCageConnectorComponent* Connector);
 
-	/** Duplicate a socket component with a small spatial offset. Returns the new component. */
-	UPCGExValencyCageSocketComponent* DuplicateSocket(UPCGExValencyCageSocketComponent* Socket);
+	/** Duplicate a connector component with a small spatial offset. Returns the new component. */
+	UPCGExValencyCageConnectorComponent* DuplicateConnector(UPCGExValencyCageConnectorComponent* Connector);
 
-	/** Get the currently selected socket component (from editor selection), or nullptr. */
-	static UPCGExValencyCageSocketComponent* GetSelectedSocket();
+	/** Get the currently selected connector component (from editor selection), or nullptr. */
+	static UPCGExValencyCageConnectorComponent* GetSelectedConnector();
 
 	/** Get the currently selected cage (from editor selection), or nullptr. */
 	static APCGExValencyCageBase* GetSelectedCage();
@@ -92,16 +92,16 @@ public:
 protected:
 	virtual void CreateToolkit() override;
 
-	// ========== Socket Command Execute/CanExecute ==========
+	// ========== Connector Command Execute/CanExecute ==========
 
-	void ExecuteAddSocket();
-	bool CanExecuteAddSocket() const;
-	void ExecuteRemoveSocket();
-	bool CanExecuteRemoveSocket() const;
-	void ExecuteDuplicateSocket();
-	bool CanExecuteDuplicateSocket() const;
-	void ExecuteToggleSocketDirection();
-	bool CanExecuteToggleSocketDirection() const;
+	void ExecuteAddConnector();
+	bool CanExecuteAddConnector() const;
+	void ExecuteRemoveConnector();
+	bool CanExecuteRemoveConnector() const;
+	void ExecuteDuplicateConnector();
+	bool CanExecuteDuplicateConnector() const;
+	void ExecuteCycleConnectorPolarity();
+	bool CanExecuteCycleConnectorPolarity() const;
 
 public:
 	/** Get the cached cages array */
