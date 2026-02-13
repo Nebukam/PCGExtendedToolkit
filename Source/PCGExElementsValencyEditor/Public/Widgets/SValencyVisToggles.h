@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
-class FPCGExValencyCageEditorMode;
+class UPCGExValencyCageEditorMode;
 
 /**
  * Compact horizontal row of toggle buttons for controlling viewport visualization layers.
@@ -16,13 +16,13 @@ class SValencyVisToggles : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SValencyVisToggles) {}
-		SLATE_ARGUMENT(FPCGExValencyCageEditorMode*, EditorMode)
+		SLATE_ARGUMENT(UPCGExValencyCageEditorMode*, EditorMode)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 private:
-	FPCGExValencyCageEditorMode* EditorMode = nullptr;
+	UPCGExValencyCageEditorMode* EditorMode = nullptr;
 
 	/** Create a single toggle button */
 	TSharedRef<SWidget> MakeToggleButton(const FText& Label, const FText& Tooltip, bool* FlagPtr);

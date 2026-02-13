@@ -7,7 +7,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/SListView.h"
 
-class FPCGExValencyCageEditorMode;
+class UPCGExValencyCageEditorMode;
 
 /**
  * Entry in the scene overview list.
@@ -40,7 +40,7 @@ class SValencySceneOverview : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SValencySceneOverview) {}
-		SLATE_ARGUMENT(FPCGExValencyCageEditorMode*, EditorMode)
+		SLATE_ARGUMENT(UPCGExValencyCageEditorMode*, EditorMode)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -49,7 +49,7 @@ public:
 	void RebuildList();
 
 private:
-	FPCGExValencyCageEditorMode* EditorMode = nullptr;
+	UPCGExValencyCageEditorMode* EditorMode = nullptr;
 
 	/** List entries */
 	TArray<TSharedPtr<FValencySceneEntry>> Entries;

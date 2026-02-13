@@ -3,12 +3,10 @@
 
 #include "PCGExElementsValencyEditor.h"
 
-#include "EditorModeRegistry.h"
 #include "PCGExAssetTypesMacros.h"
 #include "PropertyEditorModule.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
-#include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "EditorMode/PCGExValencyCageSocketVisualizer.h"
 #include "Components/PCGExValencyCageSocketComponent.h"
 #include "Details/PCGExPropertyOutputConfigCustomization.h"
@@ -18,13 +16,7 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
 
-	// Register Valency Cage editor mode
-	FEditorModeRegistry::Get().RegisterMode<FPCGExValencyCageEditorMode>(
-		FPCGExValencyCageEditorMode::ModeID,
-		NSLOCTEXT("PCGExValency", "ValencyCageModeName", "PCGEx | Valency"),
-		FSlateIcon(),
-		true // Visible in mode toolbar
-	);
+	// UEdMode-based editor mode is auto-discovered via CDO - no FEditorModeRegistry needed
 
 	// Register socket component visualizer
 	if (GUnrealEd)
@@ -49,8 +41,7 @@ void FPCGExElementsValencyEditorModule::ShutdownModule()
 			UPCGExValencyCageSocketComponent::StaticClass()->GetFName());
 	}
 
-	// Unregister editor mode
-	FEditorModeRegistry::Get().UnregisterMode(FPCGExValencyCageEditorMode::ModeID);
+	// UEdMode-based editor mode is auto-discovered via CDO - no unregister needed
 
 	IPCGExEditorModuleInterface::ShutdownModule();
 }

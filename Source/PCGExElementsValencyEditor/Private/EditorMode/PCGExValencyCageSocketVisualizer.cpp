@@ -37,10 +37,10 @@ void FPCGExValencyCageSocketVisualizer::DrawVisualization(const UActorComponent*
 	}
 
 	// Check if Valency mode is active and socket visibility is enabled
-	if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
+	if (GLevelEditorModeTools().IsModeActive(UPCGExValencyCageEditorMode::ModeID))
 	{
-		if (const FPCGExValencyCageEditorMode* Mode = static_cast<const FPCGExValencyCageEditorMode*>(
-			GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID)))
+		if (const UPCGExValencyCageEditorMode* Mode = Cast<UPCGExValencyCageEditorMode>(
+			GLevelEditorModeTools().GetActiveScriptableMode(UPCGExValencyCageEditorMode::ModeID)))
 		{
 			if (!Mode->GetVisibilityFlags().bShowSockets)
 			{

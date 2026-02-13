@@ -8,7 +8,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Layout/SScrollBox.h"
 
-class FPCGExValencyCageEditorMode;
+class UPCGExValencyCageEditorMode;
 
 /**
  * Root panel widget for the Valency editor mode side panel.
@@ -22,20 +22,20 @@ class SValencyModePanel : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SValencyModePanel) {}
-		SLATE_ARGUMENT(FPCGExValencyCageEditorMode*, EditorMode)
+		SLATE_ARGUMENT(UPCGExValencyCageEditorMode*, EditorMode)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 	/** Get the editor mode this panel operates on */
-	FPCGExValencyCageEditorMode* GetEditorMode() const { return EditorMode; }
+	UPCGExValencyCageEditorMode* GetEditorMode() const { return EditorMode; }
 
 	/** Rebuild all panel sections (called when scene changes) */
 	void RefreshPanel();
 
 private:
 	/** The editor mode we're attached to */
-	FPCGExValencyCageEditorMode* EditorMode = nullptr;
+	UPCGExValencyCageEditorMode* EditorMode = nullptr;
 
 	/** Root scroll box containing all sections */
 	TSharedPtr<SScrollBox> ScrollBox;
@@ -53,9 +53,6 @@ private:
 /**
  * Mode toolkit for the Valency editor mode.
  * Creates and manages the side panel that appears when the mode is active.
- *
- * Supports both the UEdMode Init path (via FModeToolkit::Init) and direct
- * construction from FEdMode (via SetEditorMode + EnsurePanelCreated).
  */
 class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyEditorModeToolkit : public FModeToolkit
 {
@@ -70,9 +67,6 @@ public:
 	virtual TSharedPtr<SWidget> GetInlineContent() const override;
 	//~ End FModeToolkit Interface
 
-	/** Set the editor mode directly (for FEdMode path where Init is not called with a valid UEdMode) */
-	void SetEditorMode(FPCGExValencyCageEditorMode* InMode);
-
 	/** Ensure the panel widget is created (lazy initialization) */
 	void EnsurePanelCreated();
 
@@ -80,9 +74,6 @@ public:
 	TSharedPtr<SValencyModePanel> GetPanelWidget() const { return PanelWidget; }
 
 private:
-	/** Cached editor mode pointer (for FEdMode path) */
-	FPCGExValencyCageEditorMode* CachedEditorMode = nullptr;
-
 	/** The root panel widget */
 	TSharedPtr<SValencyModePanel> PanelWidget;
 };

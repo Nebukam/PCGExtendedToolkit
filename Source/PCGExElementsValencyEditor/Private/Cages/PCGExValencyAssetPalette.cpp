@@ -514,7 +514,7 @@ void APCGExValencyAssetPalette::FindMirroringCages(TArray<APCGExValencyCage*>& O
 bool APCGExValencyAssetPalette::TriggerAutoRebuildForMirroringCages()
 {
 	// Use centralized reference tracker for recursive propagation
-	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
 		return Tracker->PropagateContentChange(this);
 	}

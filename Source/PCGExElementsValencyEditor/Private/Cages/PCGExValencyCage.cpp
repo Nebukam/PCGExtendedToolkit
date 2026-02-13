@@ -391,7 +391,7 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 	RequestRebuild(EValencyRebuildReason::AssetChange);
 
 	// Propagate to dependent cages/patterns (refreshes ghosts and triggers rebuild cascade)
-	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
 		Tracker->PropagateContentChange(this, /*bRefreshGhosts=*/true, /*bTriggerRebuild=*/true);
 	}
@@ -496,7 +496,7 @@ void APCGExValencyCage::OnPostEditChangeProperty(FPropertyChangedEvent& Property
 		}
 
 		// Notify tracker that our MirrorSources changed (incrementally updates dependency graph)
-		if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+		if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 		{
 			Tracker->OnMirrorSourcesChanged(this);
 		}
@@ -665,7 +665,7 @@ void APCGExValencyCage::FindMirroringCages(TArray<APCGExValencyCage*>& OutCages)
 bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
 {
 	// Use centralized reference tracker for recursive propagation
-	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
 		return Tracker->PropagateContentChange(this);
 	}

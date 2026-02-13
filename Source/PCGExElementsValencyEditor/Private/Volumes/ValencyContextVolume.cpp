@@ -511,7 +511,7 @@ void AValencyContextVolume::FindRelatedVolumes(TArray<AValencyContextVolume*>& O
 bool AValencyContextVolume::IsValencyModeActive()
 {
 #if WITH_EDITOR
-	if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
+	if (GLevelEditorModeTools().IsModeActive(UPCGExValencyCageEditorMode::ModeID))
 	{
 		return true;
 	}

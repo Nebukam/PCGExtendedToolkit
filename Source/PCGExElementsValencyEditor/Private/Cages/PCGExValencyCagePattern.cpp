@@ -60,7 +60,7 @@ void APCGExValencyCagePattern::OnPostEditChangeProperty(FPropertyChangedEvent& P
 		// Notify reference tracker when ProxiedCages changes (incrementally updates dependency graph)
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages))
 		{
-			if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+			if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 			{
 				Tracker->OnProxiedCagesChanged(this);
 			}

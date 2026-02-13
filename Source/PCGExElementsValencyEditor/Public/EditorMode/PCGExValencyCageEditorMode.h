@@ -4,10 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EdMode.h"
+#include "Tools/UEdMode.h"
+#include "Tools/LegacyEdModeInterfaces.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 #include "EditorMode/PCGExValencyReferenceTracker.h"
+
+#include "PCGExValencyCageEditorMode.generated.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
@@ -44,26 +47,54 @@ struct FValencyVisibilityFlags
  *
  * Configuration is stored in UPCGExValencyEditorSettings (Project Settings > Plugins > PCGEx Valency Editor).
  */
-class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageEditorMode : public FEdMode
+UCLASS()
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode
+	: public UEdMode
+	, public ILegacyEdModeWidgetInterface
+	, public ILegacyEdModeViewportInterface
 {
+	GENERATED_BODY()
+
 public:
 	/** Mode identifier */
 	static const FEditorModeID ModeID;
 
-	FPCGExValencyCageEditorMode();
-	virtual ~FPCGExValencyCageEditorMode() override;
+	UPCGExValencyCageEditorMode();
 
-	//~ Begin FEdMode Interface
+	//~ Begin UEdMode Interface
 	virtual void Enter() override;
 	virtual void Exit() override;
-	virtual bool UsesToolkits() const override { return true; }
+	virtual void ModeTick(float DeltaTime) override;
+	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
+	//~ End UEdMode Interface
+
+protected:
+	virtual void CreateToolkit() override;
+
+public:
+	//~ Begin ILegacyEdModeWidgetInterface
+	virtual bool AllowWidgetMove() override { return true; }
+	virtual bool CanCycleWidgetMode() const override { return false; }
+	virtual bool ShowModeWidgets() const override { return true; }
+	virtual EAxisList::Type GetWidgetAxisToDraw(UE::Widget::EWidgetMode InWidgetMode) const override { return EAxisList::All; }
+	virtual FVector GetWidgetLocation() const override { return FVector::ZeroVector; }
+	virtual bool ShouldDrawWidget() const override { return false; }
+	virtual bool UsesTransformWidget() const override { return true; }
+	virtual bool UsesTransformWidget(UE::Widget::EWidgetMode CheckMode) const override { return true; }
+	virtual FVector GetWidgetNormalFromCurrentAxis(void* InData) override { return FVector(0, 0, 1); }
+	virtual void SetCurrentWidgetAxis(EAxisList::Type InAxis) override { WidgetAxis = InAxis; }
+	virtual EAxisList::Type GetCurrentWidgetAxis() const override { return WidgetAxis; }
+	virtual bool UsesPropertyWidgets() const override { return false; }
+	virtual bool GetCustomDrawingCoordinateSystem(FMatrix& InMatrix, void* InData) override { return false; }
+	virtual bool GetCustomInputCoordinateSystem(FMatrix& InMatrix, void* InData) override { return false; }
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
 	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
+	//~ End ILegacyEdModeWidgetInterface
+
+	//~ Begin ILegacyEdModeViewportInterface
 	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
 	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
-	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
-	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
-	//~ End FEdMode Interface
+	//~ End ILegacyEdModeViewportInterface
 
 	/** Get the cached cages array */
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& GetCachedCages() const { return CachedCages; }
@@ -157,6 +188,9 @@ private:
 
 	/** Visibility toggle state for visualization layers */
 	FValencyVisibilityFlags VisibilityFlags;
+
+	/** Widget axis for ILegacyEdModeWidgetInterface */
+	EAxisList::Type WidgetAxis = EAxisList::None;
 
 	// ========== Delegate Handles ==========
 

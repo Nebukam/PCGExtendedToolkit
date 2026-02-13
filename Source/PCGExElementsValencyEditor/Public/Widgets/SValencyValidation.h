@@ -7,7 +7,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/SListView.h"
 
-class FPCGExValencyCageEditorMode;
+class UPCGExValencyCageEditorMode;
 
 /**
  * Validation message with severity and source.
@@ -35,7 +35,7 @@ class SValencyValidation : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SValencyValidation) {}
-		SLATE_ARGUMENT(FPCGExValencyCageEditorMode*, EditorMode)
+		SLATE_ARGUMENT(UPCGExValencyCageEditorMode*, EditorMode)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -44,7 +44,7 @@ public:
 	void RunValidation();
 
 private:
-	FPCGExValencyCageEditorMode* EditorMode = nullptr;
+	UPCGExValencyCageEditorMode* EditorMode = nullptr;
 
 	/** Validation messages */
 	TArray<TSharedPtr<FValencyValidationMessage>> Messages;

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
-class FPCGExValencyCageEditorMode;
+class UPCGExValencyCageEditorMode;
 
 /**
  * Context-sensitive inspector panel.
@@ -21,13 +21,13 @@ class SValencyInspector : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SValencyInspector) {}
-		SLATE_ARGUMENT(FPCGExValencyCageEditorMode*, EditorMode)
+		SLATE_ARGUMENT(UPCGExValencyCageEditorMode*, EditorMode)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 private:
-	FPCGExValencyCageEditorMode* EditorMode = nullptr;
+	UPCGExValencyCageEditorMode* EditorMode = nullptr;
 
 	/** Content switcher */
 	TSharedPtr<SWidget> ContentArea;

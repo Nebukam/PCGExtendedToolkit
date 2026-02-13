@@ -79,10 +79,10 @@ FValencyDirtyStateManager* APCGExValencyEditorActorBase::GetActiveDirtyStateMana
 #if WITH_EDITOR
 	if (GEditor)
 	{
-		if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
+		if (GLevelEditorModeTools().IsModeActive(UPCGExValencyCageEditorMode::ModeID))
 		{
-			if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(
-				GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID)))
+			if (UPCGExValencyCageEditorMode* Mode = Cast<UPCGExValencyCageEditorMode>(
+				GLevelEditorModeTools().GetActiveScriptableMode(UPCGExValencyCageEditorMode::ModeID)))
 			{
 				return &Mode->GetDirtyStateManager();
 			}

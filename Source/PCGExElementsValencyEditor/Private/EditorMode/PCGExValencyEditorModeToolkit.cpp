@@ -118,11 +118,6 @@ void FPCGExValencyEditorModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitTo
 	EnsurePanelCreated();
 }
 
-void FPCGExValencyEditorModeToolkit::SetEditorMode(FPCGExValencyCageEditorMode* InMode)
-{
-	CachedEditorMode = InMode;
-}
-
 void FPCGExValencyEditorModeToolkit::EnsurePanelCreated()
 {
 	if (PanelWidget.IsValid())
@@ -130,13 +125,8 @@ void FPCGExValencyEditorModeToolkit::EnsurePanelCreated()
 		return;
 	}
 
-	// Try to get the editor mode from cache or from the mode tools
-	FPCGExValencyCageEditorMode* ValencyMode = CachedEditorMode;
-	if (!ValencyMode && GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
-	{
-		ValencyMode = static_cast<FPCGExValencyCageEditorMode*>(
-			GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID));
-	}
+	// Get the editor mode via the UEdMode owning mode
+	UPCGExValencyCageEditorMode* ValencyMode = Cast<UPCGExValencyCageEditorMode>(GetScriptableEditorMode());
 
 	SAssignNew(PanelWidget, SValencyModePanel)
 		.EditorMode(ValencyMode);
