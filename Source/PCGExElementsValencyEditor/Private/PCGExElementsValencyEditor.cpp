@@ -7,6 +7,7 @@
 #include "PropertyEditorModule.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
+#include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "EditorMode/PCGExValencyCageSocketVisualizer.h"
 #include "Components/PCGExValencyCageSocketComponent.h"
 #include "Details/PCGExPropertyOutputConfigCustomization.h"
@@ -16,7 +17,8 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
 
-	// UEdMode-based editor mode is auto-discovered via CDO - no FEditorModeRegistry needed
+	// Register editor mode command bindings
+	FValencyEditorCommands::Register();
 
 	// Register socket component visualizer
 	if (GUnrealEd)
@@ -41,7 +43,8 @@ void FPCGExElementsValencyEditorModule::ShutdownModule()
 			UPCGExValencyCageSocketComponent::StaticClass()->GetFName());
 	}
 
-	// UEdMode-based editor mode is auto-discovered via CDO - no unregister needed
+	// Unregister editor mode command bindings
+	FValencyEditorCommands::Unregister();
 
 	IPCGExEditorModuleInterface::ShutdownModule();
 }

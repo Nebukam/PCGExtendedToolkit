@@ -14,6 +14,7 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Cages/PCGExValencyAssetPalette.h"
+#include "Engine/StaticMesh.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {

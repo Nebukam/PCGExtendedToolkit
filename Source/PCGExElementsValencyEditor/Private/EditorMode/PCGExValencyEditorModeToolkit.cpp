@@ -15,6 +15,17 @@
 #include "Widgets/SValencyInspector.h"
 #include "Widgets/SValencyValidation.h"
 
+#define LOCTEXT_NAMESPACE "ValencyEditor"
+
+#pragma region FValencyEditorCommands
+
+void FValencyEditorCommands::RegisterCommands()
+{
+	UI_COMMAND(CleanupConnections, "Cleanup Connections", "Remove stale manual connections from all cages", EUserInterfaceActionType::Button, FInputChord(EKeys::C, EModifierKey::Control | EModifierKey::Shift));
+}
+
+#pragma endregion
+
 #pragma region SValencyModePanel
 
 void SValencyModePanel::Construct(const FArguments& InArgs)
@@ -150,3 +161,5 @@ TSharedPtr<SWidget> FPCGExValencyEditorModeToolkit::GetInlineContent() const
 }
 
 #pragma endregion
+
+#undef LOCTEXT_NAMESPACE

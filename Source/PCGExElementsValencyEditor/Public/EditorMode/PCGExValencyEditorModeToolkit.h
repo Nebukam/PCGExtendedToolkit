@@ -4,11 +4,33 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Framework/Commands/Commands.h"
 #include "Toolkits/BaseToolkit.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Layout/SScrollBox.h"
 
 class UPCGExValencyCageEditorMode;
+
+/**
+ * Command bindings for the Valency editor mode.
+ * Registered in module startup, mapped in toolkit Init.
+ */
+class FValencyEditorCommands : public TCommands<FValencyEditorCommands>
+{
+public:
+	FValencyEditorCommands()
+		: TCommands<FValencyEditorCommands>(
+			TEXT("ValencyEditor"),
+			NSLOCTEXT("Contexts", "ValencyEditor", "Valency Editor"),
+			NAME_None,
+			FAppStyle::GetAppStyleSetName())
+	{
+	}
+
+	virtual void RegisterCommands() override;
+
+	TSharedPtr<FUICommandInfo> CleanupConnections;
+};
 
 /**
  * Root panel widget for the Valency editor mode side panel.

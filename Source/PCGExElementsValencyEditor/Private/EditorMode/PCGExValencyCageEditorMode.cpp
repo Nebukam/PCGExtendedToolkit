@@ -9,6 +9,8 @@
 #include "Selection.h"
 #include "LevelEditorViewport.h"
 #include "UnrealEdGlobals.h"
+#include "Tools/EdModeInteractiveToolsContext.h"
+#include "ToolContextInterfaces.h"
 
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "EditorMode/PCGExValencyEditorModeToolkit.h"
@@ -53,6 +55,25 @@ void UPCGExValencyCageEditorMode::Enter()
 {
 	UEdMode::Enter();
 
+	// Bind to ITF rendering delegates (available after UEdMode::Enter creates the ToolsContext)
+	if (UEditorInteractiveToolsContext* ToolsContext = GetInteractiveToolsContext())
+	{
+		OnRenderHandle = ToolsContext->OnRender.AddUObject(this, &UPCGExValencyCageEditorMode::OnRenderCallback);
+		OnDrawHUDHandle = ToolsContext->OnDrawHUD.AddUObject(this, &UPCGExValencyCageEditorMode::OnDrawHUDCallback);
+	}
+
+	// Register keyboard command bindings on the toolkit
+	if (Toolkit.IsValid())
+	{
+		TSharedPtr<FUICommandList> CommandList = Toolkit->GetToolkitCommands();
+		if (CommandList.IsValid())
+		{
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().CleanupConnections,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCleanupCommand));
+		}
+	}
+
 	// Bind to actor add/delete events to keep cache up to date
 	if (GEditor)
 	{
@@ -96,6 +117,15 @@ void UPCGExValencyCageEditorMode::Enter()
 
 void UPCGExValencyCageEditorMode::Exit()
 {
+	// Unbind ITF rendering delegates
+	if (UEditorInteractiveToolsContext* ToolsContext = GetInteractiveToolsContext())
+	{
+		ToolsContext->OnRender.Remove(OnRenderHandle);
+		ToolsContext->OnDrawHUD.Remove(OnDrawHUDHandle);
+	}
+	OnRenderHandle.Reset();
+	OnDrawHUDHandle.Reset();
+
 	// Unbind actor add/delete events
 	if (GEditor)
 	{
@@ -122,8 +152,9 @@ void UPCGExValencyCageEditorMode::Exit()
 	UEdMode::Exit();
 }
 
-void UPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
+void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* RenderAPI)
 {
+	FPrimitiveDrawInterface* PDI = RenderAPI->GetPrimitiveDrawInterface();
 	if (!PDI)
 	{
 		return;
@@ -176,8 +207,9 @@ void UPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 	}
 }
 
-void UPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas)
+void UPCGExValencyCageEditorMode::OnDrawHUDCallback(FCanvas* Canvas, IToolsContextRenderAPI* RenderAPI)
 {
+	const FSceneView* View = RenderAPI->GetSceneView();
 	if (!Canvas || !View)
 	{
 		return;
@@ -236,32 +268,15 @@ void UPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 	}
 }
 
-bool UPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
-{
-	// Don't consume clicks - let the standard selection system handle them
-	// This ensures volumes, palettes, and other actors remain selectable
-	return false;
-}
-
-bool UPCGExValencyCageEditorMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
-{
-	if (Event == IE_Pressed)
-	{
-		// Ctrl+Shift+C: Cleanup stale manual connections
-		if (Key == EKeys::C && ViewportClient->IsCtrlPressed() && ViewportClient->IsShiftPressed())
-		{
-			CleanupAllManualConnections();
-			return true;
-		}
-	}
-
-	return false;
-}
-
 bool UPCGExValencyCageEditorMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
 	// Allow selection of all actors
 	return true;
+}
+
+void UPCGExValencyCageEditorMode::ExecuteCleanupCommand()
+{
+	CleanupAllManualConnections();
 }
 
 void UPCGExValencyCageEditorMode::ModeTick(float DeltaTime)

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Tools/UEdMode.h"
-#include "Tools/LegacyEdModeInterfaces.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 #include "EditorMode/PCGExValencyReferenceTracker.h"
@@ -17,6 +16,7 @@ class APCGExValencyCage;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class FPCGExValencyEditorModeToolkit;
+class IToolsContextRenderAPI;
 
 /** Delegate fired when the scene cache (cages/volumes/palettes) changes */
 DECLARE_MULTICAST_DELEGATE(FOnValencySceneChanged);
@@ -41,17 +41,14 @@ struct FValencyVisibilityFlags
  *
  * This class orchestrates:
  * - Cache management for cages and volumes
- * - Visualization via FPCGExValencyDrawHelper
+ * - Visualization via FPCGExValencyDrawHelper (ITF render delegates)
  * - Asset tracking via FPCGExValencyAssetTracker
- * - Input handling and actor lifecycle events
+ * - Input handling via toolkit command bindings
  *
  * Configuration is stored in UPCGExValencyEditorSettings (Project Settings > Plugins > PCGEx Valency Editor).
  */
 UCLASS()
-class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode
-	: public UEdMode
-	, public ILegacyEdModeWidgetInterface
-	, public ILegacyEdModeViewportInterface
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode : public UEdMode
 {
 	GENERATED_BODY()
 
@@ -72,30 +69,6 @@ protected:
 	virtual void CreateToolkit() override;
 
 public:
-	//~ Begin ILegacyEdModeWidgetInterface
-	virtual bool AllowWidgetMove() override { return true; }
-	virtual bool CanCycleWidgetMode() const override { return false; }
-	virtual bool ShowModeWidgets() const override { return true; }
-	virtual EAxisList::Type GetWidgetAxisToDraw(UE::Widget::EWidgetMode InWidgetMode) const override { return EAxisList::All; }
-	virtual FVector GetWidgetLocation() const override { return FVector::ZeroVector; }
-	virtual bool ShouldDrawWidget() const override { return false; }
-	virtual bool UsesTransformWidget() const override { return true; }
-	virtual bool UsesTransformWidget(UE::Widget::EWidgetMode CheckMode) const override { return true; }
-	virtual FVector GetWidgetNormalFromCurrentAxis(void* InData) override { return FVector(0, 0, 1); }
-	virtual void SetCurrentWidgetAxis(EAxisList::Type InAxis) override { WidgetAxis = InAxis; }
-	virtual EAxisList::Type GetCurrentWidgetAxis() const override { return WidgetAxis; }
-	virtual bool UsesPropertyWidgets() const override { return false; }
-	virtual bool GetCustomDrawingCoordinateSystem(FMatrix& InMatrix, void* InData) override { return false; }
-	virtual bool GetCustomInputCoordinateSystem(FMatrix& InMatrix, void* InData) override { return false; }
-	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
-	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
-	//~ End ILegacyEdModeWidgetInterface
-
-	//~ Begin ILegacyEdModeViewportInterface
-	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
-	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
-	//~ End ILegacyEdModeViewportInterface
-
 	/** Get the cached cages array */
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& GetCachedCages() const { return CachedCages; }
 
@@ -127,6 +100,14 @@ public:
 	static FValencyReferenceTracker* GetActiveReferenceTracker();
 
 protected:
+	// ========== Rendering Callbacks (ITF delegates) ==========
+
+	/** 3D viewport rendering via Interactive Tools Framework */
+	void OnRenderCallback(IToolsContextRenderAPI* RenderAPI);
+
+	/** 2D HUD rendering via Interactive Tools Framework */
+	void OnDrawHUDCallback(FCanvas* Canvas, IToolsContextRenderAPI* RenderAPI);
+
 	// ========== Cache Management ==========
 
 	/** Collect all cages in the current level */
@@ -166,6 +147,9 @@ protected:
 	/** Cleanup stale manual connections from all cages */
 	int32 CleanupAllManualConnections();
 
+	/** Execute cleanup command (bound to toolkit command list) */
+	void ExecuteCleanupCommand();
+
 	/** Redraw all viewports and invalidate viewport clients */
 	void RedrawViewports();
 
@@ -189,15 +173,14 @@ private:
 	/** Visibility toggle state for visualization layers */
 	FValencyVisibilityFlags VisibilityFlags;
 
-	/** Widget axis for ILegacyEdModeWidgetInterface */
-	EAxisList::Type WidgetAxis = EAxisList::None;
-
 	// ========== Delegate Handles ==========
 
 	FDelegateHandle OnActorAddedHandle;
 	FDelegateHandle OnActorDeletedHandle;
 	FDelegateHandle OnSelectionChangedHandle;
 	FDelegateHandle OnPostUndoRedoHandle;
+	FDelegateHandle OnRenderHandle;
+	FDelegateHandle OnDrawHUDHandle;
 
 	// ========== Asset Tracking ==========
 

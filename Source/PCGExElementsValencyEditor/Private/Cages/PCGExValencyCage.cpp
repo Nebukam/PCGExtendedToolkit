@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Cages/PCGExValencyCage.h"
+
+#include "Editor.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Cages/PCGExValencyAssetUtils.h"
 
