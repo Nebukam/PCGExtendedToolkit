@@ -64,6 +64,7 @@ public:
 	virtual void Exit() override;
 	virtual void ModeTick(float DeltaTime) override;
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
+	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
 	//~ End UEdMode Interface
 
 	//~ Begin UBaseLegacyWidgetEdMode Widget Interface

@@ -9,6 +9,7 @@
 #include "EditorModeManager.h"
 
 #include "PCGExValencyEditorSettings.h"
+#include "Selection.h"
 #include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
@@ -126,8 +127,6 @@ bool FPCGExValencyCageConnectorVisualizer::VisProxyHandleClick(FEditorViewportCl
 		return false;
 	}
 
-	SelectedConnector = ConnectorComp;
-
 	if (GEditor && ConnectorComp->GetOwner())
 	{
 		GEditor->SelectActor(ConnectorComp->GetOwner(), true, true);
@@ -139,22 +138,34 @@ bool FPCGExValencyCageConnectorVisualizer::VisProxyHandleClick(FEditorViewportCl
 
 bool FPCGExValencyCageConnectorVisualizer::GetWidgetLocation(const FEditorViewportClient* ViewportClient, FVector& OutLocation) const
 {
-	if (SelectedConnector.IsValid())
+	// Derive widget location from editor selection — clears when actor is deselected
+	if (UPCGExValencyCageConnectorComponent* Connector = UPCGExValencyCageEditorMode::GetSelectedConnector())
 	{
-		OutLocation = SelectedConnector->GetComponentLocation();
-		return true;
+		// Only show widget if the owning actor is still selected
+		AActor* OwnerActor = Connector->GetOwner();
+		if (GEditor && OwnerActor && GEditor->GetSelectedActors()->IsSelected(OwnerActor))
+		{
+			OutLocation = Connector->GetComponentLocation();
+			return true;
+		}
 	}
 	return false;
 }
 
 bool FPCGExValencyCageConnectorVisualizer::HandleInputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& DeltaTranslate, FRotator& DeltaRotate, FVector& DeltaScale)
 {
-	if (!SelectedConnector.IsValid())
+	UPCGExValencyCageConnectorComponent* ConnectorComp = UPCGExValencyCageEditorMode::GetSelectedConnector();
+	if (!ConnectorComp)
 	{
 		return false;
 	}
 
-	UPCGExValencyCageConnectorComponent* ConnectorComp = SelectedConnector.Get();
+	// Only allow manipulation if the owning actor is still selected
+	AActor* OwnerActor = ConnectorComp->GetOwner();
+	if (!GEditor || !OwnerActor || !GEditor->GetSelectedActors()->IsSelected(OwnerActor))
+	{
+		return false;
+	}
 
 	if (!DeltaTranslate.IsZero())
 	{
@@ -167,6 +178,11 @@ bool FPCGExValencyCageConnectorVisualizer::HandleInputDelta(FEditorViewportClien
 	}
 
 	return true;
+}
+
+void FPCGExValencyCageConnectorVisualizer::EndEditing()
+{
+	// Selection-driven — nothing to clear
 }
 
 void FPCGExValencyCageConnectorVisualizer::DrawDiamond(FPrimitiveDrawInterface* PDI, const FVector& Center, float Size, const FLinearColor& Color, float Thickness)

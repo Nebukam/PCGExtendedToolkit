@@ -13,6 +13,7 @@
 #include "Tools/EdModeInteractiveToolsContext.h"
 #include "ToolContextInterfaces.h"
 
+#include "Editor/UnrealEdEngine.h"
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "Cages/PCGExValencyCageBase.h"
@@ -310,6 +311,22 @@ bool UPCGExValencyCageEditorMode::IsSelectionAllowed(AActor* InActor, bool bInSe
 {
 	// Allow selection of all actors
 	return true;
+}
+
+bool UPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
+{
+	// Forward all clicks to the component visualizer manager.
+	// For connector hit proxies: routes to VisProxyHandleClick (enables viewport diamond clicking).
+	// For other proxies: calls ClearActiveComponentVis (clears stale gizmo/state).
+	if (GUnrealEd)
+	{
+		if (GUnrealEd->ComponentVisManager.HandleClick(InViewportClient, HitProxy, Click))
+		{
+			return true;
+		}
+	}
+
+	return Super::HandleClick(InViewportClient, HitProxy, Click);
 }
 
 void UPCGExValencyCageEditorMode::ExecuteCleanupCommand()
@@ -685,6 +702,20 @@ void UPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 
 void UPCGExValencyCageEditorMode::OnSelectionChanged()
 {
+	// If a connector component is still selected but its owner cage was deselected,
+	// clear the stale component selection to fully clean up visualizer state
+	if (GEditor)
+	{
+		if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
+		{
+			AActor* OwnerActor = Connector->GetOwner();
+			if (!OwnerActor || !GEditor->GetSelectedActors()->IsSelected(OwnerActor))
+			{
+				GEditor->SelectComponent(Connector, false, true);
+			}
+		}
+	}
+
 	AssetTracker.OnSelectionChanged();
 
 	// Immediately check containment for newly selected actors
@@ -822,7 +853,12 @@ bool UPCGExValencyCageEditorMode::UsesTransformWidget(UE::Widget::EWidgetMode Ch
 
 bool UPCGExValencyCageEditorMode::ShouldDrawWidget() const
 {
-	return true;
+	if (GetSelectedConnector())
+	{
+		return true;
+	}
+
+	return GEditor && GEditor->GetSelectedActors()->Num() > 0;
 }
 
 // ========== Connector Management ==========
