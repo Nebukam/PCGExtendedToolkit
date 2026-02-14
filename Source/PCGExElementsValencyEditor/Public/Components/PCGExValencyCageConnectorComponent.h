@@ -34,9 +34,9 @@ public:
 
 	// ========== Connector Properties ==========
 
-	/** Connector instance name (unique per cage). */
+	/** Connector identifier (unique per cage, used for socket matching and pipeline output). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
-	FName ConnectorName;
+	FName Identifier;
 
 	/** Connector type (references ConnectorSet.ConnectorTypes). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connector")
@@ -78,6 +78,6 @@ public:
 	bool SyncTransformFromMeshSocket(UStaticMesh* Mesh);
 
 protected:
-	void GenerateDefaultConnectorName();
+	void GenerateDefaultIdentifier();
 	void RequestCageRebuild();
 };

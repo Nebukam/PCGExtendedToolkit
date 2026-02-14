@@ -179,12 +179,6 @@ FName UPCGExValencyConnectorSet::GetConnectorTypeNameById(int32 TypeId) const
 	return ConnectorTypes.IsValidIndex(Index) ? ConnectorTypes[Index].ConnectorType : NAME_None;
 }
 
-FText UPCGExValencyConnectorSet::GetConnectorTypeDisplayNameById(int32 TypeId) const
-{
-	const int32 Index = FindConnectorTypeIndexById(TypeId);
-	return ConnectorTypes.IsValidIndex(Index) ? ConnectorTypes[Index].GetDisplayName() : FText::GetEmpty();
-}
-
 void UPCGExValencyConnectorSet::BuildCompatibilityMatrixFromTypeIds()
 {
 	const int32 NumTypes = FMath::Min(ConnectorTypes.Num(), 64);

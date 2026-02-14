@@ -74,13 +74,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputSourceIndex"))
 	FName SourceIndexAttributeName = FName("SourceIndex");
 
-	/** Output an attribute containing the connector name */
+	/** Output an attribute containing the connector identifier */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bOutputConnectorName = false;
+	bool bOutputConnectorIdentifier = false;
 
-	/** Attribute name for connector name */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorName"))
-	FName ConnectorNameAttributeName = FName("ConnectorName");
+	/** Attribute name for connector identifier */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorIdentifier"))
+	FName ConnectorIdentifierAttributeName = FName("ConnectorIdentifier");
 
 	/** Output an attribute containing the connector type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))

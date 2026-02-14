@@ -168,7 +168,7 @@ bool UPCGExValencyBondingRules::Compile()
 				ConnectorCount++;
 
 				PCGEX_VALENCY_VERBOSE(Compilation, "    Connector '%s' (type=%s, polarity=%s) -> OrbitalIndex=%d",
-					*Connector.ConnectorName.ToString(),
+					*Connector.Identifier.ToString(),
 					*Connector.ConnectorType.ToString(),
 					Connector.Polarity == EPCGExConnectorPolarity::Universal ? TEXT("Universal") : Connector.Polarity == EPCGExConnectorPolarity::Plug ? TEXT("Plug") : TEXT("Port"),
 					CompiledConnector.OrbitalIndex);

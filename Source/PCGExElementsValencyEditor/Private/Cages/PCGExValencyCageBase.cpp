@@ -1019,14 +1019,14 @@ bool APCGExValencyCageBase::HasPlugConnectors() const
 	return false;
 }
 
-UPCGExValencyCageConnectorComponent* APCGExValencyCageBase::FindConnectorByName(const FName& ConnectorName) const
+UPCGExValencyCageConnectorComponent* APCGExValencyCageBase::FindConnectorByIdentifier(const FName& Identifier) const
 {
 	TArray<UPCGExValencyCageConnectorComponent*> Components;
 	GetConnectorComponents(Components);
 
 	for (UPCGExValencyCageConnectorComponent* Comp : Components)
 	{
-		if (Comp && Comp->ConnectorName == ConnectorName)
+		if (Comp && Comp->Identifier == Identifier)
 		{
 			return Comp;
 		}
@@ -1067,8 +1067,8 @@ int32 APCGExValencyCageBase::CreateConnectorComponentsFromMesh(UStaticMesh* Mesh
 			continue;
 		}
 
-		// Check if a connector component with this name already exists
-		if (FindConnectorByName(MeshSocket->SocketName))
+		// Check if a connector component with this identifier already exists
+		if (FindConnectorByIdentifier(MeshSocket->SocketName))
 		{
 			continue; // Skip duplicate
 		}
@@ -1086,7 +1086,7 @@ int32 APCGExValencyCageBase::CreateConnectorComponentsFromMesh(UStaticMesh* Mesh
 		}
 
 		// Configure the component
-		NewComponent->ConnectorName = MeshSocket->SocketName;
+		NewComponent->Identifier = MeshSocket->SocketName;
 		NewComponent->ConnectorType = DefaultConnectorType;
 		NewComponent->Polarity = DefaultPolarity;
 		NewComponent->bEnabled = true;

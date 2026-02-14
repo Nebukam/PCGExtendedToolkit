@@ -357,7 +357,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 							bool bAlreadyExists = false;
 							for (const FPCGExValencyModuleConnector& Existing : Data.Connectors)
 							{
-								if (Existing.ConnectorName == MeshSocket->SocketName)
+								if (Existing.Identifier == MeshSocket->SocketName)
 								{
 									bAlreadyExists = true;
 									break;
@@ -367,7 +367,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 							if (!bAlreadyExists)
 							{
 								FPCGExValencyModuleConnector AutoConnector;
-								AutoConnector.ConnectorName = MeshSocket->SocketName;
+								AutoConnector.Identifier = MeshSocket->SocketName;
 								AutoConnector.ConnectorType = MatchedType;
 								AutoConnector.LocalOffset = SocketTransform;
 								AutoConnector.bOverrideOffset = true;
@@ -403,16 +403,16 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			// Handle bMatchMeshSocketTransform - inherit transform from matching mesh socket
 			if (ConnectorComp->bMatchMeshSocketTransform)
 			{
-				// First try explicit MeshSocketName, then fall back to ConnectorName
+				// First try explicit MeshSocketName, then fall back to Identifier
 				const FName NameToMatch = ConnectorComp->MeshSocketName.IsNone()
-					? ConnectorComp->ConnectorName
+					? ConnectorComp->Identifier
 					: ConnectorComp->MeshSocketName;
 
 				if (const FTransform* MeshTransform = MeshSocketTransforms.Find(NameToMatch))
 				{
 					SocketTransform = *MeshTransform;
 					PCGEX_VALENCY_VERBOSE(Building, "    Connector '%s' matched mesh socket transform from '%s'",
-						*ConnectorComp->ConnectorName.ToString(), *NameToMatch.ToString());
+						*ConnectorComp->Identifier.ToString(), *NameToMatch.ToString());
 				}
 			}
 
@@ -420,7 +420,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			int32 ExistingIndex = INDEX_NONE;
 			for (int32 i = 0; i < Data.Connectors.Num(); ++i)
 			{
-				if (Data.Connectors[i].ConnectorName == ConnectorComp->ConnectorName)
+				if (Data.Connectors[i].Identifier == ConnectorComp->Identifier)
 				{
 					ExistingIndex = i;
 					break;
@@ -439,19 +439,19 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 					ExistingConnector.bOverrideOffset = true;
 					ExistingConnector.Polarity = ConnectorComp->Polarity;
 					PCGEX_VALENCY_VERBOSE(Building, "    Connector component '%s' overrides auto-extracted",
-						*ConnectorComp->ConnectorName.ToString());
+						*ConnectorComp->Identifier.ToString());
 				}
 				else
 				{
 					PCGEX_VALENCY_VERBOSE(Building, "    Connector component '%s' skipped (auto-extracted takes precedence)",
-						*ConnectorComp->ConnectorName.ToString());
+						*ConnectorComp->Identifier.ToString());
 				}
 			}
 			else
 			{
 				// New connector from component
 				FPCGExValencyModuleConnector ModuleConnector;
-				ModuleConnector.ConnectorName = ConnectorComp->ConnectorName;
+				ModuleConnector.Identifier = ConnectorComp->Identifier;
 				ModuleConnector.ConnectorType = ConnectorComp->ConnectorType;
 				ModuleConnector.LocalOffset = SocketTransform;
 				ModuleConnector.bOverrideOffset = true;

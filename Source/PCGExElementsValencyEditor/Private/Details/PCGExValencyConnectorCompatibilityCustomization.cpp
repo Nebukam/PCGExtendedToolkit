@@ -173,10 +173,10 @@ FText FPCGExValencyConnectorEntryCustomization::GetCompatibilitySummary(
 		int32 TypeId = 0;
 		ElementHandle->GetValue(TypeId);
 
-		const FText DisplayNameText = ConnectorSet->GetConnectorTypeDisplayNameById(TypeId);
-		if (!DisplayNameText.IsEmpty() && !DisplayNameText.EqualTo(FText::FromName(NAME_None)))
+		const FName TypeName = ConnectorSet->GetConnectorTypeNameById(TypeId);
+		if (!TypeName.IsNone())
 		{
-			TypeNames.Add(DisplayNameText.ToString());
+			TypeNames.Add(TypeName.ToString());
 		}
 		else
 		{
@@ -292,9 +292,9 @@ void SValencyConnectorCompatibilityDropdown::RebuildCheckboxList()
 	for (int32 i = 0; i < ConnectorSet->ConnectorTypes.Num(); ++i)
 	{
 		const FPCGExValencyConnectorEntry& TypeDef = ConnectorSet->ConnectorTypes[i];
-		const FString DisplayNameStr = TypeDef.GetDisplayName().ToString();
+		const FString TypeNameStr = TypeDef.ConnectorType.ToString();
 
-		if (!SearchFilter.IsEmpty() && !DisplayNameStr.Contains(SearchFilter, ESearchCase::IgnoreCase))
+		if (!SearchFilter.IsEmpty() && !TypeNameStr.Contains(SearchFilter, ESearchCase::IgnoreCase))
 		{
 			continue;
 		}
@@ -399,10 +399,9 @@ void SValencyConnectorCompatibilityDropdown::RebuildCheckboxList()
 
 					const FPCGExValencyConnectorEntry& TypeDef2 = Rules->ConnectorTypes[TypeIndex];
 					FString Name;
-					const FText DisplayNameText2 = TypeDef2.GetDisplayName();
-					if (!DisplayNameText2.IsEmpty() && !DisplayNameText2.EqualTo(FText::FromName(NAME_None)))
+					if (!TypeDef2.ConnectorType.IsNone())
 					{
-						Name = DisplayNameText2.ToString();
+						Name = TypeDef2.ConnectorType.ToString();
 					}
 					else
 					{

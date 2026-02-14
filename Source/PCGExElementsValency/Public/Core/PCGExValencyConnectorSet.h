@@ -89,10 +89,6 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyConnectorEntry
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FName ConnectorType;
 
-	/** Display name for UI (defaults to ConnectorType if empty) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	FText DisplayName;
-
 #if WITH_EDITORONLY_DATA
 	/**
 	 * Connector types this type is compatible with (stored by TypeId).
@@ -119,12 +115,6 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyConnectorEntry
 #if WITH_EDITOR
 		TypeId = GetTypeHash(FGuid::NewGuid());
 #endif
-	}
-
-	/** Get the display name, falling back to connector type if empty */
-	FText GetDisplayName() const
-	{
-		return DisplayName.IsEmpty() ? FText::FromName(ConnectorType) : DisplayName;
 	}
 
 	bool operator==(const FPCGExValencyConnectorEntry& Other) const
@@ -249,13 +239,6 @@ public:
 	FName GetConnectorTypeNameById(int32 TypeId) const;
 
 	/**
-	 * Get connector type display name by TypeId.
-	 * @param TypeId The stable type identifier
-	 * @return Display name text, or empty if not found
-	 */
-	FText GetConnectorTypeDisplayNameById(int32 TypeId) const;
-
-	/**
 	 * Build compatibility matrix from CompatibleTypeIds on each connector definition.
 	 * Called during Compile() to convert user-friendly data to runtime bitmask.
 	 */
@@ -318,9 +301,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleConnector
 {
 	GENERATED_BODY()
 
-	/** Connector instance name (for identification/debugging, unique per module) */
+	/** Connector identifier (unique per module, used for socket matching and pipeline output) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	FName ConnectorName;
+	FName Identifier;
 
 	/** Connector type (references ConnectorSet.ConnectorTypes) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
@@ -353,12 +336,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleConnector
 
 	bool operator==(const FPCGExValencyModuleConnector& Other) const
 	{
-		return ConnectorName == Other.ConnectorName && ConnectorType == Other.ConnectorType;
+		return Identifier == Other.Identifier && ConnectorType == Other.ConnectorType;
 	}
 };
 
 /** Hash function for FPCGExValencyModuleConnector */
 FORCEINLINE uint32 GetTypeHash(const FPCGExValencyModuleConnector& Connector)
 {
-	return HashCombine(GetTypeHash(Connector.ConnectorName), GetTypeHash(Connector.ConnectorType));
+	return HashCombine(GetTypeHash(Connector.Identifier), GetTypeHash(Connector.ConnectorType));
 }

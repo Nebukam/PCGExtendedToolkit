@@ -953,7 +953,8 @@ UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::DuplicateConne
 	SourceTransform.AddToTranslation(FVector(20.0, 0.0, 0.0));
 	NewConnector->SetRelativeTransform(SourceTransform);
 
-	// Select the new connector
+	// Deselect the original connector, then select the new one
+	GEditor->SelectComponent(Connector, false, false);
 	GEditor->SelectActor(Cage, true, true);
 	GEditor->SelectComponent(NewConnector, true, true);
 

@@ -580,12 +580,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 		return false;
 	}
 
-	/** Find a connector by instance name */
-	const FPCGExValencyModuleConnector* FindConnectorByName(const FName& ConnectorName) const
+	/** Find a connector by identifier */
+	const FPCGExValencyModuleConnector* FindConnectorByIdentifier(const FName& Identifier) const
 	{
 		for (const FPCGExValencyModuleConnector& Connector : Connectors)
 		{
-			if (Connector.ConnectorName == ConnectorName) { return &Connector; }
+			if (Connector.Identifier == Identifier) { return &Connector; }
 		}
 		return nullptr;
 	}

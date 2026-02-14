@@ -19,9 +19,9 @@ void UPCGExValencyCageConnectorComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	if (ConnectorName.IsNone())
+	if (Identifier.IsNone())
 	{
-		GenerateDefaultConnectorName();
+		GenerateDefaultIdentifier();
 	}
 }
 
@@ -83,7 +83,7 @@ bool UPCGExValencyCageConnectorComponent::SyncTransformFromMeshSocket(UStaticMes
 	return true;
 }
 
-void UPCGExValencyCageConnectorComponent::GenerateDefaultConnectorName()
+void UPCGExValencyCageConnectorComponent::GenerateDefaultIdentifier()
 {
 	if (AActor* Owner = GetOwner())
 	{
@@ -91,27 +91,27 @@ void UPCGExValencyCageConnectorComponent::GenerateDefaultConnectorName()
 		Owner->GetComponents<UPCGExValencyCageConnectorComponent>(ExistingComponents);
 
 		int32 NextIndex = 0;
-		TSet<FName> ExistingNames;
+		TSet<FName> ExistingIds;
 		for (const UPCGExValencyCageConnectorComponent* Comp : ExistingComponents)
 		{
 			if (Comp && Comp != this)
 			{
-				ExistingNames.Add(Comp->ConnectorName);
+				ExistingIds.Add(Comp->Identifier);
 			}
 		}
 
-		FName CandidateName;
+		FName CandidateId;
 		do
 		{
-			CandidateName = FName(*FString::Printf(TEXT("Connector_%d"), NextIndex++));
+			CandidateId = FName(*FString::Printf(TEXT("Connector_%d"), NextIndex++));
 		}
-		while (ExistingNames.Contains(CandidateName));
+		while (ExistingIds.Contains(CandidateId));
 
-		ConnectorName = CandidateName;
+		Identifier = CandidateId;
 	}
 	else
 	{
-		ConnectorName = FName("Connector_0");
+		Identifier = FName("Connector_0");
 	}
 }
 

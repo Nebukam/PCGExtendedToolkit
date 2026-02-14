@@ -209,11 +209,11 @@ namespace PCGExWriteModuleConnectors
 				Settings->SourceIndexAttributeName, -1, false, true);
 		}
 
-		FPCGMetadataAttribute<FName>* ConnectorNameAttr = nullptr;
-		if (Settings->bOutputConnectorName)
+		FPCGMetadataAttribute<FName>* ConnectorIdentifierAttr = nullptr;
+		if (Settings->bOutputConnectorIdentifier)
 		{
-			ConnectorNameAttr = ConnectorOutput->CreateAttribute<FName>(
-				Settings->ConnectorNameAttributeName, NAME_None, false, true);
+			ConnectorIdentifierAttr = ConnectorOutput->CreateAttribute<FName>(
+				Settings->ConnectorIdentifierAttributeName, NAME_None, false, true);
 		}
 
 		FPCGMetadataAttribute<FName>* ConnectorTypeAttr = nullptr;
@@ -267,9 +267,9 @@ namespace PCGExWriteModuleConnectors
 				{
 					SourceIndexAttr->SetValue(ConnectorIndex, VertexIdx);
 				}
-				if (ConnectorNameAttr)
+				if (ConnectorIdentifierAttr)
 				{
-					ConnectorNameAttr->SetValue(ConnectorIndex, Connector.ConnectorName);
+					ConnectorIdentifierAttr->SetValue(ConnectorIndex, Connector.Identifier);
 				}
 				if (ConnectorTypeAttr)
 				{

@@ -351,7 +351,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 	[
 		MakeSectionHeader(FText::Format(
 			NSLOCTEXT("PCGExValency", "ConnectorHeader", "Connector: {0}"),
-			FText::FromName(Connector->ConnectorName)))
+			FText::FromName(Connector->Identifier)))
 	];
 
 	// Owning cage
@@ -377,7 +377,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 			.WidthOverride(100)
 			[
 				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "ConnectorName", "Name"))
+				.Text(NSLOCTEXT("PCGExValency", "ConnectorIdentifier", "Identifier"))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 			]
@@ -387,16 +387,16 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 		.Padding(4, 0)
 		[
 			SNew(SEditableTextBox)
-			.Text(FText::FromName(Connector->ConnectorName))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorNameTip", "Unique connector identifier within this cage"))
+			.Text(FText::FromName(Connector->Identifier))
+			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorIdentifierTip", "Unique connector identifier within this cage"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 			.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
 			{
 				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RenameConnector", "Rename Connector"));
+					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorIdentifier", "Change Connector Identifier"));
 					S->Modify();
-					S->ConnectorName = FName(*NewText.ToString());
+					S->Identifier = FName(*NewText.ToString());
 					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
@@ -693,15 +693,6 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 		]
 	];
 
-	// Local offset (read-only, edited via viewport gizmo)
-	const FTransform ConnectorTransform = Connector->GetRelativeTransform();
-	Content->AddSlot().AutoHeight()
-	[
-		MakeLabeledRow(
-			NSLOCTEXT("PCGExValency", "ConnectorLocation", "Local Offset"),
-			FText::FromString(ConnectorTransform.GetLocation().ToString()))
-	];
-
 	// Action buttons
 	Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
 	[
@@ -891,20 +882,6 @@ TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnect
 		? FLinearColor::White
 		: FLinearColor(0.5f, 0.5f, 0.5f);
 
-	// Resolve type color from ConnectorSet
-	FLinearColor TypeColor(0.4f, 0.4f, 0.4f);
-	if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(ConnectorComp->GetOwner()))
-	{
-		if (const UPCGExValencyConnectorSet* EffectiveSet = OwnerCage->GetEffectiveConnectorSet())
-		{
-			const int32 TypeIdx = EffectiveSet->FindConnectorTypeIndex(ConnectorComp->ConnectorType);
-			if (EffectiveSet->ConnectorTypes.IsValidIndex(TypeIdx))
-			{
-				TypeColor = EffectiveSet->ConnectorTypes[TypeIdx].DebugColor;
-			}
-		}
-	}
-
 	auto GetCompactPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
 	{
 		switch (P)
@@ -917,14 +894,31 @@ TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnect
 	};
 
 	return SNew(SHorizontalBox)
-		// Type color dot
+		// Type color dot (dynamic - updates when type changes)
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.VAlign(VAlign_Center)
 		.Padding(2, 0, 0, 0)
 		[
 			SNew(SColorBlock)
-			.Color(TypeColor)
+			.Color_Lambda([WeakConnector]() -> FLinearColor
+			{
+				if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+				{
+					if (const APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+					{
+						if (const UPCGExValencyConnectorSet* Set = Cage->GetEffectiveConnectorSet())
+						{
+							const int32 Idx = Set->FindConnectorTypeIndex(S->ConnectorType);
+							if (Set->ConnectorTypes.IsValidIndex(Idx))
+							{
+								return Set->ConnectorTypes[Idx].DebugColor;
+							}
+						}
+					}
+				}
+				return FLinearColor(0.4f, 0.4f, 0.4f);
+			})
 			.Size(FVector2D(8, 8))
 		]
 		// Clickable connector name - selects the connector in viewport
@@ -954,7 +948,7 @@ TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnect
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(FString::Printf(TEXT("%s [%s]"),
-					*ConnectorComp->ConnectorName.ToString(),
+					*ConnectorComp->Identifier.ToString(),
 					*ConnectorComp->ConnectorType.ToString())))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				.ColorAndOpacity(FSlateColor(TextColor))

@@ -283,11 +283,11 @@ public:
 	bool HasPlugConnectors() const;
 
 	/**
-	 * Find a connector component by name.
-	 * @param ConnectorName The connector name to search for
+	 * Find a connector component by identifier.
+	 * @param Identifier The connector identifier to search for
 	 * @return Pointer to the component, or nullptr if not found
 	 */
-	class UPCGExValencyCageConnectorComponent* FindConnectorByName(const FName& ConnectorName) const;
+	class UPCGExValencyCageConnectorComponent* FindConnectorByIdentifier(const FName& Identifier) const;
 
 	/**
 	 * Find a connector component by type (returns first match).
