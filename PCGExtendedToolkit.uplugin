@@ -40,6 +40,16 @@
       ]
     },
     {
+      "Name": "PCGExtendedToolkitTest",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ]
+    },
+    {
       "Name": "PCGExBlending",
       "Type": "Runtime",
       "LoadingPhase": "Default",

@@ -49,7 +49,8 @@ public class PCGExtendedToolkitTest : ModuleRules
 				"PCGExCollections",
 				"PCGExGraphs",
 				"PCGExElementsClustersDiagrams",
-				"PCGExElementsSpatial"
+				"PCGExElementsSpatial",
+				"PCGExMatching"
 			}
 		);
 

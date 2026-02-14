@@ -404,15 +404,18 @@ bool FPCGExConcurrentTaskLaunchTest::RunTest(const FString& Parameters)
 		F.Wait();
 	}
 
-	// Wait for all tasks to complete
+	// Wait for all tasks to actually execute. Cannot rely on OnAllComplete here because
+	// NotifyTaskComplete checks Completed >= Expected, but Expected is incremented
+	// incrementally by the launcher threads. A fast task can complete before the next
+	// is registered, causing a premature Completed==Expected match.
 	double StartTime = FPlatformTime::Seconds();
-	while (!AllComplete.load() && (FPlatformTime::Seconds() - StartTime) < 5.0)
+	while (ExecutedCount.load() < NumTasks && (FPlatformTime::Seconds() - StartTime) < 5.0)
 	{
 		FPlatformProcess::Sleep(0.01f);
 	}
 
-	TestTrue(TEXT("All tasks completed"), AllComplete.load());
 	TestEqual(TEXT("All tasks executed"), ExecutedCount.load(), NumTasks);
+	TestTrue(TEXT("Completion callback fired"), AllComplete.load());
 
 	return true;
 }
