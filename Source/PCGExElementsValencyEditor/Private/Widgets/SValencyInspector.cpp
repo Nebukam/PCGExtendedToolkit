@@ -1046,14 +1046,7 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 					const FName TypeName = Entry.ConnectorType;
 					const FText Icon = PCGExValencyInspector::GetIconText(EffectiveSet, i);
 
-					FText Label = FText::Format(
-						NSLOCTEXT("PCGExValency", "TypePickerEntryFmt", "{0}  {1}"),
-						Icon, FText::FromName(TypeName));
-
 					MenuBuilder.AddMenuEntry(
-						Label,
-						FText::Format(NSLOCTEXT("PCGExValency", "TypePickerEntryTip", "Set type to '{0}'"), FText::FromName(TypeName)),
-						FSlateIcon(),
 						FUIAction(FExecuteAction::CreateLambda([WeakConnector, WeakMode, TypeName]()
 						{
 							if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
@@ -1071,7 +1064,28 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 									Mode->OnSceneChanged.Broadcast();
 								}
 							}
-						}))
+						})),
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.Padding(0, 0, 6, 0)
+						[
+							SNew(STextBlock)
+							.Text(Icon)
+							.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+							.ColorAndOpacity(FSlateColor(Entry.DebugColor))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						.VAlign(VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromName(TypeName))
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+						],
+						NAME_None,
+						FText::Format(NSLOCTEXT("PCGExValency", "TypePickerEntryTip", "Set type to '{0}'"), FText::FromName(TypeName))
 					);
 				}
 
