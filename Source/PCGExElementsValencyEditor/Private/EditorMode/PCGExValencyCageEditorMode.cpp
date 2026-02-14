@@ -135,6 +135,10 @@ void UPCGExValencyCageEditorMode::Enter()
 
 	// Skip first dirty process to allow system to stabilize after mode entry
 	bSkipNextDirtyProcess = true;
+
+	// Notify panel/widgets that caches are now populated (toolkit was created
+	// in Super::Enter() before caches were collected, so initial content is stale)
+	OnSceneChanged.Broadcast();
 }
 
 void UPCGExValencyCageEditorMode::Exit()

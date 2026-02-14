@@ -65,11 +65,13 @@ void SValencyModePanel::RebuildLayout()
 	ScrollBox->ClearChildren();
 
 	// Visualization toggles section
+	SAssignNew(VisTogglesWidget, SValencyVisToggles)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(VisTogglesWidget, SValencyVisToggles)
-		.EditorMode(EditorMode)
+		VisTogglesWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -79,11 +81,13 @@ void SValencyModePanel::RebuildLayout()
 	];
 
 	// Scene overview section
+	SAssignNew(SceneOverviewWidget, SValencySceneOverview)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(SceneOverviewWidget, SValencySceneOverview)
-		.EditorMode(EditorMode)
+		SceneOverviewWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -92,12 +96,18 @@ void SValencyModePanel::RebuildLayout()
 		SNew(SSeparator)
 	];
 
-	// Context-sensitive inspector section
+	// Inspector preserves state (DetailPanelConnector, search filter, delegate bindings)
+	// across panel rebuilds — created once, refreshes internally via OnSceneChanged
+	if (!InspectorWidget.IsValid())
+	{
+		SAssignNew(InspectorWidget, SValencyInspector)
+			.EditorMode(EditorMode);
+	}
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(InspectorWidget, SValencyInspector)
-		.EditorMode(EditorMode)
+		InspectorWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -107,11 +117,13 @@ void SValencyModePanel::RebuildLayout()
 	];
 
 	// Validation section
+	SAssignNew(ValidationWidget, SValencyValidation)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(ValidationWidget, SValencyValidation)
-		.EditorMode(EditorMode)
+		ValidationWidget.ToSharedRef()
 	];
 }
 

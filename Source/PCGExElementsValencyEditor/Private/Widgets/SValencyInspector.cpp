@@ -26,7 +26,33 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SComboButton.h"
+#include "Widgets/Input/SSearchBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Cages/PCGExValencyAssetContainerBase.h"
+
+namespace PCGExValencyInspector
+{
+	// 64 visually distinct ASCII characters used as placeholder connector type icons.
+	// Will be replaced with SVG brushes later — swap GetConnectorIconText() to return
+	// an FSlateBrush* instead when that happens.
+	static const TCHAR IconChars[] = {
+		'*', '+', '#', '@', '$', '&', '!', '~', '^', '%', '=', '?', '>', '<',
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'a', 'b', 'd', 'e', 'f', 'g', 'h', 'k', 'm', 'n', 'p', 'q', 'r', 't',
+		'w', 'x',
+	};
+	static_assert(UE_ARRAY_COUNT(IconChars) == 64, "Need exactly 64 icon characters");
+
+	/** Get the placeholder icon character for a connector type index. */
+	static FText GetConnectorIconText(int32 TypeIndex)
+	{
+		const TCHAR C = (TypeIndex >= 0 && TypeIndex < 64) ? IconChars[TypeIndex] : '?';
+		return FText::FromString(FString(1, &C));
+	}
+}
 
 void SValencyInspector::Construct(const FArguments& InArgs)
 {
@@ -60,14 +86,43 @@ void SValencyInspector::Construct(const FArguments& InArgs)
 			this, &SValencyInspector::OnSelectionChangedCallback);
 	}
 
+	// Bind to scene changes so stats/related sections stay up-to-date
+	if (EditorMode)
+	{
+		OnSceneChangedHandle = EditorMode->OnSceneChanged.AddSP(
+			this, &SValencyInspector::OnSceneChangedCallback);
+	}
+
 	RefreshContent();
 }
 
 void SValencyInspector::RefreshContent()
 {
-	if (!ContentArea.IsValid())
+	if (!ContentArea.IsValid() || bIsUpdatingSelection)
 	{
 		return;
+	}
+
+	// If we're intentionally on the detail panel, stay there as long as
+	// the connector is valid and its owning cage is still the selected actor.
+	// This prevents property-change actions (polarity, type, etc.) from
+	// bouncing back to the cage view via stray refresh calls.
+	if (DetailPanelConnector.IsValid())
+	{
+		if (UPCGExValencyCageConnectorComponent* Conn = DetailPanelConnector.Get())
+		{
+			if (GEditor)
+			{
+				AActor* Owner = Conn->GetOwner();
+				if (Owner && GEditor->GetSelectedActors()->IsSelected(Owner))
+				{
+					StaticCastSharedPtr<SBox>(ContentArea)->SetContent(BuildConnectorContent(Conn));
+					return;
+				}
+			}
+		}
+		// Connector invalid or cage no longer selected — clear and fall through
+		DetailPanelConnector.Reset();
 	}
 
 	TSharedRef<SWidget> NewContent = BuildSceneStatsContent();
@@ -75,14 +130,17 @@ void SValencyInspector::RefreshContent()
 
 	if (GEditor)
 	{
-		// Check for selected components first (connector)
+		// Check for selected components first (connector → redirect to cage view)
 		if (USelection* CompSelection = GEditor->GetSelectedComponents())
 		{
 			for (FSelectionIterator It(*CompSelection); It; ++It)
 			{
 				if (UPCGExValencyCageConnectorComponent* Connector = Cast<UPCGExValencyCageConnectorComponent>(*It))
 				{
-					NewContent = BuildConnectorContent(Connector);
+					if (APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
+					{
+						NewContent = BuildCageContent(OwnerCage);
+					}
 					bFoundSpecificContent = true;
 					break;
 				}
@@ -118,6 +176,11 @@ void SValencyInspector::RefreshContent()
 }
 
 void SValencyInspector::OnSelectionChangedCallback(UObject* InObject)
+{
+	RefreshContent();
+}
+
+void SValencyInspector::OnSceneChangedCallback()
 {
 	RefreshContent();
 }
@@ -159,6 +222,10 @@ TSharedRef<SWidget> SValencyInspector::BuildSceneStatsContent()
 			MakeLabeledRow(
 				NSLOCTEXT("PCGExValency", "StatsTotalAssets", "Total Assets"),
 				FText::AsNumber(TotalAssets))
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 6, 0, 0)
+		[
+			MakeRebuildAllButton()
 		];
 }
 
@@ -171,10 +238,21 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 
 	TSharedRef<SVerticalBox> Content = SNew(SVerticalBox);
 
-	// Name and color
+	// Header row with name and Rebuild All button
 	Content->AddSlot().AutoHeight()
 	[
-		MakeSectionHeader(FText::FromString(Cage->GetCageDisplayName()))
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		.VAlign(VAlign_Center)
+		[
+			MakeSectionHeader(FText::FromString(Cage->GetCageDisplayName()))
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			MakeRebuildAllButton()
+		]
 	];
 
 	if (const APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
@@ -195,10 +273,6 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 			ConnectedCount++;
 		}
 	}
-
-	const FLinearColor HealthColor = (ConnectedCount == Orbitals.Num())
-		? FLinearColor(0.2f, 0.8f, 0.2f)
-		: (ConnectedCount > 0 ? FLinearColor(1.0f, 0.7f, 0.0f) : FLinearColor(0.8f, 0.2f, 0.2f));
 
 	Content->AddSlot().AutoHeight()
 	[
@@ -242,6 +316,17 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 	// Connector components - interactive section
 	TArray<UPCGExValencyCageConnectorComponent*> ConnectorComponents;
 	Cage->GetConnectorComponents(ConnectorComponents);
+
+	// Detect currently active connector for highlight
+	UPCGExValencyCageConnectorComponent* ActiveConnector = nullptr;
+	if (UPCGExValencyCageConnectorComponent* SelectedConn = UPCGExValencyCageEditorMode::GetSelectedConnector())
+	{
+		if (SelectedConn->GetOwner() == Cage)
+		{
+			ActiveConnector = SelectedConn;
+		}
+	}
+
 	{
 		// Header row with connector count and Add button
 		Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
@@ -262,55 +347,46 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 			]
 		];
 
+		// Search field when connector count > 6
+		if (ConnectorComponents.Num() > 6)
+		{
+			Content->AddSlot().AutoHeight().Padding(0, 2, 0, 2)
+			[
+				SNew(SSearchBox)
+				.InitialText(FText::FromString(ConnectorSearchFilter))
+				.OnTextChanged_Lambda([this](const FText& NewText)
+				{
+					ConnectorSearchFilter = NewText.ToString();
+					RefreshContent();
+				})
+			];
+		}
+
 		for (UPCGExValencyCageConnectorComponent* ConnectorComp : ConnectorComponents)
 		{
 			if (!ConnectorComp) continue;
 
+			// Apply search filter
+			if (!ConnectorSearchFilter.IsEmpty())
+			{
+				const bool bMatchesName = ConnectorComp->Identifier.ToString().Contains(ConnectorSearchFilter);
+				const bool bMatchesType = ConnectorComp->ConnectorType.ToString().Contains(ConnectorSearchFilter);
+				if (!bMatchesName && !bMatchesType) continue;
+			}
+
+			const bool bIsActive = (ConnectorComp == ActiveConnector);
 			Content->AddSlot().AutoHeight()
 			[
-				MakeConnectorRow(ConnectorComp)
+				MakeCompactConnectorRow(ConnectorComp, bIsActive)
 			];
 		}
 	}
 
-	// Orbital details (compact list)
-	if (Orbitals.Num() > 0)
-	{
-		Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
-		[
-			MakeSectionHeader(NSLOCTEXT("PCGExValency", "CageOrbitalDetails", "Orbital Connections"))
-		];
-
-		for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
-		{
-			const APCGExValencyCageBase* Connected = Orbital.GetDisplayConnection();
-			FString OrbitalInfo;
-
-			if (Connected)
-			{
-				OrbitalInfo = FString::Printf(TEXT("  [%d] %s -> %s"),
-					Orbital.OrbitalIndex,
-					*Orbital.OrbitalName.ToString(),
-					*Connected->GetCageDisplayName());
-			}
-			else
-			{
-				OrbitalInfo = FString::Printf(TEXT("  [%d] %s (unconnected)"),
-					Orbital.OrbitalIndex,
-					*Orbital.OrbitalName.ToString());
-			}
-
-			Content->AddSlot().AutoHeight()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(OrbitalInfo))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				.ColorAndOpacity(Connected
-					? FSlateColor(FLinearColor(0.7f, 0.9f, 0.7f))
-					: FSlateColor(FLinearColor(0.7f, 0.5f, 0.5f)))
-			];
-		}
-	}
+	// Related section (containing volumes, mirrors, mirrored-by)
+	Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
+	[
+		MakeRelatedSection(Cage)
+	];
 
 	return Content;
 }
@@ -333,14 +409,18 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 		SNew(SButton)
 		.Text(NSLOCTEXT("PCGExValency", "BackToCage", "<< Back to Cage"))
 		.ToolTipText(NSLOCTEXT("PCGExValency", "BackToCageTip", "Return to the cage connector list"))
-		.OnClicked_Lambda([WeakConnector]() -> FReply
+		.OnClicked_Lambda([WeakConnector, this]() -> FReply
 		{
+			DetailPanelConnector.Reset();
 			if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 			{
 				if (GEditor && S->GetOwner())
 				{
 					// Deselect component, keep actor selected -> triggers cage view
+					bIsUpdatingSelection = true;
 					GEditor->SelectComponent(S, false, true);
+					bIsUpdatingSelection = false;
+					RefreshContent();
 				}
 			}
 			return FReply::Handled();
@@ -815,6 +895,11 @@ TSharedRef<SWidget> SValencyInspector::BuildVolumeContent(AValencyContextVolume*
 		}
 	}
 
+	Content->AddSlot().AutoHeight().Padding(0, 6, 0, 0)
+	[
+		MakeRebuildAllButton()
+	];
+
 	return Content;
 }
 
@@ -873,172 +958,330 @@ TSharedRef<SWidget> SValencyInspector::BuildPaletteContent(APCGExValencyAssetPal
 	return Content;
 }
 
-TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnectorComponent* ConnectorComp)
+TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCageConnectorComponent* ConnectorComp, bool bIsActive)
 {
 	TWeakObjectPtr<UPCGExValencyCageConnectorComponent> WeakConnector(ConnectorComp);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
-	const FLinearColor TextColor = ConnectorComp->bEnabled
-		? FLinearColor::White
-		: FLinearColor(0.5f, 0.5f, 0.5f);
+	const bool bEnabled = ConnectorComp->bEnabled;
+	const FLinearColor RowBgColor = bIsActive
+		? FLinearColor(0.1f, 0.2f, 0.35f, 1.0f)
+		: FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	auto GetCompactPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
+	// Polarity symbols
+	auto GetPolaritySymbol = [](EPCGExConnectorPolarity P) -> FText
 	{
 		switch (P)
 		{
-		case EPCGExConnectorPolarity::Universal: return NSLOCTEXT("PCGExValency", "PolarityUniversalCompact", "*");
-		case EPCGExConnectorPolarity::Plug:      return NSLOCTEXT("PCGExValency", "PolarityPlugCompact", ">>");
-		case EPCGExConnectorPolarity::Port:      return NSLOCTEXT("PCGExValency", "PolarityPortCompact", "<<");
+		case EPCGExConnectorPolarity::Universal: return FText::FromString(TEXT("\u25C9")); // ◉
+		case EPCGExConnectorPolarity::Plug:      return FText::FromString(TEXT("\u25CF")); // ●
+		case EPCGExConnectorPolarity::Port:      return FText::FromString(TEXT("\u25CB")); // ○
 		default:                                 return FText::GetEmpty();
 		}
 	};
 
-	return SNew(SHorizontalBox)
-		// Type color dot (dynamic - updates when type changes)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0, 0, 0)
-		[
-			SNew(SColorBlock)
-			.Color_Lambda([WeakConnector]() -> FLinearColor
+	auto GetPolarityTooltip = [](EPCGExConnectorPolarity P) -> FText
+	{
+		switch (P)
+		{
+		case EPCGExConnectorPolarity::Universal: return NSLOCTEXT("PCGExValency", "PolarityUniTip", "Universal \u2014 connects to any polarity. Click to cycle.");
+		case EPCGExConnectorPolarity::Plug:      return NSLOCTEXT("PCGExValency", "PolarityPlugTip", "Plug \u2014 connects to Port or Universal. Click to cycle.");
+		case EPCGExConnectorPolarity::Port:      return NSLOCTEXT("PCGExValency", "PolarityPortTip", "Port \u2014 connects to Plug or Universal. Click to cycle.");
+		default:                                 return FText::GetEmpty();
+		}
+	};
+
+	// Resolve icon character and color for the connector type
+	UPCGExValencyConnectorSet* EffectiveSet = nullptr;
+	if (const APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(ConnectorComp->GetOwner()))
+	{
+		EffectiveSet = Cage->GetEffectiveConnectorSet();
+	}
+
+	FText IconText = FText::FromString(TEXT("?"));
+	FLinearColor DotColor(0.4f, 0.4f, 0.4f);
+	FText TypeTooltip = FText::FromName(ConnectorComp->ConnectorType);
+
+	if (EffectiveSet)
+	{
+		const int32 TypeIdx = EffectiveSet->FindConnectorTypeIndex(ConnectorComp->ConnectorType);
+		if (EffectiveSet->ConnectorTypes.IsValidIndex(TypeIdx))
+		{
+			IconText = PCGExValencyInspector::GetConnectorIconText(TypeIdx);
+			DotColor = EffectiveSet->ConnectorTypes[TypeIdx].DebugColor;
+		}
+		else
+		{
+			DotColor = FLinearColor(1.0f, 0.6f, 0.0f);
+			TypeTooltip = FText::Format(
+				NSLOCTEXT("PCGExValency", "TypeNotFoundTip", "Type '{0}' not found in ConnectorSet"),
+				FText::FromName(ConnectorComp->ConnectorType));
+		}
+	}
+
+	// Build the icon dot content (shared between combo and plain modes)
+	auto MakeIconDot = [&IconText, &DotColor]() -> TSharedRef<SWidget>
+	{
+		return SNew(SBorder)
+			.BorderImage(FCoreStyle::Get().GetBrush("GenericWhiteBox"))
+			.BorderBackgroundColor(DotColor)
+			.Padding(0)
+			[
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(16)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(IconText)
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
+					.ColorAndOpacity(FSlateColor(FLinearColor::White))
+				]
+			];
+	};
+
+	// Build the icon dot widget — clickable type picker when ConnectorSet available
+	TSharedRef<SWidget> IconDotWidget = SNullWidget::NullWidget;
+
+	if (EffectiveSet && EffectiveSet->ConnectorTypes.Num() > 0)
+	{
+		IconDotWidget = SNew(SComboButton)
+			.HasDownArrow(false)
+			.ContentPadding(0)
+			.ToolTipText(TypeTooltip)
+			.ButtonContent()
+			[
+				MakeIconDot()
+			]
+			.OnGetMenuContent_Lambda([WeakConnector, WeakMode, EffectiveSet]() -> TSharedRef<SWidget>
 			{
-				if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+				FMenuBuilder MenuBuilder(true, nullptr);
+
+				for (int32 i = 0; i < EffectiveSet->ConnectorTypes.Num(); ++i)
 				{
-					if (const APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
-					{
-						if (const UPCGExValencyConnectorSet* Set = Cage->GetEffectiveConnectorSet())
+					const FPCGExValencyConnectorEntry& Entry = EffectiveSet->ConnectorTypes[i];
+					const FName TypeName = Entry.ConnectorType;
+					const FText Icon = PCGExValencyInspector::GetConnectorIconText(i);
+
+					FText Label = FText::Format(
+						NSLOCTEXT("PCGExValency", "TypePickerEntryFmt", "{0}  {1}"),
+						Icon, FText::FromName(TypeName));
+
+					MenuBuilder.AddMenuEntry(
+						Label,
+						FText::Format(NSLOCTEXT("PCGExValency", "TypePickerEntryTip", "Set type to '{0}'"), FText::FromName(TypeName)),
+						FSlateIcon(),
+						FUIAction(FExecuteAction::CreateLambda([WeakConnector, WeakMode, TypeName]()
 						{
-							const int32 Idx = Set->FindConnectorTypeIndex(S->ConnectorType);
-							if (Set->ConnectorTypes.IsValidIndex(Idx))
+							if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 							{
-								return Set->ConnectorTypes[Idx].DebugColor;
+								if (S->ConnectorType == TypeName) return;
+								FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorType", "Change Connector Type"));
+								S->Modify();
+								S->ConnectorType = TypeName;
+								if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+								{
+									Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+								}
+								if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+								{
+									Mode->OnSceneChanged.Broadcast();
+								}
+							}
+						}))
+					);
+				}
+
+				return MenuBuilder.MakeWidget();
+			});
+	}
+	else
+	{
+		// No ConnectorSet — plain icon dot, no picker
+		IconDotWidget = SNew(SBox)
+			.ToolTipText(TypeTooltip)
+			[
+				MakeIconDot()
+			];
+	}
+
+	return SNew(SBorder)
+		.BorderBackgroundColor(RowBgColor)
+		.ColorAndOpacity(bEnabled ? FLinearColor::White : FLinearColor(0.5f, 0.5f, 0.5f, 0.7f))
+		.Padding(FMargin(2, 1))
+		[
+			SNew(SHorizontalBox)
+			// Enable/disable checkbox (first item)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(0, 0, 2, 0)
+			[
+				SNew(SCheckBox)
+				.IsChecked_Lambda([WeakConnector]() -> ECheckBoxState
+				{
+					if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+					{
+						return S->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+					}
+					return ECheckBoxState::Checked;
+				})
+				.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowEnabledTip", "Enable/disable this connector"))
+				.OnCheckStateChanged_Lambda([WeakConnector, WeakMode](ECheckBoxState NewState)
+				{
+					if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+					{
+						FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Connector Enabled"));
+						S->Modify();
+						S->bEnabled = (NewState == ECheckBoxState::Checked);
+						if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+						{
+							Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+						}
+						if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+						{
+							Mode->OnSceneChanged.Broadcast();
+							Mode->RedrawViewports();
+						}
+					}
+				})
+			]
+			// Icon dot — shows type icon on colored background, click to pick type
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(0, 0, 2, 0)
+			[
+				IconDotWidget
+			]
+			// Clickable name - selects in viewport without leaving cage view
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
+			.Padding(2, 1)
+			[
+				SNew(SButton)
+				.ContentPadding(FMargin(2, 0))
+				.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowNameTip", "Click to select this connector in the viewport"))
+				.OnClicked_Lambda([WeakConnector, this]() -> FReply
+				{
+					if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+					{
+						if (GEditor)
+						{
+							bIsUpdatingSelection = true;
+							GEditor->GetSelectedComponents()->DeselectAll();
+							if (AActor* Owner = S->GetOwner())
+							{
+								GEditor->SelectActor(Owner, true, true);
+							}
+							GEditor->SelectComponent(S, true, true);
+							bIsUpdatingSelection = false;
+							RefreshContent();
+						}
+					}
+					return FReply::Handled();
+				})
+				[
+					SNew(STextBlock)
+					.Text(FText::FromName(ConnectorComp->Identifier))
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+				]
+			]
+			// Polarity cycling button (◉/●/○) - fixed width to prevent layout shift
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(1, 0)
+			[
+				SNew(SBox)
+				.WidthOverride(22)
+				[
+					SNew(SButton)
+					.Text(GetPolaritySymbol(ConnectorComp->Polarity))
+					.ToolTipText(GetPolarityTooltip(ConnectorComp->Polarity))
+					.ContentPadding(FMargin(2, 0))
+					.HAlign(HAlign_Center)
+					.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
+					{
+						if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CyclePolarity", "Cycle Connector Polarity"));
+							S->Modify();
+							switch (S->Polarity)
+							{
+							case EPCGExConnectorPolarity::Universal: S->Polarity = EPCGExConnectorPolarity::Plug; break;
+							case EPCGExConnectorPolarity::Plug:      S->Polarity = EPCGExConnectorPolarity::Port; break;
+							case EPCGExConnectorPolarity::Port:      S->Polarity = EPCGExConnectorPolarity::Universal; break;
+							}
+							if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+							{
+								Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+							}
+							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+							{
+								Mode->OnSceneChanged.Broadcast();
+								Mode->RedrawViewports();
+							}
+						}
+						return FReply::Handled();
+					})
+				] // SBox
+			]
+			// More info / actions button (...) - compact
+			// Click: detail panel, Ctrl+click: delete, Alt+click: duplicate
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(1, 0)
+			[
+				SNew(SButton)
+				.Text(NSLOCTEXT("PCGExValency", "MoreInfoDots", "..."))
+				.ToolTipText(NSLOCTEXT("PCGExValency", "MoreInfoTip", "Details (Ctrl: delete, Alt: duplicate)"))
+				.ContentPadding(FMargin(2, 0))
+				.OnClicked_Lambda([WeakConnector, WeakMode, this]() -> FReply
+				{
+					if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+					{
+						const FModifierKeysState Mods = FSlateApplication::Get().GetModifierKeys();
+						if (Mods.IsControlDown())
+						{
+							// Ctrl+click = Delete connector
+							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+							{
+								Mode->RemoveConnector(S);
+							}
+						}
+						else if (Mods.IsAltDown())
+						{
+							// Alt+click = Duplicate connector
+							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+							{
+								Mode->DuplicateConnector(S);
+							}
+						}
+						else
+						{
+							// Normal click = Navigate to detail panel
+							DetailPanelConnector = S;
+							if (GEditor)
+							{
+								bIsUpdatingSelection = true;
+								GEditor->GetSelectedComponents()->DeselectAll();
+								if (AActor* Owner = S->GetOwner())
+								{
+									GEditor->SelectActor(Owner, true, true);
+								}
+								GEditor->SelectComponent(S, true, true);
+								bIsUpdatingSelection = false;
+								RefreshContent();
 							}
 						}
 					}
-				}
-				return FLinearColor(0.4f, 0.4f, 0.4f);
-			})
-			.Size(FVector2D(8, 8))
-		]
-		// Clickable connector name - selects the connector in viewport
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.0f)
-		.VAlign(VAlign_Center)
-		.Padding(2, 1)
-		[
-			SNew(SButton)
-			.ContentPadding(FMargin(2, 0))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowNameTip", "Click to select this connector in the viewport"))
-			.OnClicked_Lambda([WeakConnector]() -> FReply
-			{
-				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
-				{
-					if (GEditor)
-					{
-						if (AActor* Owner = S->GetOwner())
-						{
-							GEditor->SelectActor(Owner, true, true);
-						}
-						GEditor->SelectComponent(S, true, true);
-					}
-				}
-				return FReply::Handled();
-			})
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(TEXT("%s [%s]"),
-					*ConnectorComp->Identifier.ToString(),
-					*ConnectorComp->ConnectorType.ToString())))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-				.ColorAndOpacity(FSlateColor(TextColor))
+					return FReply::Handled();
+				})
 			]
-		]
-		// Polarity cycling button
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0)
-		[
-			SNew(SButton)
-			.Text(GetCompactPolarityLabel(ConnectorComp->Polarity))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowPolarityTip", "Cycle polarity: Universal (connects to any), Plug (outward), Port (inward)"))
-			.ContentPadding(FMargin(4, 1))
-			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
-			{
-				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
-				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CyclePolarity", "Cycle Connector Polarity"));
-					S->Modify();
-					// Universal -> Plug -> Port -> Universal
-					switch (S->Polarity)
-					{
-					case EPCGExConnectorPolarity::Universal: S->Polarity = EPCGExConnectorPolarity::Plug; break;
-					case EPCGExConnectorPolarity::Plug:      S->Polarity = EPCGExConnectorPolarity::Port; break;
-					case EPCGExConnectorPolarity::Port:      S->Polarity = EPCGExConnectorPolarity::Universal; break;
-					}
-					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
-					{
-						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
-					}
-					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-					{
-						Mode->OnSceneChanged.Broadcast();
-						Mode->RedrawViewports();
-					}
-				}
-				return FReply::Handled();
-			})
-		]
-		// Enabled checkbox
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0)
-		[
-			SNew(SCheckBox)
-			.IsChecked(ConnectorComp->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowEnabledTip", "Enable/disable this connector"))
-			.OnCheckStateChanged_Lambda([WeakConnector, WeakMode](ECheckBoxState NewState)
-			{
-				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
-				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ToggleEnabled", "Toggle Connector Enabled"));
-					S->Modify();
-					S->bEnabled = (NewState == ECheckBoxState::Checked);
-					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
-					{
-						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
-					}
-					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-					{
-						Mode->OnSceneChanged.Broadcast();
-						Mode->RedrawViewports();
-					}
-				}
-			})
-		]
-		// Remove button
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0)
-		[
-			SNew(SButton)
-			.Text(NSLOCTEXT("PCGExValency", "RemoveX", "x"))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorRowRemoveTip", "Remove this connector"))
-			.ContentPadding(FMargin(4, 1))
-			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
-			{
-				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
-				{
-					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-					{
-						Mode->RemoveConnector(S);
-					}
-				}
-				return FReply::Handled();
-			})
 		];
 }
 
@@ -1114,6 +1357,180 @@ TSharedRef<SWidget> SValencyInspector::MakeAddConnectorButton(APCGExValencyCageB
 			}
 			return FReply::Handled();
 		});
+}
+
+TSharedRef<SWidget> SValencyInspector::MakeRebuildAllButton()
+{
+	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
+
+	return SNew(SButton)
+		.Text(NSLOCTEXT("PCGExValency", "RebuildAll", "Rebuild All"))
+		.ToolTipText(NSLOCTEXT("PCGExValency", "RebuildAllTip", "Rebuild all cages in the scene"))
+		.ContentPadding(FMargin(4, 1))
+		.OnClicked_Lambda([WeakMode]() -> FReply
+		{
+			if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+			{
+				for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : Mode->GetCachedCages())
+				{
+					if (APCGExValencyCageBase* Cage = CagePtr.Get())
+					{
+						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+					}
+				}
+			}
+			return FReply::Handled();
+		});
+}
+
+TSharedRef<SWidget> SValencyInspector::MakeRelatedSection(APCGExValencyCageBase* Cage)
+{
+	TSharedRef<SVerticalBox> Section = SNew(SVerticalBox);
+	bool bHasContent = false;
+
+	// Containing Volumes
+	const TArray<TWeakObjectPtr<AValencyContextVolume>>& Volumes = Cage->GetContainingVolumes();
+	if (Volumes.Num() > 0)
+	{
+		bHasContent = true;
+		Section->AddSlot().AutoHeight()
+		[
+			MakeSectionHeader(FText::Format(
+				NSLOCTEXT("PCGExValency", "ContainingVolumes", "Containing Volumes ({0})"),
+				FText::AsNumber(Volumes.Num())))
+		];
+
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolPtr : Volumes)
+		{
+			if (AValencyContextVolume* Vol = VolPtr.Get())
+			{
+				TWeakObjectPtr<AActor> WeakActor(Vol);
+				Section->AddSlot().AutoHeight()
+				[
+					SNew(SButton)
+					.ContentPadding(FMargin(4, 1))
+					.ToolTipText(NSLOCTEXT("PCGExValency", "SelectVolumeTip", "Click to select this volume"))
+					.OnClicked_Lambda([WeakActor]() -> FReply
+					{
+						if (AActor* A = WeakActor.Get())
+						{
+							if (GEditor)
+							{
+								GEditor->SelectNone(true, true);
+								GEditor->SelectActor(A, true, true);
+							}
+						}
+						return FReply::Handled();
+					})
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(Vol->GetActorNameOrLabel()))
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+					]
+				];
+			}
+		}
+	}
+
+	// Mirror sources (APCGExValencyCage only)
+	if (const APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
+	{
+		if (RegularCage->MirrorSources.Num() > 0)
+		{
+			bHasContent = true;
+			Section->AddSlot().AutoHeight().Padding(0, 2, 0, 0)
+			[
+				MakeSectionHeader(FText::Format(
+					NSLOCTEXT("PCGExValency", "Mirrors", "Mirrors ({0})"),
+					FText::AsNumber(RegularCage->MirrorSources.Num())))
+			];
+
+			for (const TObjectPtr<AActor>& Source : RegularCage->MirrorSources)
+			{
+				if (AActor* SourceActor = Source.Get())
+				{
+					TWeakObjectPtr<AActor> WeakActor(SourceActor);
+					Section->AddSlot().AutoHeight()
+					[
+						SNew(SButton)
+						.ContentPadding(FMargin(4, 1))
+						.ToolTipText(NSLOCTEXT("PCGExValency", "SelectMirrorSourceTip", "Click to select this mirror source"))
+						.OnClicked_Lambda([WeakActor]() -> FReply
+						{
+							if (AActor* A = WeakActor.Get())
+							{
+								if (GEditor)
+								{
+									GEditor->SelectNone(true, true);
+									GEditor->SelectActor(A, true, true);
+								}
+							}
+							return FReply::Handled();
+						})
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString(SourceActor->GetActorNameOrLabel()))
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+						]
+					];
+				}
+			}
+		}
+	}
+
+	// Mirrored By (cages that use this cage as a mirror source)
+	if (APCGExValencyAssetContainerBase* Container = Cast<APCGExValencyAssetContainerBase>(Cage))
+	{
+		TArray<APCGExValencyCage*> MirroringCages;
+		Container->FindMirroringCages(MirroringCages);
+
+		if (MirroringCages.Num() > 0)
+		{
+			bHasContent = true;
+			Section->AddSlot().AutoHeight().Padding(0, 2, 0, 0)
+			[
+				MakeSectionHeader(FText::Format(
+					NSLOCTEXT("PCGExValency", "MirroredBy", "Mirrored By ({0})"),
+					FText::AsNumber(MirroringCages.Num())))
+			];
+
+			for (APCGExValencyCage* MirrorCage : MirroringCages)
+			{
+				if (!MirrorCage) continue;
+				TWeakObjectPtr<AActor> WeakActor(MirrorCage);
+				Section->AddSlot().AutoHeight()
+				[
+					SNew(SButton)
+					.ContentPadding(FMargin(4, 1))
+					.ToolTipText(NSLOCTEXT("PCGExValency", "SelectMirroringCageTip", "Click to select this mirroring cage"))
+					.OnClicked_Lambda([WeakActor]() -> FReply
+					{
+						if (AActor* A = WeakActor.Get())
+						{
+							if (GEditor)
+							{
+								GEditor->SelectNone(true, true);
+								GEditor->SelectActor(A, true, true);
+							}
+						}
+						return FReply::Handled();
+					})
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(MirrorCage->GetCageDisplayName()))
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+					]
+				];
+			}
+		}
+	}
+
+	if (!bHasContent)
+	{
+		return SNullWidget::NullWidget;
+	}
+
+	return Section;
 }
 
 TSharedRef<SWidget> SValencyInspector::MakeLabeledRow(const FText& Label, const FText& Value)
