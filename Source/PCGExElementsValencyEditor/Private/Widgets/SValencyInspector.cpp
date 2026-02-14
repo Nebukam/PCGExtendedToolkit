@@ -458,7 +458,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 			.Text(FText::FromName(Connector->Identifier))
 			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorIdentifierTip", "Unique connector identifier within this cage"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-			.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+			.OnTextCommitted_Lambda([WeakConnector, this](const FText& NewText, ETextCommit::Type CommitType)
 			{
 				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
@@ -469,10 +469,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 					{
 						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 					}
-					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-					{
-						Mode->OnSceneChanged.Broadcast();
-					}
+					this->RefreshContent();
 				}
 			})
 		]
@@ -569,7 +566,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 								.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 							];
 					})
-					.OnSelectionChanged_Lambda([WeakConnector, WeakMode](TSharedPtr<FName> NewValue, ESelectInfo::Type)
+					.OnSelectionChanged_Lambda([WeakConnector, this](TSharedPtr<FName> NewValue, ESelectInfo::Type)
 					{
 						if (!NewValue.IsValid()) return;
 						if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
@@ -582,10 +579,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 							{
 								Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 							}
-							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-							{
-								Mode->OnSceneChanged.Broadcast();
-							}
+							this->RefreshContent();
 						}
 					})
 					[
@@ -609,7 +603,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 				.Text(FText::FromName(Connector->ConnectorType))
 				.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorTypeTip", "Connector type name \u2014 determines compatibility during solving. Assign a ConnectorSet for type dropdown."))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-				.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+				.OnTextCommitted_Lambda([WeakConnector, this](const FText& NewText, ETextCommit::Type CommitType)
 				{
 					if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 					{
@@ -620,10 +614,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 						{
 							Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
 						}
-						if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-						{
-							Mode->OnSceneChanged.Broadcast();
-						}
+						this->RefreshContent();
 					}
 				});
 		}
@@ -688,7 +679,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 			SNew(SButton)
 			.Text(GetPolarityLabel(Connector->Polarity))
 			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorPolarityTip", "Cycle polarity: Universal (connects to any), Plug (outward), Port (inward)"))
-			.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
+			.OnClicked_Lambda([WeakConnector, WeakMode, this]() -> FReply
 			{
 				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
@@ -707,9 +698,9 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 					}
 					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 					{
-						Mode->OnSceneChanged.Broadcast();
 						Mode->RedrawViewports();
 					}
+					this->RefreshContent();
 				}
 				return FReply::Handled();
 			})
@@ -740,7 +731,7 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 			SNew(SCheckBox)
 			.IsChecked(Connector->bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorEnabledTip", "Disabled connectors are ignored during compilation"))
-			.OnCheckStateChanged_Lambda([WeakConnector, WeakMode](ECheckBoxState NewState)
+			.OnCheckStateChanged_Lambda([WeakConnector, WeakMode, this](ECheckBoxState NewState)
 			{
 				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
 				{
@@ -753,9 +744,9 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 					}
 					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 					{
-						Mode->OnSceneChanged.Broadcast();
 						Mode->RedrawViewports();
 					}
+					this->RefreshContent();
 				}
 			})
 		]
@@ -951,7 +942,6 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 	TWeakObjectPtr<UPCGExValencyCageConnectorComponent> WeakConnector(ConnectorComp);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
-	const bool bEnabled = ConnectorComp->bEnabled;
 	const FLinearColor RowBgColor = bIsActive
 		? FLinearColor(0.1f, 0.2f, 0.35f, 1.0f)
 		: FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -986,42 +976,7 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 		EffectiveSet = Cage->GetEffectiveConnectorSet();
 	}
 
-	FText IconText = FText::FromString(TEXT("?"));
-	FLinearColor DotColor(0.4f, 0.4f, 0.4f);
-	FText TypeTooltip = FText::FromName(ConnectorComp->ConnectorType);
-
-	if (EffectiveSet)
-	{
-		const int32 TypeIdx = EffectiveSet->FindConnectorTypeIndex(ConnectorComp->ConnectorType);
-		if (EffectiveSet->ConnectorTypes.IsValidIndex(TypeIdx))
-		{
-			IconText = PCGExValencyInspector::GetIconText(EffectiveSet, TypeIdx);
-			DotColor = EffectiveSet->ConnectorTypes[TypeIdx].DebugColor;
-		}
-		else
-		{
-			DotColor = FLinearColor(1.0f, 0.6f, 0.0f);
-			TypeTooltip = FText::Format(
-				NSLOCTEXT("PCGExValency", "TypeNotFoundTip", "Type '{0}' not found in ConnectorSet"),
-				FText::FromName(ConnectorComp->ConnectorType));
-		}
-	}
-
-	// Build the icon dot content (shared between combo and plain modes)
-	auto MakeIconDot = [&IconText, &DotColor]() -> TSharedRef<SWidget>
-	{
-		return SNew(SBox)
-			.WidthOverride(16)
-			.HeightOverride(16)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(IconText)
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-				.ColorAndOpacity(FSlateColor(DotColor))
-			];
-	};
+	TWeakObjectPtr<UPCGExValencyConnectorSet> WeakSet(EffectiveSet);
 
 	// Build the icon dot widget — clickable type picker when ConnectorSet available
 	TSharedRef<SWidget> IconDotWidget = SNullWidget::NullWidget;
@@ -1031,10 +986,65 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 		IconDotWidget = SNew(SComboButton)
 			.HasDownArrow(false)
 			.ContentPadding(0)
-			.ToolTipText(TypeTooltip)
+			.ToolTipText_Lambda([WeakConnector, WeakSet]() -> FText
+			{
+				if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+				{
+					if (const UPCGExValencyConnectorSet* Set = WeakSet.Get())
+					{
+						const int32 Idx = Set->FindConnectorTypeIndex(S->ConnectorType);
+						if (!Set->ConnectorTypes.IsValidIndex(Idx))
+						{
+							return FText::Format(
+								NSLOCTEXT("PCGExValency", "TypeNotFoundTip", "Type '{0}' not found in ConnectorSet"),
+								FText::FromName(S->ConnectorType));
+						}
+					}
+					return FText::FromName(S->ConnectorType);
+				}
+				return FText::GetEmpty();
+			})
 			.ButtonContent()
 			[
-				MakeIconDot()
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(16)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text_Lambda([WeakConnector, WeakSet]() -> FText
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							if (const UPCGExValencyConnectorSet* Set = WeakSet.Get())
+							{
+								const int32 Idx = Set->FindConnectorTypeIndex(S->ConnectorType);
+								if (Set->ConnectorTypes.IsValidIndex(Idx))
+								{
+									return PCGExValencyInspector::GetIconText(Set, Idx);
+								}
+							}
+						}
+						return FText::FromString(TEXT("?"));
+					})
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.ColorAndOpacity_Lambda([WeakConnector, WeakSet]() -> FSlateColor
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							if (const UPCGExValencyConnectorSet* Set = WeakSet.Get())
+							{
+								const int32 Idx = Set->FindConnectorTypeIndex(S->ConnectorType);
+								if (Set->ConnectorTypes.IsValidIndex(Idx))
+								{
+									return FSlateColor(Set->ConnectorTypes[Idx].DebugColor);
+								}
+							}
+						}
+						return FSlateColor(FLinearColor(0.4f, 0.4f, 0.4f));
+					})
+				]
 			]
 			.OnGetMenuContent_Lambda([WeakConnector, WeakMode, EffectiveSet]() -> TSharedRef<SWidget>
 			{
@@ -1061,7 +1071,7 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 								}
 								if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 								{
-									Mode->OnSceneChanged.Broadcast();
+									Mode->RedrawViewports();
 								}
 							}
 						})),
@@ -1096,15 +1106,39 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 	{
 		// No ConnectorSet — plain icon dot, no picker
 		IconDotWidget = SNew(SBox)
-			.ToolTipText(TypeTooltip)
+			.ToolTipText_Lambda([WeakConnector]() -> FText
+			{
+				if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+				{
+					return FText::FromName(S->ConnectorType);
+				}
+				return FText::GetEmpty();
+			})
 			[
-				MakeIconDot()
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(16)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("?")))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.ColorAndOpacity(FSlateColor(FLinearColor(0.4f, 0.4f, 0.4f)))
+				]
 			];
 	}
 
 	return SNew(SBorder)
 		.BorderBackgroundColor(RowBgColor)
-		.ColorAndOpacity(bEnabled ? FLinearColor::White : FLinearColor(0.5f, 0.5f, 0.5f, 0.7f))
+		.ColorAndOpacity_Lambda([WeakConnector]() -> FLinearColor
+		{
+			if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+			{
+				return S->bEnabled ? FLinearColor::White : FLinearColor(0.5f, 0.5f, 0.5f, 0.7f);
+			}
+			return FLinearColor::White;
+		})
 		.Padding(FMargin(2, 1))
 		[
 			SNew(SHorizontalBox)
@@ -1137,7 +1171,6 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 						}
 						if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 						{
-							Mode->OnSceneChanged.Broadcast();
 							Mode->RedrawViewports();
 						}
 					}
@@ -1181,7 +1214,14 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 				})
 				[
 					SNew(STextBlock)
-					.Text(FText::FromName(ConnectorComp->Identifier))
+					.Text_Lambda([WeakConnector]() -> FText
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							return FText::FromName(S->Identifier);
+						}
+						return FText::GetEmpty();
+					})
 					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 				]
 			]
@@ -1195,8 +1235,22 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 				.WidthOverride(22)
 				[
 					SNew(SButton)
-					.Text(GetPolaritySymbol(ConnectorComp->Polarity))
-					.ToolTipText(GetPolarityTooltip(ConnectorComp->Polarity))
+					.Text_Lambda([WeakConnector, GetPolaritySymbol]() -> FText
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							return GetPolaritySymbol(S->Polarity);
+						}
+						return FText::GetEmpty();
+					})
+					.ToolTipText_Lambda([WeakConnector, GetPolarityTooltip]() -> FText
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							return GetPolarityTooltip(S->Polarity);
+						}
+						return FText::GetEmpty();
+					})
 					.ContentPadding(FMargin(2, 0))
 					.HAlign(HAlign_Center)
 					.OnClicked_Lambda([WeakConnector, WeakMode]() -> FReply
@@ -1217,7 +1271,6 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 							}
 							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
 							{
-								Mode->OnSceneChanged.Broadcast();
 								Mode->RedrawViewports();
 							}
 						}
