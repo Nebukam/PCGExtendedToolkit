@@ -10,6 +10,7 @@
 #include "UObject/Object.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 
 #include "PCGExNumericCompareNearestFilter.generated.h"
 
@@ -59,6 +60,10 @@ struct FPCGExNumericCompareNearestFilterConfig
 	/** Exclude the point's own data from the nearest search. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = true;
+
+	/** Data matching settings. When enabled, only targets whose data matches the input being tested will be considered. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
 };
 
 

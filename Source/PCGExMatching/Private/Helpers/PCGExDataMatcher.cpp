@@ -281,6 +281,28 @@ namespace PCGExMatching
 		return MatchableSources->Num() != NumIgnored;
 	}
 
+	bool FDataMatcher::PopulateIgnoreListFromCandidates(
+		const TArray<FPCGExTaggedData>& InCandidates,
+		FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
+	{
+		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
+
+		check(NumSources == 1); // Inverse matching uses a single source (the input)
+
+		int32 NumIgnored = 0;
+		const UPCGData* SourceData = (*MatchableSources)[0].Data;
+		for (const FPCGExTaggedData& Candidate : InCandidates)
+		{
+			if (!Test(SourceData, Candidate, InMatchingScope))
+			{
+				OutIgnoreList.Add(Candidate.Data);
+				NumIgnored++;
+			}
+		}
+
+		return InCandidates.Num() != NumIgnored;
+	}
+
 	int32 FDataMatcher::GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources) const
 	{
 		TArray<FPCGExTaggedData>& MatchableSourcesRef = *MatchableSources.Get();

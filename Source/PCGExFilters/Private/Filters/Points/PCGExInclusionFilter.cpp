@@ -8,6 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPath.h"
 #include "PCGExVersion.h"
+#include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExInclusionFilterDefinition"
@@ -40,6 +41,7 @@ void UPCGExInclusionFilterFactory::InitConfig_Internal()
 	WindingMutation = Config.WindingMutation;
 	bScaleTolerance = Config.bSplineScalesTolerance;
 	bIgnoreSelf = Config.bIgnoreSelf;
+	DataMatching = Config.DataMatching;
 }
 
 #if WITH_EDITOR
@@ -59,6 +61,12 @@ namespace PCGExPointFilter
 	bool FInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
+
+		if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+		{
+			bCollectionTestResult = TypedFilterFactory->Config.bInvert;
+			return true;
+		}
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
@@ -125,6 +133,7 @@ TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinPropert
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExPathInclusion::DeclareInclusionPin(PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(Config.DataMatching, PinProperties);
 	return PinProperties;
 }
 

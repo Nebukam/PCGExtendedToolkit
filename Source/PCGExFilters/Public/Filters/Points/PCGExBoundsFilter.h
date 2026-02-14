@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 
 #include "Core/PCGExPointFilter.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExMathBounds.h"
 
 #include "PCGExBoundsFilter.generated.h"
@@ -73,6 +74,10 @@ struct FPCGExBoundsFilterConfig
 	/** If enabled, a collection will never be tested against itself. */
 	bool bIgnoreSelf = false;
 
+	/** Data matching settings. When enabled, only bounds data that matches the input being tested will be considered. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
+
 	/** If enabled, uses collection bounds as a single proxy point instead of per-point testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bCheckAgainstDataBounds = false;
@@ -126,6 +131,7 @@ namespace PCGExPointFilter
 	private:
 		// Cached config
 		const TArray<TSharedPtr<PCGExMath::OBB::FCollection>>* Collections = nullptr;
+		TArray<TSharedPtr<PCGExMath::OBB::FCollection>> FilteredCollections;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 		EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;
 		EPCGExBoxCheckMode CheckMode = EPCGExBoxCheckMode::Box;

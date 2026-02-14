@@ -6,7 +6,9 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
 #include "Math/PCGExMathDistances.h"
+#include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"
 
 
@@ -47,6 +49,7 @@ PCGExFactories::EPreparationResult UPCGExDistanceFilterFactory::Prepare(FPCGExCo
 	if (!TargetsHandler->Init(InContext, PCGExCommon::Labels::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
 
 	TargetsHandler->SetDistances(Config.DistanceDetails);
+	TargetsHandler->SetMatchingDetails(InContext, &Config.DataMatching);
 
 	return Super::Prepare(InContext, TaskManager);
 }
@@ -61,6 +64,12 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	if (TypedFilterFactory->Config.bIgnoreSelf) { IgnoreList.Add(InPointDataFacade->GetIn()); }
+
+	if (PCGExMatching::FScope MatchingScope(TargetsHandler->Num(), true); !TargetsHandler->PopulateIgnoreListInverse(InContext, InPointDataFacade, MatchingScope, IgnoreList))
+	{
+		bCollectionTestResult = false;
+		return true;
+	}
 
 	bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
 
@@ -134,6 +143,7 @@ TArray<FPCGPinProperties> UPCGExDistanceFilterProviderSettings::InputPinProperti
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, TEXT("Target points to read operand B from"), Required)
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(Config.DataMatching, PinProperties);
 	return PinProperties;
 }
 

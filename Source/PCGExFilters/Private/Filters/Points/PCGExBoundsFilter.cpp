@@ -7,6 +7,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Math/PCGExMathBounds.h"  // For PCGExMath::GetLocalBounds
 #include "Math/OBB/PCGExOBBCollection.h"
+#include "PCGExMatching/Public/Helpers/PCGExDataMatcher.h"
+#include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
 #define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
@@ -75,6 +77,52 @@ bool PCGExPointFilter::FBoundsFilter::Init(FPCGExContext* InContext, const TShar
 
 	Collections = &TypedFilterFactory->Collections;
 	if (!Collections || Collections->IsEmpty()) { return false; }
+
+	// When matching is enabled, use inverse matching: input as source, bounds data as candidates
+	if (TypedFilterFactory->Config.DataMatching.IsEnabled())
+	{
+		auto InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+		SingleSource.Add(InPointDataFacade);
+		if (InverseMatcher->Init(InContext, SingleSource, false))
+		{
+			TArray<FPCGExTaggedData> BoundsCandidates;
+			BoundsCandidates.Reserve(TypedFilterFactory->BoundsDataFacades.Num());
+			for (int32 i = 0; i < TypedFilterFactory->BoundsDataFacades.Num(); i++)
+			{
+				BoundsCandidates.Add(TypedFilterFactory->BoundsDataFacades[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i));
+			}
+
+			TSet<const UPCGData*> IgnoreList;
+			PCGExMatching::FScope MatchingScope(1, true);
+			if (!InverseMatcher->PopulateIgnoreListFromCandidates(BoundsCandidates, MatchingScope, IgnoreList))
+			{
+				bCollectionTestResult = TypedFilterFactory->Config.bInvert;
+				return true;
+			}
+
+			if (!IgnoreList.IsEmpty())
+			{
+				FilteredCollections.Reserve(TypedFilterFactory->Collections.Num());
+				for (int32 i = 0; i < TypedFilterFactory->Collections.Num(); i++)
+				{
+					if (!IgnoreList.Contains(TypedFilterFactory->BoundsDataFacades[i]->GetIn()))
+					{
+						FilteredCollections.Add(TypedFilterFactory->Collections[i]);
+					}
+				}
+				Collections = &FilteredCollections;
+
+				if (Collections->IsEmpty())
+				{
+					bCollectionTestResult = TypedFilterFactory->Config.bInvert;
+					return true;
+				}
+			}
+		}
+	}
 
 	// Cache config for fast access during tests
 	const FPCGExBoundsFilterConfig& Config = TypedFilterFactory->Config;
@@ -227,6 +275,7 @@ TArray<FPCGPinProperties> UPCGExBoundsFilterProviderSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(FName("Bounds"), TEXT("Points which bounds will be used for testing"), Required)
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(Config.DataMatching, PinProperties);
 	return PinProperties;
 }
 

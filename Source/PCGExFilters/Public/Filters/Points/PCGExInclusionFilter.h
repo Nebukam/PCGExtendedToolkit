@@ -89,6 +89,10 @@ struct FPCGExInclusionFilterConfig
 	/** If enabled, a collection will never be tested against itself */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = true;
+
+	/** Data matching settings. When enabled, only paths whose data matches the input being tested will be considered. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
 };
 
 /**

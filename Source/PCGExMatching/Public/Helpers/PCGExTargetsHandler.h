@@ -48,6 +48,9 @@ namespace PCGExMatching
 
 		const PCGExMath::IDistances* Distances = nullptr;
 
+		FPCGExContext* MatchingContext = nullptr;
+		const FPCGExMatchingDetails* MatchingDetails = nullptr;
+
 	public:
 		using FInitData = std::function<FBox(const TSharedPtr<PCGExData::FPointIO>&, const int32)>;
 		using FFacadeRefIterator = std::function<void(const TSharedRef<PCGExData::FFacade>&, const int32)>;
@@ -76,6 +79,7 @@ namespace PCGExMatching
 
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool PopulateIgnoreListInverse(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;

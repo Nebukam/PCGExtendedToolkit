@@ -6,7 +6,9 @@
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExTaggedData.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Math/PCGExMathDistances.h"
 
@@ -77,6 +79,8 @@ namespace PCGExMatching
 
 	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)
 	{
+		MatchingContext = InContext;
+		MatchingDetails = InDetails;
 		DataMatcher = MakeShared<FDataMatcher>();
 		DataMatcher->SetDetails(InDetails);
 		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
@@ -86,6 +90,29 @@ namespace PCGExMatching
 	{
 		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate->GetTaggedData(), InMatchingScope, OutIgnoreList); }
 		return true;
+	}
+
+	bool FTargetsHandler::PopulateIgnoreListInverse(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
+	{
+		if (!MatchingDetails || !MatchingDetails->IsEnabled()) { return true; }
+
+		// Create inverse matcher: input is the single MatchableSource
+		auto InverseMatcher = MakeShared<FDataMatcher>();
+		InverseMatcher->SetDetails(MatchingDetails);
+
+		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+		SingleSource.Add(InSourceFacade);
+		if (!InverseMatcher->Init(InContext, SingleSource, false)) { return true; }
+
+		// Build FPCGExTaggedData array from targets (candidates in inverse context)
+		TArray<FPCGExTaggedData> TargetCandidates;
+		TargetCandidates.Reserve(TargetFacades.Num());
+		for (int32 i = 0; i < TargetFacades.Num(); i++)
+		{
+			TargetCandidates.Add(TargetFacades[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i));
+		}
+
+		return InverseMatcher->PopulateIgnoreListFromCandidates(TargetCandidates, InMatchingScope, OutIgnoreList);
 	}
 
 	bool FTargetsHandler::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const

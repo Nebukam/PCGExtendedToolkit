@@ -8,6 +8,7 @@
 #include "Core/PCGExPointFilter.h"
 #include "PCGExVersion.h"
 #include "Data/PCGExTaggedData.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExWinding.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
@@ -73,6 +74,10 @@ public:
 
 	TSharedPtr<PCGExPathInclusion::FHandler> CreateHandler() const;
 
+	/** Populates the ignore list using inverse matching: input as source, targets as candidates.
+	 *  Returns true if matching passed (or no matcher). Returns false if no targets matched. */
+	bool PopulateMatchIgnoreList(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<const UPCGData*>& OutIgnoreList) const;
+
 	virtual void BeginDestroy() override;
 
 protected:
@@ -89,6 +94,7 @@ protected:
 	FPCGExGeo2DProjectionDetails LocalProjection;
 	EPCGExSplineSamplingIncludeMode LocalSampleInputs = EPCGExSplineSamplingIncludeMode::All;
 	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged;
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
 	bool bScaleTolerance = false;
 	bool bUsedForInclusion = true;
 	bool bIgnoreSelf = true;
@@ -159,6 +165,7 @@ namespace PCGExPathInclusion
 		double ToleranceSquared = MAX_dbl;
 		bool bScaleTolerance = false;
 		FVector ToleranceScaleFactor = FVector(1, 1, 1);
+		TSet<const UPCGData*> MatchIgnoreList;
 
 		explicit FHandler(const UPCGExPolyPathFilterFactory* InFactory);
 

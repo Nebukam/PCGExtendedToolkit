@@ -10,6 +10,7 @@
 #include "Core/PCGExFilterFactoryProvider.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 
 #include "PCGExDistanceFilter.generated.h"
 
@@ -55,6 +56,10 @@ struct FPCGExDistanceFilterConfig
 	/** If enabled, a collection will never be tested against itself */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = false;
+
+	/** Data matching settings. When enabled, only targets whose data matches the input being tested will be considered. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
 
 	PCGEX_SETTING_VALUE_DECL(DistanceThreshold, double)
 

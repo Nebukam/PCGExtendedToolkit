@@ -10,6 +10,7 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPolyPath.h"
+#include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"
 #define PCGEX_NAMESPACE PCGExTimeFilterDefinition
@@ -37,6 +38,7 @@ void UPCGExTimeFilterFactory::InitConfig_Internal()
 	bScaleTolerance = false;
 	bUsedForInclusion = false;
 	bIgnoreSelf = Config.bIgnoreSelf;
+	DataMatching = Config.DataMatching;
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTimeFilterFactory::CreateFilter() const
@@ -68,6 +70,12 @@ namespace PCGExPointFilter
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
+		if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+		{
+			bCollectionTestResult = TypedFilterFactory->Config.bInvert;
+			return true;
+		}
+
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 		if (!OperandB->Init(PointDataFacade)) { return false; }
 
@@ -82,12 +90,16 @@ namespace PCGExPointFilter
 
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Alpha = MAX_flt; }
 
+		const TSet<const UPCGData*>& MatchIgnore = Handler->MatchIgnoreList;
+
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double BestDist = MAX_dbl;
 
 			TypedFilterFactory->Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](const PCGExOctree::FItem& Item)
 			{
+				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[Item.Index].Data)) { return; }
+
 				float LocalAlpha = 0;
 				const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
 				const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
@@ -103,10 +115,14 @@ namespace PCGExPointFilter
 		}
 		else
 		{
-			for (const TSharedPtr<PCGExPaths::FPolyPath>& Path : TypedFilterFactory->PolyPaths)
+			int32 MatchCount = 0;
+			for (int32 i = 0; i < TypedFilterFactory->PolyPaths.Num(); i++)
 			{
+				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[i].Data)) { continue; }
+
 				float LocalAlpha = 0;
-				(void)Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
+				(void)TypedFilterFactory->PolyPaths[i]->GetClosestTransform(WorldPosition, LocalAlpha, false);
+				MatchCount++;
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
@@ -119,9 +135,9 @@ namespace PCGExPointFilter
 				}
 			}
 
-			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
+			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average && MatchCount > 0)
 			{
-				Alpha /= TypedFilterFactory->PolyPaths.Num();
+				Alpha /= MatchCount;
 			}
 		}
 
@@ -138,12 +154,16 @@ namespace PCGExPointFilter
 		// Pre-seed with MAX_flt so first Min() comparison works correctly.
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Alpha = MAX_flt; }
 
+		const TSet<const UPCGData*>& MatchIgnore = Handler->MatchIgnoreList;
+
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double BestDist = MAX_dbl;
 
 			TypedFilterFactory->Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](const PCGExOctree::FItem& Item)
 			{
+				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[Item.Index].Data)) { return; }
+
 				float LocalAlpha = 0;
 				const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
 				const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
@@ -159,10 +179,14 @@ namespace PCGExPointFilter
 		}
 		else
 		{
-			for (const TSharedPtr<PCGExPaths::FPolyPath>& Path : TypedFilterFactory->PolyPaths)
+			int32 MatchCount = 0;
+			for (int32 i = 0; i < TypedFilterFactory->PolyPaths.Num(); i++)
 			{
+				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[i].Data)) { continue; }
+
 				float LocalAlpha = 0;
-				(void)Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
+				(void)TypedFilterFactory->PolyPaths[i]->GetClosestTransform(WorldPosition, LocalAlpha, false);
+				MatchCount++;
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
@@ -175,9 +199,9 @@ namespace PCGExPointFilter
 				}
 			}
 
-			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
+			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average && MatchCount > 0)
 			{
-				Alpha /= TypedFilterFactory->PolyPaths.Num();
+				Alpha /= MatchCount;
 			}
 		}
 
@@ -196,6 +220,7 @@ TArray<FPCGPinProperties> UPCGExTimeFilterProviderSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExPathInclusion::DeclareInclusionPin(PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(Config.DataMatching, PinProperties);
 	return PinProperties;
 }
 

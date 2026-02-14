@@ -79,6 +79,7 @@ namespace PCGExMatching
 		bool Test(const PCGExData::FConstPoint& InInMatchableElement, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const;
 
 		bool PopulateIgnoreList(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool PopulateIgnoreListFromCandidates(const TArray<FPCGExTaggedData>& InCandidates, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 
 		int32 GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources = nullptr) const;
 

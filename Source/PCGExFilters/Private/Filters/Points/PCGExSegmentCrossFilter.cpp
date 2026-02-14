@@ -8,6 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
+#include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSegmentCrossFilterDefinition"
@@ -37,6 +38,7 @@ void UPCGExSegmentCrossFilterFactory::InitConfig_Internal()
 	WindingMutation = EPCGExWindingMutation::Unchanged;
 	bScaleTolerance = false;
 	bIgnoreSelf = Config.bIgnoreSelf;
+	DataMatching = Config.DataMatching;
 	bBuildEdgeOctree = true;
 }
 
@@ -45,6 +47,11 @@ namespace PCGExPointFilter
 	bool FSegmentCrossFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
+
+		if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+		{
+			return false;
+		}
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(InPointDataFacade->Source->GetIn());
 		LastIndex = InPointDataFacade->GetNum() - 1;
@@ -89,6 +96,7 @@ TArray<FPCGPinProperties> UPCGExSegmentCrossFilterProviderSettings::InputPinProp
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExPathInclusion::DeclareInclusionPin(PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(Config.DataMatching, PinProperties);
 	return PinProperties;
 }
 
