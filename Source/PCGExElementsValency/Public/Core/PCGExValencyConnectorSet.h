@@ -26,6 +26,24 @@ namespace PCGExValencyConnector
 		if (A == EPCGExConnectorPolarity::Universal || B == EPCGExConnectorPolarity::Universal) return true;
 		return A != B; // Plug ↔ Port
 	}
+
+	/** 64 visually distinct ASCII placeholder icons for connector types.
+	 * Will be replaced with SVG/brush icons later — swap GetIconChar() for FSlateBrush* lookup. */
+	inline constexpr TCHAR IconChars[64] = {
+		'*', '+', '#', '@', '$', '&', '!', '~', '^', '%', '=', '?', '>', '<',
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'a', 'b', 'd', 'e', 'f', 'g', 'h', 'k', 'm', 'n', 'p', 'q', 'r', 't',
+		'w', 'x',
+	};
+	inline constexpr int32 NumIcons = 64;
+
+	/** Get the icon character for an index (returns '?' for out of range). */
+	FORCEINLINE TCHAR GetIconChar(int32 Index)
+	{
+		return (Index >= 0 && Index < NumIcons) ? IconChars[Index] : TEXT('?');
+	}
 }
 
 /**
@@ -106,6 +124,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyConnectorEntry
 	/** Debug visualization color */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
+
+#if WITH_EDITORONLY_DATA
+	/** Visual icon index (0-63). -1 = auto-assign from array position. */
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (ClampMin = -1, ClampMax = 63))
+	int32 IconIndex = -1;
+#endif
 
 	/** Bit index in compatibility mask (0-63, assigned at compile time) */
 	int32 BitIndex = -1;
@@ -224,6 +248,20 @@ public:
 	void InitializeSelfCompatible();
 
 #if WITH_EDITOR
+	/** Get the effective icon index for a connector type (resolves auto-assign from IconIndex or array position). */
+	int32 GetEffectiveIconIndex(int32 TypeArrayIndex) const
+	{
+		if (ConnectorTypes.IsValidIndex(TypeArrayIndex))
+		{
+			const int32 EntryIcon = ConnectorTypes[TypeArrayIndex].IconIndex;
+			if (EntryIcon >= 0 && EntryIcon < PCGExValencyConnector::NumIcons)
+			{
+				return EntryIcon;
+			}
+		}
+		return TypeArrayIndex;
+	}
+
 	/**
 	 * Find connector type index by TypeId.
 	 * @param TypeId The stable type identifier

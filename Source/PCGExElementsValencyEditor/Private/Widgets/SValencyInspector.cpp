@@ -33,23 +33,11 @@
 
 namespace PCGExValencyInspector
 {
-	// 64 visually distinct ASCII characters used as placeholder connector type icons.
-	// Will be replaced with SVG brushes later — swap GetConnectorIconText() to return
-	// an FSlateBrush* instead when that happens.
-	static const TCHAR IconChars[] = {
-		'*', '+', '#', '@', '$', '&', '!', '~', '^', '%', '=', '?', '>', '<',
-		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P',
-		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		'a', 'b', 'd', 'e', 'f', 'g', 'h', 'k', 'm', 'n', 'p', 'q', 'r', 't',
-		'w', 'x',
-	};
-	static_assert(UE_ARRAY_COUNT(IconChars) == 64, "Need exactly 64 icon characters");
-
-	/** Get the placeholder icon character for a connector type index. */
-	static FText GetConnectorIconText(int32 TypeIndex)
+	/** Get icon text for a connector type, resolving auto-assign via ConnectorSet. */
+	static FText GetIconText(const UPCGExValencyConnectorSet* Set, int32 TypeArrayIndex)
 	{
-		const TCHAR C = (TypeIndex >= 0 && TypeIndex < 64) ? IconChars[TypeIndex] : '?';
+		const int32 Effective = Set ? Set->GetEffectiveIconIndex(TypeArrayIndex) : TypeArrayIndex;
+		const TCHAR C = PCGExValencyConnector::GetIconChar(Effective);
 		return FText::FromString(FString(1, &C));
 	}
 }
@@ -1007,7 +995,7 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 		const int32 TypeIdx = EffectiveSet->FindConnectorTypeIndex(ConnectorComp->ConnectorType);
 		if (EffectiveSet->ConnectorTypes.IsValidIndex(TypeIdx))
 		{
-			IconText = PCGExValencyInspector::GetConnectorIconText(TypeIdx);
+			IconText = PCGExValencyInspector::GetIconText(EffectiveSet, TypeIdx);
 			DotColor = EffectiveSet->ConnectorTypes[TypeIdx].DebugColor;
 		}
 		else
@@ -1022,22 +1010,16 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 	// Build the icon dot content (shared between combo and plain modes)
 	auto MakeIconDot = [&IconText, &DotColor]() -> TSharedRef<SWidget>
 	{
-		return SNew(SBorder)
-			.BorderImage(FCoreStyle::Get().GetBrush("GenericWhiteBox"))
-			.BorderBackgroundColor(DotColor)
-			.Padding(0)
+		return SNew(SBox)
+			.WidthOverride(16)
+			.HeightOverride(16)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SBox)
-				.WidthOverride(16)
-				.HeightOverride(16)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(STextBlock)
-					.Text(IconText)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
-					.ColorAndOpacity(FSlateColor(FLinearColor::White))
-				]
+				SNew(STextBlock)
+				.Text(IconText)
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+				.ColorAndOpacity(FSlateColor(DotColor))
 			];
 	};
 
@@ -1062,7 +1044,7 @@ TSharedRef<SWidget> SValencyInspector::MakeCompactConnectorRow(UPCGExValencyCage
 				{
 					const FPCGExValencyConnectorEntry& Entry = EffectiveSet->ConnectorTypes[i];
 					const FName TypeName = Entry.ConnectorType;
-					const FText Icon = PCGExValencyInspector::GetConnectorIconText(i);
+					const FText Icon = PCGExValencyInspector::GetIconText(EffectiveSet, i);
 
 					FText Label = FText::Format(
 						NSLOCTEXT("PCGExValency", "TypePickerEntryFmt", "{0}  {1}"),

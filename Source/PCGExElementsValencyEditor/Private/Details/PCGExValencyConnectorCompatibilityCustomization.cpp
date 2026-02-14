@@ -19,6 +19,7 @@
 #include "Styling/AppStyle.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SSeparator.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyConnectorCompatibility"
 
@@ -85,6 +86,21 @@ void FPCGExValencyConnectorEntryCustomization::CustomizeChildren(
 				.MinDesiredWidth(200)
 				[
 					BuildCompatibilityDropdown(ChildHandle, ConnectorSet, CurrentTypeId)
+				];
+		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencyConnectorEntry, IconIndex))
+		{
+			ChildBuilder.AddCustomRow(LOCTEXT("Icon", "Icon"))
+				.NameContent()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("IconLabel", "Icon"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+				.ValueContent()
+				.MinDesiredWidth(200)
+				[
+					BuildIconPicker(ChildHandle, ConnectorSet, CurrentTypeId)
 				];
 		}
 		else
@@ -200,6 +216,114 @@ FText FPCGExValencyConnectorEntryCustomization::GetCompatibilitySummary(
 	}
 
 	return FText::FromString(Summary);
+}
+
+TSharedRef<SWidget> FPCGExValencyConnectorEntryCustomization::BuildIconPicker(
+	TSharedPtr<IPropertyHandle> IconIndexHandle,
+	UPCGExValencyConnectorSet* ConnectorSet,
+	int32 CurrentTypeId)
+{
+	// Resolve entry index and color
+	const int32 EntryIndex = ConnectorSet ? ConnectorSet->FindConnectorTypeIndexById(CurrentTypeId) : INDEX_NONE;
+
+	return SNew(SComboButton)
+		.HasDownArrow(true)
+		.ContentPadding(FMargin(4, 2))
+		.ButtonContent()
+		[
+			SNew(STextBlock)
+			.Text_Lambda([IconIndexHandle, EntryIndex]()
+			{
+				int32 Idx = -1;
+				if (IconIndexHandle.IsValid()) { IconIndexHandle->GetValue(Idx); }
+				const int32 Effective = (Idx >= 0 && Idx < PCGExValencyConnector::NumIcons) ? Idx : FMath::Max(EntryIndex, 0);
+				const TCHAR C = PCGExValencyConnector::GetIconChar(Effective);
+				return FText::FromString(FString(1, &C));
+			})
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 11))
+			.ColorAndOpacity_Lambda([ConnectorSet, EntryIndex]()
+			{
+				if (ConnectorSet && ConnectorSet->ConnectorTypes.IsValidIndex(EntryIndex))
+				{
+					return FSlateColor(ConnectorSet->ConnectorTypes[EntryIndex].DebugColor);
+				}
+				return FSlateColor(FLinearColor::White);
+			})
+		]
+		.OnGetMenuContent_Lambda([IconIndexHandle, ConnectorSet, EntryIndex]() -> TSharedRef<SWidget>
+		{
+			// Current effective value for highlight
+			int32 CurrentValue = -1;
+			if (IconIndexHandle.IsValid()) { IconIndexHandle->GetValue(CurrentValue); }
+			const int32 EffectiveCurrent = (CurrentValue >= 0 && CurrentValue < PCGExValencyConnector::NumIcons) ? CurrentValue : FMath::Max(EntryIndex, 0);
+
+			// Tint color from entry
+			FLinearColor TintColor = FLinearColor::White;
+			if (ConnectorSet && ConnectorSet->ConnectorTypes.IsValidIndex(EntryIndex))
+			{
+				TintColor = ConnectorSet->ConnectorTypes[EntryIndex].DebugColor;
+			}
+
+			TSharedRef<SUniformGridPanel> Grid = SNew(SUniformGridPanel).SlotPadding(1);
+
+			for (int32 i = 0; i < PCGExValencyConnector::NumIcons; ++i)
+			{
+				const int32 Col = i % 8;
+				const int32 Row = i / 8;
+				const TCHAR C = PCGExValencyConnector::GetIconChar(i);
+				const bool bIsSelected = (i == EffectiveCurrent);
+
+				Grid->AddSlot(Col, Row)
+				[
+					SNew(SBorder)
+					.BorderBackgroundColor(bIsSelected ? FLinearColor(0.15f, 0.35f, 0.55f, 1.0f) : FLinearColor(0.0f, 0.0f, 0.0f, 0.0f))
+					.Padding(0)
+					[
+						SNew(SButton)
+						.ContentPadding(FMargin(3, 2))
+						.OnClicked_Lambda([IconIndexHandle, i]() -> FReply
+						{
+							if (IconIndexHandle.IsValid()) { IconIndexHandle->SetValue(i); }
+							return FReply::Handled();
+						})
+						[
+							SNew(SBox)
+							.WidthOverride(16)
+							.HeightOverride(16)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromString(FString(1, &C)))
+								.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+								.ColorAndOpacity(FSlateColor(TintColor))
+							]
+						]
+					]
+				];
+			}
+
+			return SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(4, 2)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("AutoIcon", "Auto (from position)"))
+					.ToolTipText(LOCTEXT("AutoIconTip", "Reset to automatic icon based on array position"))
+					.OnClicked_Lambda([IconIndexHandle]() -> FReply
+					{
+						if (IconIndexHandle.IsValid()) { IconIndexHandle->SetValue(-1); }
+						return FReply::Handled();
+					})
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(4, 2)
+				[
+					Grid
+				];
+		});
 }
 
 #pragma endregion

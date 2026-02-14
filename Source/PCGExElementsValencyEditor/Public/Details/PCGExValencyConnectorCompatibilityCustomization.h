@@ -38,6 +38,11 @@ private:
 		UPCGExValencyConnectorSet* ConnectorSet,
 		int32 CurrentTypeId);
 
+	TSharedRef<SWidget> BuildIconPicker(
+		TSharedPtr<IPropertyHandle> IconIndexHandle,
+		UPCGExValencyConnectorSet* ConnectorSet,
+		int32 CurrentTypeId);
+
 	FText GetCompatibilitySummary(
 		TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
 		UPCGExValencyConnectorSet* ConnectorSet) const;
