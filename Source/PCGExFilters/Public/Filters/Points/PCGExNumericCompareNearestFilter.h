@@ -10,7 +10,9 @@
 #include "UObject/Object.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"
-#include "Details/PCGExMatchingDetails.h"
+#include "PCGExFilterCommon.h"
+#include "Data/PCGExTaggedData.h"
+#include "PCGExMatching/Public/Core/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExNumericCompareNearestFilter.generated.h"
 
@@ -18,6 +20,7 @@
 namespace PCGExMatching
 {
 	class FTargetsHandler;
+	class FDataMatcher;
 }
 
 USTRUCT(BlueprintType)
@@ -63,7 +66,7 @@ struct FPCGExNumericCompareNearestFilterConfig
 
 	/** Data matching settings. When enabled, only targets whose data matches the input being tested will be considered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
+	FPCGExFilterMatchingDetails DataMatching;
 };
 
 
@@ -78,6 +81,9 @@ class UPCGExNumericCompareNearestFilterFactory : public UPCGExPointFilterFactory
 public:
 	UPROPERTY()
 	FPCGExNumericCompareNearestFilterConfig Config;
+
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> MatchRuleFactories;
 
 	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
@@ -110,7 +116,13 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
-		TSet<const UPCGData*> IgnoreList;
+		TSet<const UPCGData*> IgnoreList; // Self-ignore only (this filter has no static matching path)
+		bool bMatchingFailed = false;
+
+		// Per-point matching — see FDistanceFilter for full explanation
+		TSharedPtr<PCGExMatching::FDataMatcher> InverseMatcher;
+		TArray<FPCGExTaggedData> TargetCandidates;
+		bool bNoMatchResult = false;
 
 		TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
 

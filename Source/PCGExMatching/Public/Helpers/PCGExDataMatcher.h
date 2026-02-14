@@ -8,6 +8,7 @@
 
 struct FPCGExContext;
 class FPCGExMatchRuleOperation;
+class UPCGExMatchRuleFactoryData;
 class UPCGData;
 
 namespace PCGExData
@@ -75,10 +76,21 @@ namespace PCGExMatching
 		bool Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InMatchableSources, const bool bThrowError, const FName InFactoriesLabel = NAME_None);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherDataMatcher, const FName InFactoriesLabel, const bool bThrowError);
 
+		/** Init with pre-loaded match rule factories (no context needed for factory loading). */
+		bool Init(const TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>>& InFactories, const TArray<TSharedPtr<PCGExData::FFacade>>& InMatchableSources, const bool bThrowError);
+
+		/** Data-level test: looks up MatchableSourceFirstElements[DataIndex] (always the first point).
+		 *  Use for static/collection-level matching (bCheckAgainstDataBounds). */
 		bool Test(const UPCGData* InMatchableSource, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const;
+
+		/** Point-level test: uses the provided point directly (reads attributes at that point's index).
+		 *  Use for per-point matching — caller must set FConstPoint.IO=0 when there is a single MatchableSource. */
 		bool Test(const PCGExData::FConstPoint& InInMatchableElement, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const;
 
 		bool PopulateIgnoreList(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+
+		/** Builds a static ignore list by testing each candidate via Test(UPCGData*, ...) — first point only.
+		 *  For per-point filtering, call Test(FConstPoint, ...) per-point instead. */
 		bool PopulateIgnoreListFromCandidates(const TArray<FPCGExTaggedData>& InCandidates, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 
 		int32 GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources = nullptr) const;
@@ -92,5 +104,6 @@ namespace PCGExMatching
 		int32 GetMatchLimitFor(const FPCGExTaggedData& InDataCandidate) const;
 		void RegisterTaggedData(FPCGExContext* InContext, const FPCGExTaggedData& InTaggedData);
 		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel);
+		bool InitInternal(const TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>>& InFactories);
 	};
 }

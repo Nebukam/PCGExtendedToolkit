@@ -122,6 +122,16 @@ namespace PCGExMatching
 		return InitInternal(InContext, InFactoriesLabel);
 	}
 
+	bool FDataMatcher::Init(
+		const TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>>& InFactories,
+		const TArray<TSharedPtr<PCGExData::FFacade>>& InMatchableSources,
+		const bool bThrowError)
+	{
+		MatchableSources->Reserve(InMatchableSources.Num());
+		for (int i = 0; i < InMatchableSources.Num(); i++) { RegisterTaggedData(nullptr, InMatchableSources[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i)); }
+		return InitInternal(InFactories);
+	}
+
 	bool FDataMatcher::Test(const UPCGData* InMatchableSource, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled || Operations.IsEmpty()) { return true; }
@@ -463,10 +473,7 @@ namespace PCGExMatching
 
 	bool FDataMatcher::InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel)
 	{
-		if (MatchMode == EPCGExMapMatchMode::Disabled)
-		{
-			return true;
-		}
+		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
 		if (MatchableSources->IsEmpty())
 		{
@@ -483,11 +490,30 @@ namespace PCGExMatching
 			return false;
 		}
 
-		Operations.Reserve(Factories.Num());
-		for (const TObjectPtr<const UPCGExMatchRuleFactoryData>& Factory : Factories)
+		return InitInternal(Factories);
+	}
+
+	bool FDataMatcher::InitInternal(const TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>>& InFactories)
+	{
+		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
+
+		if (MatchableSources->IsEmpty())
 		{
-			TSharedPtr<FPCGExMatchRuleOperation> Operation = Factory->CreateOperation(InContext);
-			if (!Operation || !Operation->PrepareForMatchableSources(InContext, MatchableSources)) { return false; }
+			MatchMode = EPCGExMapMatchMode::Disabled;
+			return false;
+		}
+
+		if (InFactories.IsEmpty())
+		{
+			MatchMode = EPCGExMapMatchMode::Disabled;
+			return false;
+		}
+
+		Operations.Reserve(InFactories.Num());
+		for (const TObjectPtr<const UPCGExMatchRuleFactoryData>& Factory : InFactories)
+		{
+			TSharedPtr<FPCGExMatchRuleOperation> Operation = Factory->CreateOperation(nullptr);
+			if (!Operation || !Operation->PrepareForMatchableSources(nullptr, MatchableSources)) { return false; }
 			Operations.Add(Operation);
 
 			if (Factory->BaseConfig.Strictness == EPCGExMatchStrictness::Required) { RequiredOperations.Add(Operation); }

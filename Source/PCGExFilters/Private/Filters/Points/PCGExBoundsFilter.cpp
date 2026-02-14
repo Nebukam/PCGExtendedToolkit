@@ -19,6 +19,13 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExBoundsFilterFactory::CreateFilter() 
 	return MakeShared<PCGExPointFilter::FBoundsFilter>(this);
 }
 
+bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
+{
+	if (!Super::Init(InContext)) { return false; }
+	if (Config.DataMatching.IsEnabled()) { PCGExFactories::GetInputFactories(InContext, PCGExMatching::Labels::SourceMatchRulesLabel, MatchRuleFactories, {PCGExFactories::EType::MatchRule}); }
+	return true;
+}
+
 PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
@@ -78,28 +85,53 @@ bool PCGExPointFilter::FBoundsFilter::Init(FPCGExContext* InContext, const TShar
 	Collections = &TypedFilterFactory->Collections;
 	if (!Collections || Collections->IsEmpty()) { return false; }
 
-	// When matching is enabled, use inverse matching: input as source, bounds data as candidates
-	if (TypedFilterFactory->Config.DataMatching.IsEnabled())
+	const bool bMatchingEnabled = TypedFilterFactory->Config.DataMatching.IsEnabled()
+		&& !TypedFilterFactory->MatchRuleFactories.IsEmpty();
+
+	// See FDistanceFilter::Init for the full per-point vs static matching explanation.
+
+	if (bMatchingEnabled && !TypedFilterFactory->Config.bCheckAgainstDataBounds)
 	{
-		auto InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		// Per-point: store matcher + candidates now, build per-point collections in Test()
+		InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 		InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
 
 		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
 		SingleSource.Add(InPointDataFacade);
-		if (InverseMatcher->Init(InContext, SingleSource, false))
+		if (InverseMatcher->Init(TypedFilterFactory->MatchRuleFactories, SingleSource, false))
 		{
-			TArray<FPCGExTaggedData> BoundsCandidates;
 			BoundsCandidates.Reserve(TypedFilterFactory->BoundsDataFacades.Num());
 			for (int32 i = 0; i < TypedFilterFactory->BoundsDataFacades.Num(); i++)
 			{
 				BoundsCandidates.Add(TypedFilterFactory->BoundsDataFacades[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i));
 			}
+			bNoMatchResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+		}
+		else { InverseMatcher.Reset(); }
+	}
+	else if (bMatchingEnabled)
+	{
+		// Static matching (collection-level with bCheckAgainstDataBounds)
+		auto StaticMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		StaticMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+		SingleSource.Add(InPointDataFacade);
+		if (StaticMatcher->Init(TypedFilterFactory->MatchRuleFactories, SingleSource, false))
+		{
+			TArray<FPCGExTaggedData> StaticCandidates;
+			StaticCandidates.Reserve(TypedFilterFactory->BoundsDataFacades.Num());
+			for (int32 i = 0; i < TypedFilterFactory->BoundsDataFacades.Num(); i++)
+			{
+				StaticCandidates.Add(TypedFilterFactory->BoundsDataFacades[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i));
+			}
 
 			TSet<const UPCGData*> IgnoreList;
 			PCGExMatching::FScope MatchingScope(1, true);
-			if (!InverseMatcher->PopulateIgnoreListFromCandidates(BoundsCandidates, MatchingScope, IgnoreList))
+			if (!StaticMatcher->PopulateIgnoreListFromCandidates(StaticCandidates, MatchingScope, IgnoreList))
 			{
-				bCollectionTestResult = TypedFilterFactory->Config.bInvert;
+				bCheckAgainstDataBounds = true;
+				bCollectionTestResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
 				return true;
 			}
 
@@ -227,6 +259,73 @@ bool PCGExPointFilter::FBoundsFilter::TestPoint(const FVector& Position, const F
 	return bInvert; // No collection matched
 }
 
+bool PCGExPointFilter::FBoundsFilter::TestPoint(const FVector& Position, const FTransform& Transform, const FBox& LocalBox, const TArray<TSharedPtr<PCGExMath::OBB::FCollection>>& InCollections) const
+{
+	PCGExMath::OBB::FOBB QueryOBB;
+	const bool bNeedQueryOBB = (CheckType == EPCGExBoundsCheckType::Intersects || CheckType == EPCGExBoundsCheckType::IsInsideOrIntersects);
+
+	if (bNeedQueryOBB)
+	{
+		QueryOBB = PCGExMath::OBB::Factory::FromTransform(Transform, LocalBox, -1);
+	}
+
+	for (const TSharedPtr<PCGExMath::OBB::FCollection>& Collection : InCollections)
+	{
+		bool bPass = false;
+
+		if (bUseCollectionBounds)
+		{
+			const FBox& WorldBounds = Collection->GetWorldBounds();
+			const FBox ExpandedBounds = Expansion > 0 ? WorldBounds.ExpandBy(Expansion) : WorldBounds;
+
+			switch (CheckType)
+			{
+			case EPCGExBoundsCheckType::Intersects:
+				{
+					const FBox QueryWorldBox = LocalBox.TransformBy(Transform);
+					bPass = ExpandedBounds.Intersect(QueryWorldBox);
+				}
+				break;
+			case EPCGExBoundsCheckType::IsInside:
+				bPass = ExpandedBounds.IsInside(Position);
+				break;
+			case EPCGExBoundsCheckType::IsInsideOrOn:
+				bPass = ExpandedBounds.IsInsideOrOn(Position);
+				break;
+			case EPCGExBoundsCheckType::IsInsideOrIntersects:
+				{
+					const FBox QueryWorldBox = LocalBox.TransformBy(Transform);
+					bPass = ExpandedBounds.IsInside(Position) || ExpandedBounds.Intersect(QueryWorldBox);
+				}
+				break;
+			}
+		}
+		else
+		{
+			switch (CheckType)
+			{
+			case EPCGExBoundsCheckType::Intersects:
+				bPass = Collection->Overlaps(QueryOBB, CheckMode, Expansion);
+				break;
+			case EPCGExBoundsCheckType::IsInside:
+				bPass = Collection->IsPointInside(Position, CheckMode, Expansion);
+				break;
+			case EPCGExBoundsCheckType::IsInsideOrOn:
+				bPass = Collection->IsPointInside(Position, CheckMode, Expansion + KINDA_SMALL_NUMBER);
+				break;
+			case EPCGExBoundsCheckType::IsInsideOrIntersects:
+				bPass = Collection->IsPointInside(Position, CheckMode, Expansion) ||
+					Collection->Overlaps(QueryOBB, CheckMode, Expansion);
+				break;
+			}
+		}
+
+		if (bPass) { return !bInvert; }
+	}
+
+	return bInvert;
+}
+
 bool PCGExPointFilter::FBoundsFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
 	const FTransform Transform = Point.GetTransform();
@@ -237,6 +336,32 @@ bool PCGExPointFilter::FBoundsFilter::Test(const PCGExData::FProxyPoint& Point) 
 bool PCGExPointFilter::FBoundsFilter::Test(const int32 PointIndex) const
 {
 	if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
+
+	if (InverseMatcher)
+	{
+		// Per-point matching — build a filtered collections list for this specific point.
+		// Unlike other filters that build an exclude set, bounds uses an include list since
+		// TestPoint iterates collections directly (no octree intermediary with data pointers).
+		PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
+		Pt.IO = 0;
+		TArray<TSharedPtr<PCGExMath::OBB::FCollection>> PerPointCollections;
+		bool bAnyMatch = false;
+		for (int32 i = 0; i < BoundsCandidates.Num(); i++)
+		{
+			PCGExMatching::FScope Scope(1, true);
+			if (InverseMatcher->Test(Pt, BoundsCandidates[i], Scope))
+			{
+				PerPointCollections.Add(TypedFilterFactory->Collections[i]);
+				bAnyMatch = true;
+			}
+		}
+		if (!bAnyMatch) { return bNoMatchResult; }
+
+		const PCGExData::FConstPoint Point = PointDataFacade->Source->GetInPoint(PointIndex);
+		const FTransform Transform = Point.GetTransform();
+		const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource);
+		return TestPoint(Transform.GetLocation(), Transform, LocalBox, PerPointCollections);
+	}
 
 	const PCGExData::FConstPoint Point = PointDataFacade->Source->GetInPoint(PointIndex);
 	const FTransform Transform = Point.GetTransform();

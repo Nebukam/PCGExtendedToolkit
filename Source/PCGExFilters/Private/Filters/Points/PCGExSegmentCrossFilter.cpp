@@ -8,6 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
+#include "PCGExMatching/Public/Helpers/PCGExDataMatcher.h"
 #include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 
@@ -48,9 +49,35 @@ namespace PCGExPointFilter
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+		const bool bMatchingEnabled = TypedFilterFactory->Config.DataMatching.IsEnabled()
+			&& TypedFilterFactory->HasMatchRuleFactories();
+
+		// See FDistanceFilter::Init for the full per-point vs static matching explanation.
+		// Always per-point when matching is enabled (no bCheckAgainstDataBounds on this filter).
+
+		if (bMatchingEnabled)
 		{
-			return false;
+			InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+			InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+			TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+			SingleSource.Add(InPointDataFacade);
+			if (InverseMatcher->Init(TypedFilterFactory->GetMatchRuleFactories(), SingleSource, false))
+			{
+				bNoMatchResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+			}
+			else { InverseMatcher.Reset(); }
+		}
+
+		if (!InverseMatcher)
+		{
+			// Static matching or no matching
+			if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+			{
+				bMatchingFailed = true;
+				bCollectionTestResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+				return true;
+			}
 		}
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(InPointDataFacade->Source->GetIn());
@@ -62,6 +89,8 @@ namespace PCGExPointFilter
 
 	bool FSegmentCrossFilter::Test(const int32 PointIndex) const
 	{
+		if (bMatchingFailed) { return bCollectionTestResult; }
+
 		// Build segment from current point to neighbor. For open paths, endpoints have no valid
 		// neighbor segment, so return the default (no-intersection) result immediately.
 		int32 NextIndex = PointIndex;
@@ -85,9 +114,26 @@ namespace PCGExPointFilter
 			}
 		}
 
+		const TSet<const UPCGData*>* AdditionalExclude = nullptr;
+		TSet<const UPCGData*> PerPointExclude;
+
+		if (InverseMatcher)
+		{
+			PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
+			Pt.IO = 0; // Single MatchableSource
+			bool bAnyMatch = false;
+			for (const FPCGExTaggedData& Candidate : *TypedFilterFactory->Datas)
+			{
+				PCGExMatching::FScope Scope(1, true);
+				if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
+				else { PerPointExclude.Add(Candidate.Data); }
+			}
+			if (!bAnyMatch) { return bNoMatchResult; }
+			AdditionalExclude = &PerPointExclude;
+		}
 
 		const PCGExMath::FSegment Segment(InTransforms[PointIndex].GetLocation(), InTransforms[NextIndex].GetLocation(), Handler->Tolerance);
-		const PCGExMath::FClosestPosition ClosestPosition = Handler->FindClosestIntersection(Segment, TypedFilterFactory->Config.IntersectionSettings, PointDataFacade->Source->GetIn());
+		const PCGExMath::FClosestPosition ClosestPosition = Handler->FindClosestIntersection(Segment, TypedFilterFactory->Config.IntersectionSettings, PointDataFacade->Source->GetIn(), AdditionalExclude);
 		return TypedFilterFactory->Config.bInvert ? !ClosestPosition.bValid : ClosestPosition.bValid;
 	}
 }

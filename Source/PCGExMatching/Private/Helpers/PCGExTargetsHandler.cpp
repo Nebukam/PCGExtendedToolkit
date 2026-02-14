@@ -79,8 +79,6 @@ namespace PCGExMatching
 
 	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)
 	{
-		MatchingContext = InContext;
-		MatchingDetails = InDetails;
 		DataMatcher = MakeShared<FDataMatcher>();
 		DataMatcher->SetDetails(InDetails);
 		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
@@ -92,17 +90,18 @@ namespace PCGExMatching
 		return true;
 	}
 
-	bool FTargetsHandler::PopulateIgnoreListInverse(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
+	bool FTargetsHandler::PopulateIgnoreListInverse(const TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>>& InMatchRuleFactories, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const FPCGExMatchingDetails* InDetails, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
 	{
-		if (!MatchingDetails || !MatchingDetails->IsEnabled()) { return true; }
+		if (!InDetails || !InDetails->IsEnabled()) { return true; }
+		if (InMatchRuleFactories.IsEmpty()) { return true; }
 
-		// Create inverse matcher: input is the single MatchableSource
+		// Create inverse matcher: input is the single MatchableSource, targets are candidates
 		auto InverseMatcher = MakeShared<FDataMatcher>();
-		InverseMatcher->SetDetails(MatchingDetails);
+		InverseMatcher->SetDetails(InDetails);
 
 		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
 		SingleSource.Add(InSourceFacade);
-		if (!InverseMatcher->Init(InContext, SingleSource, false)) { return true; }
+		if (!InverseMatcher->Init(InMatchRuleFactories, SingleSource, false)) { return true; }
 
 		// Build FPCGExTaggedData array from targets (candidates in inverse context)
 		TArray<FPCGExTaggedData> TargetCandidates;

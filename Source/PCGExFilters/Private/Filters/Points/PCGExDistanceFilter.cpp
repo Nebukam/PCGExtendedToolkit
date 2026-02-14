@@ -17,6 +17,13 @@
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExDistanceFilterConfig, DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
 
+bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
+{
+	if (!Super::Init(InContext)) { return false; }
+	if (Config.DataMatching.IsEnabled()) { PCGExFactories::GetInputFactories(InContext, PCGExMatching::Labels::SourceMatchRulesLabel, MatchRuleFactories, {PCGExFactories::EType::MatchRule}); }
+	return true;
+}
+
 bool UPCGExDistanceFilterFactory::SupportsProxyEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
@@ -65,10 +72,44 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 
 	if (TypedFilterFactory->Config.bIgnoreSelf) { IgnoreList.Add(InPointDataFacade->GetIn()); }
 
-	if (PCGExMatching::FScope MatchingScope(TargetsHandler->Num(), true); !TargetsHandler->PopulateIgnoreListInverse(InContext, InPointDataFacade, MatchingScope, IgnoreList))
+	const bool bMatchingEnabled = TypedFilterFactory->Config.DataMatching.IsEnabled()
+		&& !TypedFilterFactory->MatchRuleFactories.IsEmpty();
+
+	// Data matching has two paths depending on evaluation mode:
+	//  - Per-point (default): Each Test(PointIndex) reads that point's attribute values and tests against
+	//    each target candidate individually via FDataMatcher::Test(FConstPoint, ...). This produces a
+	//    per-point exclude set so e.g. point[2] with Mod=2 only sees targets tagged Mod:2.
+	//  - Static (bCheckAgainstDataBounds): Uses PopulateIgnoreListInverse which calls
+	//    FDataMatcher::Test(UPCGData*, ...) — this reads from the first point only (MatchableSourceFirstElements[0]).
+	//    Correct for collection-level proxy evaluation where a single representative value is expected.
+
+	if (bMatchingEnabled && !TypedFilterFactory->Config.bCheckAgainstDataBounds)
 	{
-		bCollectionTestResult = false;
-		return true;
+		// Per-point: store matcher + candidates now, build per-point exclude in Test()
+		InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+		SingleSource.Add(InPointDataFacade);
+		if (InverseMatcher->Init(TypedFilterFactory->MatchRuleFactories, SingleSource, false))
+		{
+			TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex)
+			{
+				TargetCandidates.Add(Target->Source->GetTaggedData(PCGExData::EIOSide::In, TargetIndex));
+			});
+			bNoMatchResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+		}
+		else { InverseMatcher.Reset(); }
+	}
+	else if (bMatchingEnabled)
+	{
+		// Static matching (collection-level with bCheckAgainstDataBounds)
+		if (PCGExMatching::FScope MatchingScope(TargetsHandler->Num(), true); !TargetsHandler->PopulateIgnoreListInverse(TypedFilterFactory->MatchRuleFactories, InPointDataFacade, &TypedFilterFactory->Config.DataMatching, MatchingScope, IgnoreList))
+		{
+			bCheckAgainstDataBounds = true;
+			bCollectionTestResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+			return true;
+		}
 	}
 
 	bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
@@ -114,6 +155,28 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 {
 	if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
 
+	const TSet<const UPCGData*>* ExcludePtr = &IgnoreList;
+	TSet<const UPCGData*> PerPointExclude;
+
+	if (InverseMatcher)
+	{
+		// Per-point matching: test this specific point's attributes against each target candidate.
+		// IO=0 because the matcher was initialized with a single MatchableSource (the input facade),
+		// and FConstPoint.IO indexes into the per-source getter arrays inside match rules.
+		PerPointExclude = IgnoreList;
+		PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
+		Pt.IO = 0;
+		bool bAnyMatch = false;
+		for (const FPCGExTaggedData& Candidate : TargetCandidates)
+		{
+			PCGExMatching::FScope Scope(1, true);
+			if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
+			else { PerPointExclude.Add(Candidate.Data); }
+		}
+		if (!bAnyMatch) { return bNoMatchResult; }
+		ExcludePtr = &PerPointExclude;
+	}
+
 	const PCGExData::FConstPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
 	PCGExData::FConstPoint TargetPt;
 
@@ -127,7 +190,7 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 	const FBoxCenterAndExtent QueryBounds(InTransforms[PointIndex].GetLocation(), FVector(SearchExtent));
 
 	double BestDist = MAX_dbl;
-	TargetsHandler->FindClosestTarget(SourcePt, QueryBounds, TargetPt, BestDist, &IgnoreList);
+	TargetsHandler->FindClosestTarget(SourcePt, QueryBounds, TargetPt, BestDist, ExcludePtr);
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), B, TypedFilterFactory->Config.Tolerance);
 }

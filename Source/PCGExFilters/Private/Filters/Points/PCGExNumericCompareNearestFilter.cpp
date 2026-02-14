@@ -20,6 +20,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExNumericCompareNearestFilterConfig, OperandB, doub
 bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
+	if (Config.DataMatching.IsEnabled()) { PCGExFactories::GetInputFactories(InContext, PCGExMatching::Labels::SourceMatchRulesLabel, MatchRuleFactories, {PCGExFactories::EType::MatchRule}); }
 	return true;
 }
 
@@ -96,9 +97,26 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 
 	if (TypedFilterFactory->Config.bIgnoreSelf) { IgnoreList.Add(InPointDataFacade->GetIn()); }
 
-	if (PCGExMatching::FScope MatchingScope(TargetsHandler->Num(), true); !TargetsHandler->PopulateIgnoreListInverse(InContext, InPointDataFacade, MatchingScope, IgnoreList))
+	const bool bMatchingEnabled = TypedFilterFactory->Config.DataMatching.IsEnabled()
+		&& !TypedFilterFactory->MatchRuleFactories.IsEmpty();
+
+	if (bMatchingEnabled)
 	{
-		return false;
+		// Always per-point (no bCheckAgainstDataBounds — this filter doesn't support collection eval)
+		InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+		TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+		SingleSource.Add(InPointDataFacade);
+		if (InverseMatcher->Init(TypedFilterFactory->MatchRuleFactories, SingleSource, false))
+		{
+			TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex)
+			{
+				TargetCandidates.Add(Target->Source->GetTaggedData(PCGExData::EIOSide::In, TargetIndex));
+			});
+			bNoMatchResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+		}
+		else { InverseMatcher.Reset(); }
 	}
 
 	return true;
@@ -106,12 +124,34 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 
 bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex) const
 {
+	if (bMatchingFailed) { return bCollectionTestResult; }
+
+	const TSet<const UPCGData*>* ExcludePtr = &IgnoreList;
+	TSet<const UPCGData*> PerPointExclude;
+
+	if (InverseMatcher)
+	{
+		// Per-point matching — IO=0: single MatchableSource, see FDistanceFilter for details
+		PerPointExclude = IgnoreList;
+		PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
+		Pt.IO = 0;
+		bool bAnyMatch = false;
+		for (const FPCGExTaggedData& Candidate : TargetCandidates)
+		{
+			PCGExMatching::FScope Scope(1, true);
+			if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
+			else { PerPointExclude.Add(Candidate.Data); }
+		}
+		if (!bAnyMatch) { return bNoMatchResult; }
+		ExcludePtr = &PerPointExclude;
+	}
+
 	const double B = OperandB->Read(PointIndex);
 	const PCGExData::FConstPoint SourcePt = PointDataFacade->GetInPoint(PointIndex);
 	PCGExData::FConstPoint TargetPt = PCGExData::FConstPoint();
 
 	double BestDist = MAX_dbl;
-	TargetsHandler->FindClosestTarget(SourcePt, TargetPt, BestDist, &IgnoreList);
+	TargetsHandler->FindClosestTarget(SourcePt, TargetPt, BestDist, ExcludePtr);
 
 	if (!TargetPt.IsValid()) { return false; }
 

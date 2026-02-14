@@ -10,7 +10,9 @@
 #include "Core/PCGExFilterFactoryProvider.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"
-#include "Details/PCGExMatchingDetails.h"
+#include "PCGExFilterCommon.h"
+#include "Data/PCGExTaggedData.h"
+#include "PCGExMatching/Public/Core/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExDistanceFilter.generated.h"
 
@@ -18,6 +20,7 @@
 namespace PCGExMatching
 {
 	class FTargetsHandler;
+	class FDataMatcher;
 }
 
 USTRUCT(BlueprintType)
@@ -59,7 +62,7 @@ struct FPCGExDistanceFilterConfig
 
 	/** Data matching settings. When enabled, only targets whose data matches the input being tested will be considered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Filter);
+	FPCGExFilterMatchingDetails DataMatching;
 
 	PCGEX_SETTING_VALUE_DECL(DistanceThreshold, double)
 
@@ -81,7 +84,12 @@ public:
 	UPROPERTY()
 	FPCGExDistanceFilterConfig Config;
 
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> MatchRuleFactories;
+
 	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
+
+	virtual bool Init(FPCGExContext* InContext) override;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override;
@@ -109,7 +117,17 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExDistanceFilterFactory> TypedFilterFactory;
 		TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
+
+		// Static matching: IgnoreList is built once in Init() using PopulateIgnoreListInverse (data-vs-data, uses first point only).
+		// Used when bCheckAgainstDataBounds=true (collection-level proxy) or when matching is disabled (self-ignore only).
 		TSet<const UPCGData*> IgnoreList;
+
+		// Per-point matching: InverseMatcher + TargetCandidates are stored in Init(), then each Test(PointIndex)
+		// builds a point-specific exclude set by testing that point's attributes against each candidate.
+		// This is the correct path for per-point evaluation with attribute-based match rules (e.g. MatchTagToAttr).
+		TSharedPtr<PCGExMatching::FDataMatcher> InverseMatcher;
+		TArray<FPCGExTaggedData> TargetCandidates;
+		bool bNoMatchResult = false;
 
 		bool bCheckAgainstDataBounds = false;
 

@@ -10,6 +10,7 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPolyPath.h"
+#include "PCGExMatching/Public/Helpers/PCGExDataMatcher.h"
 #include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"
@@ -70,10 +71,33 @@ namespace PCGExPointFilter
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+		const bool bMatchingEnabled = TypedFilterFactory->Config.DataMatching.IsEnabled()
+			&& TypedFilterFactory->HasMatchRuleFactories();
+
+		// See FDistanceFilter::Init for the full per-point vs static matching explanation.
+
+		if (bMatchingEnabled && !TypedFilterFactory->Config.bCheckAgainstDataBounds)
 		{
-			bCollectionTestResult = TypedFilterFactory->Config.bInvert;
-			return true;
+			InverseMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+			InverseMatcher->SetDetails(&TypedFilterFactory->Config.DataMatching);
+
+			TArray<TSharedPtr<PCGExData::FFacade>> SingleSource;
+			SingleSource.Add(InPointDataFacade);
+			if (InverseMatcher->Init(TypedFilterFactory->GetMatchRuleFactories(), SingleSource, false))
+			{
+				bNoMatchResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+			}
+			else { InverseMatcher.Reset(); }
+		}
+		else
+		{
+			// Static matching or no matching
+			if (!TypedFilterFactory->PopulateMatchIgnoreList(InContext, InPointDataFacade, Handler->MatchIgnoreList))
+			{
+				bCheckAgainstDataBounds = true;
+				bCollectionTestResult = (TypedFilterFactory->Config.DataMatching.NoMatchFallback == EPCGExFilterFallback::Pass);
+				return true;
+			}
 		}
 
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
@@ -154,7 +178,23 @@ namespace PCGExPointFilter
 		// Pre-seed with MAX_flt so first Min() comparison works correctly.
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Alpha = MAX_flt; }
 
-		const TSet<const UPCGData*>& MatchIgnore = Handler->MatchIgnoreList;
+		const TSet<const UPCGData*>* MatchExclude = &Handler->MatchIgnoreList;
+		TSet<const UPCGData*> PerPointExclude;
+
+		if (InverseMatcher)
+		{
+			PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
+			Pt.IO = 0; // Single MatchableSource
+			bool bAnyMatch = false;
+			for (const FPCGExTaggedData& Candidate : *TypedFilterFactory->Datas)
+			{
+				PCGExMatching::FScope Scope(1, true);
+				if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
+				else { PerPointExclude.Add(Candidate.Data); }
+			}
+			if (!bAnyMatch) { return bNoMatchResult; }
+			MatchExclude = &PerPointExclude;
+		}
 
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
@@ -162,7 +202,7 @@ namespace PCGExPointFilter
 
 			TypedFilterFactory->Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](const PCGExOctree::FItem& Item)
 			{
-				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[Item.Index].Data)) { return; }
+				if (!MatchExclude->IsEmpty() && MatchExclude->Contains((*TypedFilterFactory->Datas)[Item.Index].Data)) { return; }
 
 				float LocalAlpha = 0;
 				const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
@@ -182,7 +222,7 @@ namespace PCGExPointFilter
 			int32 MatchCount = 0;
 			for (int32 i = 0; i < TypedFilterFactory->PolyPaths.Num(); i++)
 			{
-				if (!MatchIgnore.IsEmpty() && MatchIgnore.Contains((*TypedFilterFactory->Datas)[i].Data)) { continue; }
+				if (!MatchExclude->IsEmpty() && MatchExclude->Contains((*TypedFilterFactory->Datas)[i].Data)) { continue; }
 
 				float LocalAlpha = 0;
 				(void)TypedFilterFactory->PolyPaths[i]->GetClosestTransform(WorldPosition, LocalAlpha, false);
