@@ -24,6 +24,8 @@ APCGExValencyCage::APCGExValencyCage()
 	// Standard cage setup
 }
 
+#pragma region APCGExValencyCage
+
 void APCGExValencyCage::PostEditMove(bool bFinished)
 {
 	// Capture current scanned assets before Super (which may trigger volume membership changes)
@@ -33,7 +35,7 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 		OldScannedAssets = ScannedAssetEntries;
 	}
 
-	// Let base class handle volume membership changes, connections, etc.
+	// Let base class handle volume membership changes, connections, CTRL+drag assets, etc.
 	Super::PostEditMove(bFinished);
 
 	// After drag finishes, re-scan for assets if auto-registration is enabled
@@ -91,43 +93,6 @@ FString APCGExValencyCage::GetCageDisplayName() const
 	return TEXT("Cage (Empty)");
 }
 
-TArray<FPCGExValencyAssetEntry> APCGExValencyCage::GetAllAssetEntries() const
-{
-	TArray<FPCGExValencyAssetEntry> AllEntries;
-	AllEntries.Reserve(ManualAssetEntries.Num() + ScannedAssetEntries.Num());
-
-	// Manual entries first (user-defined priority)
-	AllEntries.Append(ManualAssetEntries);
-
-	// Then scanned entries (skip duplicates of manual)
-	for (const FPCGExValencyAssetEntry& ScannedEntry : ScannedAssetEntries)
-	{
-		bool bIsDuplicate = false;
-		for (const FPCGExValencyAssetEntry& ManualEntry : ManualAssetEntries)
-		{
-			if (ManualEntry.Asset == ScannedEntry.Asset)
-			{
-				bIsDuplicate = true;
-				break;
-			}
-		}
-		if (!bIsDuplicate)
-		{
-			AllEntries.Add(ScannedEntry);
-		}
-	}
-
-	// Stamp cage's ModuleSettings onto each entry
-	// This allows entries to carry their source's weight/constraints through mirroring
-	for (FPCGExValencyAssetEntry& Entry : AllEntries)
-	{
-		Entry.Settings = ModuleSettings;
-		Entry.bHasSettings = true;
-	}
-
-	return AllEntries;
-}
-
 TArray<TSoftObjectPtr<UObject>> APCGExValencyCage::GetRegisteredAssets() const
 {
 	const TArray<FPCGExValencyAssetEntry> AllEntries = GetAllAssetEntries();
@@ -142,8 +107,6 @@ TArray<TSoftObjectPtr<UObject>> APCGExValencyCage::GetRegisteredAssets() const
 	}
 	return Assets;
 }
-
-// Asset type detection now in PCGExValencyAssetUtils::DetectAssetType
 
 void APCGExValencyCage::RegisterManualAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor)
 {
@@ -208,16 +171,6 @@ void APCGExValencyCage::ClearManualAssets()
 	}
 }
 
-void APCGExValencyCage::ClearScannedAssets()
-{
-	if (ScannedAssetEntries.Num() > 0)
-	{
-		ScannedAssetEntries.Empty();
-		DiscoveredMaterialVariants.Empty();
-		OnAssetRegistrationChanged();
-	}
-}
-
 void APCGExValencyCage::ScanAndRegisterContainedAssets()
 {
 	if (!bAutoRegisterContainedAssets)
@@ -276,77 +229,6 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 	}
 
-	// Lambda to add scanned entry (with duplicate check, including material variants)
-	auto AddScannedEntry = [this](const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor, const FPCGExValencyMaterialVariant* InMaterialVariant)
-	{
-		if (Asset.IsNull())
-		{
-			return;
-		}
-
-		FPCGExValencyAssetEntry NewEntry;
-		NewEntry.Asset = Asset;
-		NewEntry.SourceActor = SourceActor;
-		NewEntry.AssetType = PCGExValencyAssetUtils::DetectAssetType(Asset);
-
-		// Store material variant on the entry if provided
-		if (InMaterialVariant && InMaterialVariant->Overrides.Num() > 0)
-		{
-			NewEntry.MaterialVariant = *InMaterialVariant;
-			NewEntry.bHasMaterialVariant = true;
-		}
-
-		// Compute preserved local transform based on flags
-		if (SourceActor)
-		{
-			NewEntry.LocalTransform = ComputePreservedLocalTransform(SourceActor->GetActorTransform());
-		}
-
-		// Mark entry to preserve its local transform if the cage has that setting enabled
-		NewEntry.bPreserveLocalTransform = bPreserveLocalTransforms;
-
-		// Check for duplicates in scanned entries
-		// Now considers material variants as a differentiating factor
-		for (FPCGExValencyAssetEntry& Existing : ScannedAssetEntries)
-		{
-			if (Existing.Asset == Asset)
-			{
-				// If both have material variants, check if they match
-				if (Existing.bHasMaterialVariant && NewEntry.bHasMaterialVariant)
-				{
-					if (Existing.MaterialVariant == NewEntry.MaterialVariant)
-					{
-						// Same asset, same material variant - check transform
-						if (!bPreserveLocalTransforms || Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
-						{
-							// Increment discovery count as weight
-							Existing.MaterialVariant.DiscoveryCount++;
-							return;
-						}
-					}
-					// Different material variants - continue to add as separate entry
-				}
-				else if (!Existing.bHasMaterialVariant && !NewEntry.bHasMaterialVariant)
-				{
-					// Both have default materials - check transform
-					if (!bPreserveLocalTransforms || Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
-					{
-						return;
-					}
-				}
-				// One has material variant, one doesn't - they are different entries, continue
-			}
-		}
-
-		ScannedAssetEntries.Add(NewEntry);
-
-		// Also record to legacy map for backward compatibility with existing builder code
-		if (NewEntry.bHasMaterialVariant)
-		{
-			RecordMaterialVariant(Asset.ToSoftObjectPath(), NewEntry.MaterialVariant.Overrides);
-		}
-	};
-
 	// Register found actors and discover material variants
 	for (AActor* Actor : ContainedActors)
 	{
@@ -399,31 +281,6 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 	}
 
 	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
-}
-
-bool APCGExValencyCage::HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const
-{
-	return PCGExValencyAssetUtils::HaveScannedAssetsChanged(OldScannedAssets, ScannedAssetEntries, bPreserveLocalTransforms);
-}
-
-void APCGExValencyCage::ExtractMaterialOverrides(
-	const UStaticMeshComponent* MeshComponent,
-	TArray<FPCGExValencyMaterialOverride>& OutOverrides)
-{
-	PCGExValencyAssetUtils::ExtractMaterialOverrides(MeshComponent, OutOverrides);
-}
-
-void APCGExValencyCage::RecordMaterialVariant(
-	const FSoftObjectPath& MeshPath,
-	const TArray<FPCGExValencyMaterialOverride>& Overrides)
-{
-	PCGExValencyAssetUtils::RecordMaterialVariant(MeshPath, Overrides, DiscoveredMaterialVariants);
-}
-
-FTransform APCGExValencyCage::ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const
-{
-	return PCGExValencyAssetUtils::ComputePreservedLocalTransform(
-		AssetWorldTransform, GetActorTransform(), bPreserveLocalTransforms, LocalTransformFlags);
 }
 
 void APCGExValencyCage::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -659,11 +516,6 @@ void APCGExValencyCage::RefreshGhostMeshes()
 	}
 }
 
-void APCGExValencyCage::FindMirroringCages(TArray<APCGExValencyCage*>& OutCages) const
-{
-	PCGExValencyAssetUtils::FindMirroringCages(this, GetWorld(), OutCages);
-}
-
 bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
 {
 	// Use centralized reference tracker for recursive propagation
@@ -673,3 +525,5 @@ bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
 	}
 	return false;
 }
+
+#pragma endregion

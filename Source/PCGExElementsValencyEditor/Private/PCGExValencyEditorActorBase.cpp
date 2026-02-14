@@ -16,6 +16,131 @@ APCGExValencyEditorActorBase::APCGExValencyEditorActorBase()
 {
 }
 
+void APCGExValencyEditorActorBase::PostEditMove(bool bFinished)
+{
+	Super::PostEditMove(bFinished);
+
+	// Clean up drag state when the editor drag operation ends
+	if (bFinished && bIsDraggingAssets)
+	{
+		EndDragContainedAssets();
+	}
+}
+
+void APCGExValencyEditorActorBase::EditorApplyTranslation(const FVector& DeltaTranslation, bool bAltDown, bool bShiftDown, bool bCtrlDown)
+{
+	Super::EditorApplyTranslation(DeltaTranslation, bAltDown, bShiftDown, bCtrlDown);
+
+	if (bCtrlDown)
+	{
+		if (!bIsDraggingAssets)
+		{
+			BeginDragContainedAssets();
+		}
+
+		// Apply the exact same translation delta — zero lag
+		for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
+		{
+			if (AActor* Actor = WeakActor.Get())
+			{
+				Actor->AddActorWorldOffset(DeltaTranslation);
+			}
+		}
+	}
+	else if (bIsDraggingAssets)
+	{
+		EndDragContainedAssets();
+	}
+}
+
+void APCGExValencyEditorActorBase::EditorApplyRotation(const FRotator& DeltaRotation, bool bAltDown, bool bShiftDown, bool bCtrlDown)
+{
+	Super::EditorApplyRotation(DeltaRotation, bAltDown, bShiftDown, bCtrlDown);
+
+	if (bCtrlDown)
+	{
+		if (!bIsDraggingAssets)
+		{
+			BeginDragContainedAssets();
+		}
+
+		// Rotate contained actors around the cage's pivot
+		const FVector CageLocation = GetActorLocation();
+		const FQuat DeltaQuat = DeltaRotation.Quaternion();
+
+		for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
+		{
+			if (AActor* Actor = WeakActor.Get())
+			{
+				// Orbit position around the cage
+				const FVector Offset = Actor->GetActorLocation() - CageLocation;
+				Actor->SetActorLocation(CageLocation + DeltaQuat.RotateVector(Offset));
+
+				// Rotate orientation
+				Actor->SetActorRotation((DeltaQuat * Actor->GetActorQuat()).Rotator());
+			}
+		}
+	}
+	else if (bIsDraggingAssets)
+	{
+		EndDragContainedAssets();
+	}
+}
+
+void APCGExValencyEditorActorBase::BeginDragContainedAssets()
+{
+	DraggedActors.Reset();
+
+	TArray<AActor*> Actors;
+	CollectDraggableActors(Actors);
+
+	if (Actors.IsEmpty())
+	{
+		return;
+	}
+
+	TSet<AActor*> SeenActors;
+	for (AActor* Actor : Actors)
+	{
+		if (!Actor || Actor == this || Actor->IsActorBeingDestroyed())
+		{
+			continue;
+		}
+
+		bool bAlreadyInSet = false;
+		SeenActors.Add(Actor, &bAlreadyInSet);
+		if (bAlreadyInSet)
+		{
+			continue;
+		}
+
+		DraggedActors.Add(Actor);
+	}
+
+	if (DraggedActors.IsEmpty())
+	{
+		return;
+	}
+
+	// Snapshot contained actors into the editor's already-active gizmo drag transaction.
+	// No separate FScopedTransaction — that conflicts with the editor's transaction on release.
+	for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
+	{
+		if (AActor* Actor = WeakActor.Get())
+		{
+			Actor->Modify();
+		}
+	}
+
+	bIsDraggingAssets = true;
+}
+
+void APCGExValencyEditorActorBase::EndDragContainedAssets()
+{
+	bIsDraggingAssets = false;
+	DraggedActors.Reset();
+}
+
 void APCGExValencyEditorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

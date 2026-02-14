@@ -28,11 +28,11 @@ struct PCGEXELEMENTSVALENCY_API FPCGExPlacedModule
 	/** Index in PlacedModules of parent (-1 for seeds) */
 	int32 ParentIndex = -1;
 
-	/** Which socket on parent this attached to */
-	int32 ParentSocketIndex = -1;
+	/** Which connector on parent this attached to */
+	int32 ParentConnectorIndex = -1;
 
-	/** Which socket on this module was used for attachment */
-	int32 ChildSocketIndex = -1;
+	/** Which connector on this module was used for attachment */
+	int32 ChildConnectorIndex = -1;
 
 	/** Distance from seed (0 = seed itself) */
 	int32 Depth = 0;
@@ -45,23 +45,23 @@ struct PCGEXELEMENTSVALENCY_API FPCGExPlacedModule
 };
 
 /**
- * An open socket on the growth frontier - a candidate for further expansion.
+ * An open connector on the growth frontier - a candidate for further expansion.
  */
 USTRUCT()
-struct PCGEXELEMENTSVALENCY_API FPCGExOpenSocket
+struct PCGEXELEMENTSVALENCY_API FPCGExOpenConnector
 {
 	GENERATED_BODY()
 
 	/** Index in PlacedModules array */
 	int32 PlacedModuleIndex = -1;
 
-	/** Index into module's sockets array */
-	int32 SocketIndex = -1;
+	/** Index into module's connectors array */
+	int32 ConnectorIndex = -1;
 
-	/** Cached socket type for fast compatibility lookup */
-	FName SocketType;
+	/** Cached connector type for fast compatibility lookup */
+	FName ConnectorType;
 
-	/** Pre-computed world-space socket transform */
+	/** Pre-computed world-space connector transform */
 	FTransform WorldTransform = FTransform::Identity;
 
 	/** Depth of the owning module */

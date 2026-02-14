@@ -1,34 +1,34 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Data/PCGExPointIO.h"
 
-#include "PCGExWriteModuleSockets.generated.h"
+#include "PCGExWriteModuleConnectors.generated.h"
 
 /**
- * Writes module output sockets as new points for chained solving.
- * After staging resolves modules, this node outputs socket data that can be
- * used as input for a subsequent WriteValencyOrbitals (socket mode) → Staging chain.
+ * Writes module output connectors as new points for chained solving.
+ * After staging resolves modules, this node outputs connector data that can be
+ * used as input for a subsequent WriteValencyOrbitals (connector mode) -> Staging chain.
  *
- * Output: New point per output socket, with:
- *   - Transform: point transform * socket offset
- *   - Packed socket reference (int64) for downstream socket mode processing
+ * Output: New point per output connector, with:
+ *   - Transform: point transform * connector offset
+ *   - Packed connector reference (int64) for downstream connector mode processing
  *   - Source point index for tracing back to original vertex
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency sockets write output chaining", PCGExNodeLibraryDoc="valency/valency-write-module-sockets"))
-class PCGEXELEMENTSVALENCY_API UPCGExWriteModuleSocketsSettings : public UPCGExValencyProcessorSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency connectors write output chaining", PCGExNodeLibraryDoc="valency/valency-write-module-connectors"))
+class PCGEXELEMENTSVALENCY_API UPCGExWriteModuleConnectorsSettings : public UPCGExValencyProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteModuleSockets, "Valency : Write Module Sockets", "Outputs module sockets as points for chained solving.");
+	PCGEX_NODE_INFOS(WriteModuleConnectors, "Valency : Write Module Connectors", "Outputs module connectors as points for chained solving.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 #endif
 
@@ -38,7 +38,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	// This node requires BondingRules (for socket data) but not OrbitalSet
+	// This node requires BondingRules (for connector data) but not OrbitalSet
 	virtual bool WantsOrbitalSet() const override { return false; }
 	virtual bool WantsBondingRules() const override { return true; }
 
@@ -46,11 +46,11 @@ public:
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
 	/**
-	 * Socket rules asset defining socket types.
-	 * Required for socket type → index mapping and compatibility data.
+	 * Connector set asset defining connector types.
+	 * Required for connector type -> index mapping and compatibility data.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencySocketRules> SocketRules;
+	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/**
 	 * Attribute name for the module data (from staging output).
@@ -60,11 +60,11 @@ public:
 	FName ModuleDataAttributeName = FName("PCGEx/V/Module/Main");
 
 	/**
-	 * Attribute name for the packed socket reference output.
-	 * This attribute is written to output socket points.
+	 * Attribute name for the packed connector reference output.
+	 * This attribute is written to output connector points.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	FName SocketOutputAttributeName = FName("PCGEx/V/Socket/Main");
+	FName ConnectorOutputAttributeName = FName("PCGEx/V/Connector/Main");
 
 	/** Output an attribute containing the source vertex index */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
@@ -74,50 +74,50 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputSourceIndex"))
 	FName SourceIndexAttributeName = FName("SourceIndex");
 
-	/** Output an attribute containing the socket name */
+	/** Output an attribute containing the connector identifier */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bOutputSocketName = false;
+	bool bOutputConnectorIdentifier = false;
 
-	/** Attribute name for socket name */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputSocketName"))
-	FName SocketNameAttributeName = FName("SocketName");
+	/** Attribute name for connector identifier */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorIdentifier"))
+	FName ConnectorIdentifierAttributeName = FName("ConnectorIdentifier");
 
-	/** Output an attribute containing the socket type */
+	/** Output an attribute containing the connector type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bOutputSocketType = false;
+	bool bOutputConnectorType = false;
 
-	/** Attribute name for socket type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputSocketType"))
-	FName SocketTypeAttributeName = FName("SocketType");
+	/** Attribute name for connector type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorType"))
+	FName ConnectorTypeAttributeName = FName("ConnectorType");
 
-	/** Quiet mode - suppress missing socket rules errors */
+	/** Quiet mode - suppress missing connector set errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingSocketRules = false;
+	bool bQuietMissingConnectorSet = false;
 
 private:
-	friend class FPCGExWriteModuleSocketsElement;
+	friend class FPCGExWriteModuleConnectorsElement;
 };
 
-struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleSocketsContext final : FPCGExValencyProcessorContext
+struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsContext final : FPCGExValencyProcessorContext
 {
-	friend class FPCGExWriteModuleSocketsElement;
+	friend class FPCGExWriteModuleConnectorsElement;
 
 	virtual void RegisterAssetDependencies() override;
 
-	/** Socket rules (for type → index mapping) */
-	TObjectPtr<UPCGExValencySocketRules> SocketRules;
+	/** Connector set (for type -> index mapping) */
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
-	/** Output point collection for sockets */
-	TSharedPtr<PCGExData::FPointIOCollection> SocketOutputCollection;
+	/** Output point collection for connectors */
+	TSharedPtr<PCGExData::FPointIOCollection> ConnectorOutputCollection;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class PCGEXELEMENTSVALENCY_API FPCGExWriteModuleSocketsElement final : public FPCGExValencyProcessorElement
+class PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsElement final : public FPCGExValencyProcessorElement
 {
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(WriteModuleSockets)
+	PCGEX_ELEMENT_CREATE_CONTEXT(WriteModuleConnectors)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
@@ -125,9 +125,9 @@ protected:
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
-namespace PCGExWriteModuleSockets
+namespace PCGExWriteModuleConnectors
 {
-	class FProcessor final : public PCGExValencyMT::TProcessor<FPCGExWriteModuleSocketsContext, UPCGExWriteModuleSocketsSettings>
+	class FProcessor final : public PCGExValencyMT::TProcessor<FPCGExWriteModuleConnectorsContext, UPCGExWriteModuleConnectorsSettings>
 	{
 		friend class FBatch;
 
@@ -135,11 +135,11 @@ namespace PCGExWriteModuleSockets
 		/** Module data reader (from staging output) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
 
-		/** Output socket points (local collection, merged into context output) */
-		TSharedPtr<PCGExData::FPointIO> SocketOutput;
+		/** Output connector points (local collection, merged into context output) */
+		TSharedPtr<PCGExData::FPointIO> ConnectorOutput;
 
-		/** Count of sockets written */
-		int32 SocketCount = 0;
+		/** Count of connectors written */
+		int32 ConnectorCount = 0;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

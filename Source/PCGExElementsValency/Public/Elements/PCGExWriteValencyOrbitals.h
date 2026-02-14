@@ -1,4 +1,4 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExValencyOrbitalSet.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExWriteValencyOrbitals.generated.h"
@@ -18,7 +18,7 @@ UENUM(BlueprintType)
 enum class EPCGExOrbitalAssignmentMode : uint8
 {
 	Direction UMETA(ToolTip = "Match edge direction to orbital using dot product"),
-	Socket UMETA(ToolTip = "Match socket type from edge attribute to orbital index")
+	Connector UMETA(ToolTip = "Match connector type from edge attribute to orbital index")
 };
 
 namespace PCGExData
@@ -67,19 +67,19 @@ public:
 	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/**
-	 * Socket rules defining socket types and compatibility.
-	 * Each socket type maps to an orbital index for solver compatibility.
+	 * Connector set defining connector types and compatibility.
+	 * Each connector type maps to an orbital index for solver compatibility.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
-	TSoftObjectPtr<UPCGExValencySocketRules> SocketRules;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Connector", EditConditionHides))
+	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/**
-	 * Edge attribute containing packed socket references (int64).
-	 * Format: bits 0-15 = rules index, bits 16-31 = socket index.
+	 * Edge attribute containing packed connector references (int64).
+	 * Format: bits 0-15 = rules index, bits 16-31 = connector index.
 	 * Typically written by a previous solve step or user-defined.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
-	FName SocketAttributeName = FName("PCGEx/V/Socket/Main");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Connector", EditConditionHides))
+	FName ConnectorAttributeName = FName("PCGEx/V/Connector/Main");
 
 	/** Build and cache OrbitalCache for downstream valency nodes. Avoids redundant rebuilding. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -89,13 +89,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Warnings", meta=(PCG_NotOverridable))
 	bool bWarnOnNoMatch = true;
 
-	/** Quiet mode - suppress missing orbital set/socket rules errors */
+	/** Quiet mode - suppress missing orbital set/connector set errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietMissingOrbitalSet = false;
 
-	/** Quiet mode - suppress warnings when socket attribute is missing from edges */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
-	bool bQuietMissingSocketAttribute = false;
+	/** Quiet mode - suppress warnings when connector attribute is missing from edges */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Connector", EditConditionHides))
+	bool bQuietMissingConnectorAttribute = false;
 
 private:
 	friend class FPCGExWriteValencyOrbitalsElement;
@@ -117,12 +117,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 	/** Cached orbital data for fast lookup during processing */
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 
-	// ========== Socket Mode ==========
+	// ========== Connector Mode ==========
 
-	TObjectPtr<UPCGExValencySocketRules> SocketRules;
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
-	/** Socket type index to orbital index mapping (built during PostBoot) */
-	TArray<int32> SocketToOrbitalMap;
+	/** Connector type index to orbital index mapping (built during PostBoot) */
+	TArray<int32> ConnectorToOrbitalMap;
 
 	/** Get the layer name based on current mode */
 	FName GetLayerName() const
@@ -131,23 +131,23 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 		{
 			return OrbitalSet->LayerName;
 		}
-		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Socket && SocketRules)
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Connector && ConnectorSet)
 		{
-			return SocketRules->LayerName;
+			return ConnectorSet->LayerName;
 		}
 		return FName("Main");
 	}
 
-	/** Get the orbital/socket count based on current mode */
+	/** Get the orbital/connector count based on current mode */
 	int32 GetOrbitalCount() const
 	{
 		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Direction && OrbitalSet)
 		{
 			return OrbitalSet->Num();
 		}
-		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Socket && SocketRules)
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Connector && ConnectorSet)
 		{
-			return SocketRules->Num();
+			return ConnectorSet->Num();
 		}
 		return 0;
 	}
@@ -177,14 +177,14 @@ namespace PCGExWriteValencyOrbitals
 		TSharedPtr<PCGExData::TBuffer<int64>> MaskWriter;  // For OrbitalCache building
 		TSharedPtr<PCGExData::TBuffer<int64>> IdxWriter;
 
-		/** Socket attribute reader (for socket mode) */
-		TSharedPtr<PCGExData::TBuffer<int64>> SocketReader;
+		/** Connector attribute reader (for connector mode) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ConnectorReader;
 
 		/** Count of edges with no orbital match (for warning) */
 		int32 NoMatchCount = 0;
 
-		/** Count of edges with missing/invalid socket reference (for warning) */
-		int32 InvalidSocketCount = 0;
+		/** Count of edges with missing/invalid connector reference (for warning) */
+		int32 InvalidConnectorCount = 0;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

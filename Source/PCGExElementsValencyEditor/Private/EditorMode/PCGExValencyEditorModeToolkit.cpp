@@ -22,6 +22,10 @@
 void FValencyEditorCommands::RegisterCommands()
 {
 	UI_COMMAND(CleanupConnections, "Cleanup Connections", "Remove stale manual connections from all cages", EUserInterfaceActionType::Button, FInputChord(EKeys::C, EModifierKey::Control | EModifierKey::Shift));
+	UI_COMMAND(AddConnector, "Add Connector", "Add a new connector to the selected cage", EUserInterfaceActionType::Button, FInputChord(EKeys::A, EModifierKey::Control | EModifierKey::Shift));
+	UI_COMMAND(RemoveConnector, "Remove Connector", "Remove the selected connector component", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete));
+	UI_COMMAND(DuplicateConnector, "Duplicate Connector", "Duplicate the selected connector with offset", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control));
+	UI_COMMAND(CycleConnectorPolarity, "Cycle Connector Polarity", "Cycle polarity: Universal, Plug, Port", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Control | EModifierKey::Shift));
 }
 
 #pragma endregion
@@ -61,11 +65,13 @@ void SValencyModePanel::RebuildLayout()
 	ScrollBox->ClearChildren();
 
 	// Visualization toggles section
+	SAssignNew(VisTogglesWidget, SValencyVisToggles)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(VisTogglesWidget, SValencyVisToggles)
-		.EditorMode(EditorMode)
+		VisTogglesWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -75,11 +81,13 @@ void SValencyModePanel::RebuildLayout()
 	];
 
 	// Scene overview section
+	SAssignNew(SceneOverviewWidget, SValencySceneOverview)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(SceneOverviewWidget, SValencySceneOverview)
-		.EditorMode(EditorMode)
+		SceneOverviewWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -88,12 +96,18 @@ void SValencyModePanel::RebuildLayout()
 		SNew(SSeparator)
 	];
 
-	// Context-sensitive inspector section
+	// Inspector preserves state (DetailPanelConnector, search filter, delegate bindings)
+	// across panel rebuilds — created once, refreshes internally via OnSceneChanged
+	if (!InspectorWidget.IsValid())
+	{
+		SAssignNew(InspectorWidget, SValencyInspector)
+			.EditorMode(EditorMode);
+	}
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(InspectorWidget, SValencyInspector)
-		.EditorMode(EditorMode)
+		InspectorWidget.ToSharedRef()
 	];
 
 	ScrollBox->AddSlot()
@@ -103,11 +117,13 @@ void SValencyModePanel::RebuildLayout()
 	];
 
 	// Validation section
+	SAssignNew(ValidationWidget, SValencyValidation)
+		.EditorMode(EditorMode);
+
 	ScrollBox->AddSlot()
 	.Padding(4.0f)
 	[
-		SAssignNew(ValidationWidget, SValencyValidation)
-		.EditorMode(EditorMode)
+		ValidationWidget.ToSharedRef()
 	];
 }
 

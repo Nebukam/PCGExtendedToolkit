@@ -90,6 +90,7 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	// Notify cages if relevant properties changed
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, BondingRules) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, OrbitalSetOverride) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, ConnectorSetOverride) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, DefaultProbeRadius))
 	{
 		NotifyContainedCages();
@@ -161,6 +162,21 @@ UPCGExValencyOrbitalSet* AValencyContextVolume::GetEffectiveOrbitalSet() const
 	if (BondingRules && BondingRules->OrbitalSets.Num() > 0)
 	{
 		return BondingRules->OrbitalSets[0];
+	}
+
+	return nullptr;
+}
+
+UPCGExValencyConnectorSet* AValencyContextVolume::GetEffectiveConnectorSet() const
+{
+	if (ConnectorSetOverride)
+	{
+		return ConnectorSetOverride;
+	}
+
+	if (BondingRules && BondingRules->ConnectorSet)
+	{
+		return BondingRules->ConnectorSet;
 	}
 
 	return nullptr;
@@ -376,9 +392,31 @@ void AValencyContextVolume::RegeneratePCGActors()
 		return;
 	}
 
+	// Defer actual regeneration by one frame. During rapid interactive changes (slider drags),
+	// the async FlushCache from frame N races with Generate from frame N+1 — the late-arriving
+	// flush wipes freshly generated data (visible as flash-then-blank).
+	// By deferring, each new slider tick just resets the pending frame counter, so the actual
+	// flush+generate only runs once the slider stops (quiet frame). Rules are still updated
+	// every frame by BuildRulesFromCages — only the expensive PCG regeneration is deferred.
+	PendingRegenerateFrame = GFrameCounter;
+}
+
+void AValencyContextVolume::ExecutePendingRegenerate()
+{
+	PendingRegenerateFrame = 0;
+	ExecuteRegenerate();
+}
+
+void AValencyContextVolume::ExecuteRegenerate()
+{
+	if (PCGActorsToRegenerate.Num() == 0)
+	{
+		return;
+	}
+
 	int32 RegeneratedCount = 0;
 
-	// Optionally flush the PCG cache (can cause GC spikes)
+	// Flush PCG cache before regeneration (safe — no overlapping cycle)
 	if (UPCGExValencyEditorSettings::Get()->bFlushPCGCacheOnRegenerate)
 	{
 		if (UPCGSubsystem* Subsystem = UPCGSubsystem::GetActiveEditorInstance())

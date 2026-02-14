@@ -5,7 +5,7 @@
 
 #pragma region FPCGExValencyGrowthBFS
 
-int32 FPCGExValencyGrowthBFS::SelectNextSocket(TArray<FPCGExOpenSocket>& Frontier)
+int32 FPCGExValencyGrowthBFS::SelectNextConnector(TArray<FPCGExOpenConnector>& Frontier)
 {
 	if (Frontier.IsEmpty()) { return INDEX_NONE; }
 

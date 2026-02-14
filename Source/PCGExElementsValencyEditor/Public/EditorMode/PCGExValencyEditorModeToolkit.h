@@ -30,6 +30,11 @@ public:
 	virtual void RegisterCommands() override;
 
 	TSharedPtr<FUICommandInfo> CleanupConnections;
+
+	TSharedPtr<FUICommandInfo> AddConnector;
+	TSharedPtr<FUICommandInfo> RemoveConnector;
+	TSharedPtr<FUICommandInfo> DuplicateConnector;
+	TSharedPtr<FUICommandInfo> CycleConnectorPolarity;
 };
 
 /**

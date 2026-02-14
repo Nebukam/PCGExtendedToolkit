@@ -1,4 +1,4 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Core/PCGExValencyBondingRules.h"
@@ -89,8 +89,8 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData.ModulePropertyHeaders.SetNum(Modules.Num());
 	CompiledData.AllModuleProperties.Empty();
 	CompiledData.ModuleTags.SetNum(Modules.Num());
-	CompiledData.ModuleSocketHeaders.SetNum(Modules.Num());
-	CompiledData.AllModuleSockets.Empty();
+	CompiledData.ModuleConnectorHeaders.SetNum(Modules.Num());
+	CompiledData.AllModuleConnectors.Empty();
 	CompiledData.ModulePlacementPolicies.SetNum(Modules.Num());
 	CompiledData.ModuleIsDeadEnd.SetNum(Modules.Num());
 	CompiledData.ModuleBoundsModifiers.SetNum(Modules.Num());
@@ -127,64 +127,64 @@ bool UPCGExValencyBondingRules::Compile()
 		// Copy module tags
 		CompiledData.ModuleTags[ModuleIndex] = FPCGExValencyModuleTags(Module.Tags);
 
-		// Populate socket header and flattened sockets with orbital index assignment
-		const int32 SocketStartIndex = CompiledData.AllModuleSockets.Num();
-		int32 SocketCount = 0;
+		// Populate connector header and flattened connectors with orbital index assignment
+		const int32 ConnectorStartIndex = CompiledData.AllModuleConnectors.Num();
+		int32 ConnectorCount = 0;
 
-		if (Module.Sockets.Num() > 0 && OrbitalSets.Num() > 0)
+		if (Module.Connectors.Num() > 0 && OrbitalSets.Num() > 0)
 		{
-			// Use primary orbital set for socket-to-orbital mapping
+			// Use primary orbital set for connector-to-orbital mapping
 			const UPCGExValencyOrbitalSet* PrimaryOrbitalSet = OrbitalSets[0];
 
 			// Build orbital direction resolver
 			PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 			OrbitalResolver.BuildFrom(PrimaryOrbitalSet);
 
-			for (const FPCGExValencyModuleSocket& Socket : Module.Sockets)
+			for (const FPCGExValencyModuleConnector& Connector : Module.Connectors)
 			{
-				FPCGExValencyModuleSocket CompiledSocket = Socket;
+				FPCGExValencyModuleConnector CompiledConnector = Connector;
 
-				// Compute orbital index from socket direction
-				// The socket's LocalOffset translation defines its position relative to module origin
-				const FVector SocketDirection = Socket.LocalOffset.GetTranslation().GetSafeNormal();
+				// Compute orbital index from connector direction
+				// The connector's LocalOffset translation defines its position relative to module origin
+				const FVector ConnectorDirection = Connector.LocalOffset.GetTranslation().GetSafeNormal();
 
-				if (!SocketDirection.IsNearlyZero())
+				if (!ConnectorDirection.IsNearlyZero())
 				{
 					// Use the orbital resolver to find matching orbital
-					// Note: For sockets, we typically don't transform by module rotation (sockets are module-local)
-					CompiledSocket.OrbitalIndex = OrbitalResolver.FindMatchingOrbital(
-						SocketDirection,
-						false, // Don't transform - sockets are in module-local space
+					// Note: For connectors, we typically don't transform by module rotation (connectors are module-local)
+					CompiledConnector.OrbitalIndex = OrbitalResolver.FindMatchingOrbital(
+						ConnectorDirection,
+						false, // Don't transform - connectors are in module-local space
 						FTransform::Identity
 					);
 				}
 				else
 				{
-					// Socket at origin - assign to orbital 0 as fallback, or -1 for invalid
-					CompiledSocket.OrbitalIndex = PrimaryOrbitalSet->Num() > 0 ? 0 : -1;
+					// Connector at origin - assign to orbital 0 as fallback, or -1 for invalid
+					CompiledConnector.OrbitalIndex = PrimaryOrbitalSet->Num() > 0 ? 0 : -1;
 				}
 
-				CompiledData.AllModuleSockets.Add(CompiledSocket);
-				SocketCount++;
+				CompiledData.AllModuleConnectors.Add(CompiledConnector);
+				ConnectorCount++;
 
-				PCGEX_VALENCY_VERBOSE(Compilation, "    Socket '%s' (type=%s, output=%s) -> OrbitalIndex=%d",
-					*Socket.SocketName.ToString(),
-					*Socket.SocketType.ToString(),
-					Socket.bIsOutputSocket ? TEXT("true") : TEXT("false"),
-					CompiledSocket.OrbitalIndex);
+				PCGEX_VALENCY_VERBOSE(Compilation, "    Connector '%s' (type=%s, polarity=%s) -> OrbitalIndex=%d",
+					*Connector.Identifier.ToString(),
+					*Connector.ConnectorType.ToString(),
+					Connector.Polarity == EPCGExConnectorPolarity::Universal ? TEXT("Universal") : Connector.Polarity == EPCGExConnectorPolarity::Plug ? TEXT("Plug") : TEXT("Port"),
+					CompiledConnector.OrbitalIndex);
 			}
 		}
 
-		CompiledData.ModuleSocketHeaders[ModuleIndex] = FIntPoint(SocketStartIndex, SocketCount);
+		CompiledData.ModuleConnectorHeaders[ModuleIndex] = FIntPoint(ConnectorStartIndex, ConnectorCount);
 
-		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d, Sockets=%d",
+		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d, Connectors=%d",
 			ModuleIndex,
 			*Module.Asset.GetAssetName(),
 			Module.Settings.Weight,
 			static_cast<int32>(Module.AssetType),
 			PropertyCount,
 			Module.Tags.Num(),
-			SocketCount);
+			ConnectorCount);
 
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)

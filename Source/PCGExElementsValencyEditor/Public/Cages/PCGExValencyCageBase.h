@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExValencyEditorActorBase.h"
+#include "PCGExValencyAssetContainerBase.h"
 #include "PCGExValencyCageOrbital.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
 
 #include "PCGExValencyCageBase.generated.h"
 
-class UPCGExValencySocketRules;
+class UPCGExValencyConnectorSet;
 
 class AValencyContextVolume;
 
@@ -61,7 +61,7 @@ enum class EValencyRebuildReason : uint8
  * unless an explicit override is provided.
  */
 UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyEditorActorBase
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyAssetContainerBase
 {
 	GENERATED_BODY()
 
@@ -249,62 +249,62 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Orbitals", meta = (TitleProperty = "OrbitalName"))
 	TArray<FPCGExValencyCageOrbital> Orbitals;
 
-	// ========== Sockets ==========
+	// ========== Connectors ==========
 
 	/**
-	 * If enabled, automatically extract sockets from the cage's effective assets
+	 * If enabled, automatically extract connectors from the cage's effective assets
 	 * (meshes from registered assets, palettes, and mirror sources) at compile time.
-	 * Mesh sockets matching SocketRules definitions are converted to module sockets.
-	 * Socket components can override auto-extracted sockets by name.
+	 * Mesh sockets matching ConnectorSet definitions are converted to module connectors.
+	 * Connector components can override auto-extracted connectors by name.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Sockets")
-	bool bReadSocketsFromAssets = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Connectors")
+	bool bReadConnectorsFromAssets = false;
 
 	/**
-	 * Optional explicit SocketRules override for this cage.
-	 * If not set, uses the SocketRules from containing volume(s) or BondingRules.
+	 * Optional explicit ConnectorSet override for this cage.
+	 * If not set, uses the ConnectorSet from containing volume(s) or BondingRules.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Sockets", AdvancedDisplay)
-	TObjectPtr<UPCGExValencySocketRules> SocketRulesOverride;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Connectors", AdvancedDisplay)
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSetOverride;
 
-	/** Get the effective socket rules (from volume, bonding rules, or override) */
-	UPCGExValencySocketRules* GetEffectiveSocketRules() const;
+	/** Get the effective connector set (from volume, bonding rules, or override) */
+	UPCGExValencyConnectorSet* GetEffectiveConnectorSet() const;
 
 	/**
-	 * Get all socket components attached to this cage.
-	 * @param OutComponents Array to fill with socket components
+	 * Get all connector components attached to this cage.
+	 * @param OutComponents Array to fill with connector components
 	 */
-	void GetSocketComponents(TArray<class UPCGExValencyCageSocketComponent*>& OutComponents) const;
+	void GetConnectorComponents(TArray<class UPCGExValencyCageConnectorComponent*>& OutComponents) const;
 
-	/** Check if this cage has any socket components */
-	bool HasSockets() const;
+	/** Check if this cage has any connector components */
+	bool HasConnectors() const;
 
-	/** Check if this cage has any output socket components */
-	bool HasOutputSockets() const;
+	/** Check if this cage has any plug connector components */
+	bool HasPlugConnectors() const;
 
 	/**
-	 * Find a socket component by name.
-	 * @param SocketName The socket name to search for
+	 * Find a connector component by identifier.
+	 * @param Identifier The connector identifier to search for
 	 * @return Pointer to the component, or nullptr if not found
 	 */
-	class UPCGExValencyCageSocketComponent* FindSocketByName(const FName& SocketName) const;
+	class UPCGExValencyCageConnectorComponent* FindConnectorByIdentifier(const FName& Identifier) const;
 
 	/**
-	 * Find a socket component by type (returns first match).
-	 * @param SocketType The socket type to search for
+	 * Find a connector component by type (returns first match).
+	 * @param ConnectorType The connector type to search for
 	 * @return Pointer to the component, or nullptr if not found
 	 */
-	class UPCGExValencyCageSocketComponent* FindSocketByType(const FName& SocketType) const;
+	class UPCGExValencyCageConnectorComponent* FindConnectorByType(const FName& ConnectorType) const;
 
 	/**
-	 * Create socket components from a static mesh asset.
-	 * Extracts UStaticMeshSocket data and creates attached socket components.
+	 * Create connector components from a static mesh asset.
+	 * Extracts UStaticMeshSocket data and creates attached connector components.
 	 * @param Mesh The static mesh to extract sockets from
-	 * @param DefaultSocketType The socket type to assign to created components
-	 * @param bAsOutput Whether created sockets should be marked as output sockets
-	 * @return Number of socket components created
+	 * @param DefaultConnectorType The connector type to assign to created components
+	 * @param DefaultPolarity The polarity to assign to created components
+	 * @return Number of connector components created
 	 */
-	int32 CreateSocketComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultSocketType, bool bAsOutput = false);
+	int32 CreateConnectorComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultConnectorType, EPCGExConnectorPolarity DefaultPolarity = EPCGExConnectorPolarity::Universal);
 
 	/**
 	 * Request a rebuild through the unified dirty state system.

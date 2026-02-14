@@ -20,7 +20,7 @@ public:
 	virtual ~FPCGExValencyGrowthRandom() override = default;
 
 protected:
-	virtual int32 SelectNextSocket(TArray<FPCGExOpenSocket>& Frontier) override;
+	virtual int32 SelectNextConnector(TArray<FPCGExOpenConnector>& Frontier) override;
 };
 
 /**

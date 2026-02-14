@@ -1,4 +1,4 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -7,7 +7,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExValencyCommon.h"
 #include "Core/PCGExValencyBondingRules.h"
-#include "Core/PCGExValencySocketRules.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyPropertyWriter.h"
 #include "Growth/PCGExValencyGenerativeCommon.h"
 #include "Growth/PCGExValencyGrowthOperation.h"
@@ -23,10 +23,10 @@ namespace PCGExCollections
 }
 
 /**
- * Valency Generative - Grow structures from seed points using socket connections.
- * Seeds resolve to modules, modules expose sockets, sockets spawn new modules.
+ * Valency Generative - Grow structures from seed points using connector connections.
+ * Seeds resolve to modules, modules expose connectors, connectors spawn new modules.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency generative growth grow seed socket", PCGExNodeLibraryDoc="valency/valency-generative"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency generative growth grow seed connector", PCGExNodeLibraryDoc="valency/valency-generative"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyGenerativeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -38,7 +38,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ValencyGenerative, "Valency : Generative", "Grow structures from seed points using socket-based module connections.");
+	PCGEX_NODE_INFOS(ValencyGenerative, "Valency : Generative", "Grow structures from seed points using connector-based module connections.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscAdd); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
@@ -53,9 +53,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
-	/** Socket rules defining socket types and compatibility (required) */
+	/** Connector set defining connector types and compatibility (required) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencySocketRules> SocketRules;
+	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Growth strategy algorithm */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -129,8 +129,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeContext final : FPCGExPoi
 	/** Loaded bonding rules */
 	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
-	/** Loaded socket rules */
-	TObjectPtr<UPCGExValencySocketRules> SocketRules;
+	/** Loaded connector set */
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Registered growth factory */
 	UPCGExValencyGrowthFactory* GrowthFactory = nullptr;

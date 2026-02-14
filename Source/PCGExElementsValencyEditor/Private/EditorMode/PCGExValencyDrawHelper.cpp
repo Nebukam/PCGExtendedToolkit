@@ -9,6 +9,10 @@
 
 #include "PCGExValencyEditorSettings.h"
 #include "SceneView.h"
+#include "Components/PCGExValencyCageConnectorComponent.h"
+#include "Core/PCGExValencyConnectorSet.h"
+#include "EditorMode/PCGExValencyCageConnectorVisualizer.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
@@ -231,6 +235,118 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 			const FLinearColor NoConnColor = SelfAsNullCage ? NullCageModeColor : Settings->NoConnectionColor;
 			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, NoConnColor, true, true);
 		}
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawCageConnectors(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage)
+{
+	if (!PDI || !Cage)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	if (!Settings || !Settings->bShowConnectorVisualizers)
+	{
+		return;
+	}
+
+	TArray<UPCGExValencyCageConnectorComponent*> ConnectorComponents;
+	Cage->GetConnectorComponents(ConnectorComponents);
+
+	if (ConnectorComponents.IsEmpty())
+	{
+		return;
+	}
+
+	const UPCGExValencyConnectorSet* ConnectorSet = Cage->GetEffectiveConnectorSet();
+	const float DiamondSize = Settings->ConnectorVisualizerSize;
+	const float ArrowLength = Settings->ConnectorArrowLength;
+	const UPCGExValencyCageConnectorComponent* SelectedConnector = UPCGExValencyCageEditorMode::GetSelectedConnector();
+
+	for (UPCGExValencyCageConnectorComponent* ConnectorComp : ConnectorComponents)
+	{
+		if (!ConnectorComp)
+		{
+			continue;
+		}
+
+		// Get connector world transform
+		const FTransform ConnectorTransform = ConnectorComp->GetComponentTransform();
+		const FVector ConnectorLocation = ConnectorTransform.GetLocation();
+
+		// Get effective debug color
+		FLinearColor Color = ConnectorComp->GetEffectiveDebugColor(ConnectorSet);
+
+		// Disabled connectors: dimmed alpha
+		if (!ConnectorComp->bEnabled)
+		{
+			Color.A *= Settings->ConnectorDisabledAlpha;
+		}
+
+		// Enqueue hit proxy for click detection
+		PDI->SetHitProxy(new HPCGExConnectorHitProxy(ConnectorComp));
+
+		const FQuat Rotation = ConnectorTransform.GetRotation();
+		DrawConnectorShape(PDI, ConnectorLocation, Rotation.GetForwardVector(), Rotation.GetRightVector(), Rotation.GetUpVector(), ConnectorComp->Polarity, DiamondSize, ArrowLength, Color, ConnectorComp == SelectedConnector);
+
+		// Clear hit proxy
+		PDI->SetHitProxy(nullptr);
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawConnectorCircle(FPrimitiveDrawInterface* PDI, const FVector& Center, const FVector& AxisX, const FVector& AxisY, float Radius, const FLinearColor& Color, float Thickness, int32 NumSegments)
+{
+	const float AngleStep = 2.0f * UE_PI / NumSegments;
+	FVector PrevPoint = Center + AxisX * Radius;
+
+	for (int32 i = 1; i <= NumSegments; ++i)
+	{
+		const float Angle = AngleStep * i;
+		const FVector NextPoint = Center + (AxisX * FMath::Cos(Angle) + AxisY * FMath::Sin(Angle)) * Radius;
+		PDI->DrawLine(PrevPoint, NextPoint, Color, SDPG_Foreground, Thickness);
+		PrevPoint = NextPoint;
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawConnectorShape(FPrimitiveDrawInterface* PDI, const FVector& Location, const FVector& Forward, const FVector& Right, const FVector& Up, EPCGExConnectorPolarity Polarity, float Size, float PinLength, const FLinearColor& Color, bool bSelected)
+{
+	const float ShapeThickness = bSelected ? 2.0f : 1.0f;
+	const float LineThickness = bSelected ? 1.5f : 0.75f;
+	const float PinSpacing = Size * 0.4f;
+
+	if (Polarity == EPCGExConnectorPolarity::Port)
+	{
+		// Port (female socket): circle face + 2 horizontal dot holes offset slightly forward
+		DrawConnectorCircle(PDI, Location, Right, Up, Size, Color, ShapeThickness);
+
+		const float DotRadius = Size * 0.12f;
+		const FVector DotOffset = Forward * Size * 0.15f;
+		DrawConnectorCircle(PDI, Location + Right * PinSpacing + DotOffset, Right, Up, DotRadius, Color, LineThickness, 8);
+		DrawConnectorCircle(PDI, Location - Right * PinSpacing + DotOffset, Right, Up, DotRadius, Color, LineThickness, 8);
+	}
+	else if (Polarity == EPCGExConnectorPolarity::Plug)
+	{
+		// Plug (male): smaller circle + 2 horizontal parallel pin lines (30% length)
+		const float PlugRadius = Size * 0.85f;
+		DrawConnectorCircle(PDI, Location, Right, Up, PlugRadius, Color, ShapeThickness);
+
+		const float ShortPinLength = PinLength * 0.3f;
+		const FVector Pin1Start = Location + Right * PinSpacing;
+		const FVector Pin2Start = Location - Right * PinSpacing;
+		PDI->DrawLine(Pin1Start, Pin1Start + Forward * ShortPinLength, Color, SDPG_Foreground, LineThickness);
+		PDI->DrawLine(Pin2Start, Pin2Start + Forward * ShortPinLength, Color, SDPG_Foreground, LineThickness);
+	}
+	else
+	{
+		// Universal: hexagon (same radius as plug) + forward line + center dot
+		const float UniversalRadius = Size * 0.85f;
+		DrawConnectorCircle(PDI, Location, Right, Up, UniversalRadius, Color, ShapeThickness, 6);
+
+		PDI->DrawLine(Location, Location + Forward * PinLength, Color, SDPG_Foreground, LineThickness);
+
+		const float DotRadius = Size * 0.12f;
+		DrawConnectorCircle(PDI, Location, Right, Up, DotRadius, Color, LineThickness, 8);
 	}
 }
 

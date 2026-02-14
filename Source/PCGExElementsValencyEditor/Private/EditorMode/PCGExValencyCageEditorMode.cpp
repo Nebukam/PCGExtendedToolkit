@@ -7,17 +7,20 @@
 #include "EngineUtils.h"
 #include "Editor.h"
 #include "Selection.h"
+#include "ScopedTransaction.h"
 #include "LevelEditorViewport.h"
 #include "UnrealEdGlobals.h"
 #include "Tools/EdModeInteractiveToolsContext.h"
 #include "ToolContextInterfaces.h"
 
+#include "Editor/UnrealEdEngine.h"
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
+#include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExValencyCageEditorMode)
@@ -53,7 +56,7 @@ void UPCGExValencyCageEditorMode::CreateToolkit()
 
 void UPCGExValencyCageEditorMode::Enter()
 {
-	UEdMode::Enter();
+	Super::Enter();
 
 	// Bind to ITF rendering delegates (available after UEdMode::Enter creates the ToolsContext)
 	if (UEditorInteractiveToolsContext* ToolsContext = GetInteractiveToolsContext())
@@ -71,6 +74,26 @@ void UPCGExValencyCageEditorMode::Enter()
 			CommandList->MapAction(
 				FValencyEditorCommands::Get().CleanupConnections,
 				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCleanupCommand));
+
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().AddConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteAddConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteAddConnector));
+
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().RemoveConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteRemoveConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteRemoveConnector));
+
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().DuplicateConnector,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteDuplicateConnector),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteDuplicateConnector));
+
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().CycleConnectorPolarity,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCycleConnectorPolarity),
+				FCanExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::CanExecuteCycleConnectorPolarity));
 		}
 	}
 
@@ -113,6 +136,10 @@ void UPCGExValencyCageEditorMode::Enter()
 
 	// Skip first dirty process to allow system to stabilize after mode entry
 	bSkipNextDirtyProcess = true;
+
+	// Notify panel/widgets that caches are now populated (toolkit was created
+	// in Super::Enter() before caches were collected, so initial content is stale)
+	OnSceneChanged.Broadcast();
 }
 
 void UPCGExValencyCageEditorMode::Exit()
@@ -149,7 +176,7 @@ void UPCGExValencyCageEditorMode::Exit()
 	CachedVolumes.Empty();
 	CachedPalettes.Empty();
 
-	UEdMode::Exit();
+	Super::Exit();
 }
 
 void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* RenderAPI)
@@ -202,6 +229,18 @@ void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* Rende
 			if (APCGExValencyCageBase* Cage = CagePtr.Get())
 			{
 				FPCGExValencyDrawHelper::DrawCage(PDI, Cage);
+			}
+		}
+	}
+
+	// Draw connectors for all cages
+	if (VisibilityFlags.bShowConnectors)
+	{
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+		{
+			if (APCGExValencyCageBase* Cage = CagePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawCageConnectors(PDI, Cage);
 			}
 		}
 	}
@@ -274,6 +313,22 @@ bool UPCGExValencyCageEditorMode::IsSelectionAllowed(AActor* InActor, bool bInSe
 	return true;
 }
 
+bool UPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
+{
+	// Forward all clicks to the component visualizer manager.
+	// For connector hit proxies: routes to VisProxyHandleClick (enables viewport diamond clicking).
+	// For other proxies: calls ClearActiveComponentVis (clears stale gizmo/state).
+	if (GUnrealEd)
+	{
+		if (GUnrealEd->ComponentVisManager.HandleClick(InViewportClient, HitProxy, Click))
+		{
+			return true;
+		}
+	}
+
+	return Super::HandleClick(InViewportClient, HitProxy, Click);
+}
+
 void UPCGExValencyCageEditorMode::ExecuteCleanupCommand()
 {
 	CleanupAllManualConnections();
@@ -281,7 +336,7 @@ void UPCGExValencyCageEditorMode::ExecuteCleanupCommand()
 
 void UPCGExValencyCageEditorMode::ModeTick(float DeltaTime)
 {
-	UEdMode::ModeTick(DeltaTime);
+	Super::ModeTick(DeltaTime);
 
 	// Update asset tracking if enabled - this marks cages/palettes dirty
 	if (AssetTracker.IsEnabled())
@@ -320,6 +375,22 @@ void UPCGExValencyCageEditorMode::ModeTick(float DeltaTime)
 	else if (DirtyStateManager.ProcessDirty())
 	{
 		RedrawViewports();
+	}
+
+	// Execute deferred PCG regeneration for volumes that have been quiet for at least one frame.
+	// During rapid interactive changes (slider drags), RegeneratePCGActors just resets the
+	// pending frame counter each tick. The actual flush+generate only runs here once the
+	// slider stops and a full frame passes without a new request.
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			if (Volume->ShouldExecutePendingRegenerate())
+			{
+				Volume->ExecutePendingRegenerate();
+				RedrawViewports();
+			}
+		}
 	}
 }
 
@@ -631,6 +702,20 @@ void UPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 
 void UPCGExValencyCageEditorMode::OnSelectionChanged()
 {
+	// If a connector component is still selected but its owner cage was deselected,
+	// clear the stale component selection to fully clean up visualizer state
+	if (GEditor)
+	{
+		if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
+		{
+			AActor* OwnerActor = Connector->GetOwner();
+			if (!OwnerActor || !GEditor->GetSelectedActors()->IsSelected(OwnerActor))
+			{
+				GEditor->SelectComponent(Connector, false, true);
+			}
+		}
+	}
+
 	AssetTracker.OnSelectionChanged();
 
 	// Immediately check containment for newly selected actors
@@ -752,4 +837,245 @@ void UPCGExValencyCageEditorMode::RedrawViewports()
 			}
 		}
 	}
+}
+
+// ========== Widget Interface ==========
+
+bool UPCGExValencyCageEditorMode::UsesTransformWidget() const
+{
+	return true;
+}
+
+bool UPCGExValencyCageEditorMode::UsesTransformWidget(UE::Widget::EWidgetMode CheckMode) const
+{
+	return true;
+}
+
+bool UPCGExValencyCageEditorMode::ShouldDrawWidget() const
+{
+	if (GetSelectedConnector())
+	{
+		return true;
+	}
+
+	return GEditor && GEditor->GetSelectedActors()->Num() > 0;
+}
+
+// ========== Connector Management ==========
+
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::GetSelectedConnector()
+{
+	if (!GEditor)
+	{
+		return nullptr;
+	}
+
+	if (USelection* CompSelection = GEditor->GetSelectedComponents())
+	{
+		for (FSelectionIterator It(*CompSelection); It; ++It)
+		{
+			if (UPCGExValencyCageConnectorComponent* Connector = Cast<UPCGExValencyCageConnectorComponent>(*It))
+			{
+				return Connector;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+APCGExValencyCageBase* UPCGExValencyCageEditorMode::GetSelectedCage()
+{
+	if (!GEditor)
+	{
+		return nullptr;
+	}
+
+	USelection* Selection = GEditor->GetSelectedActors();
+	for (FSelectionIterator It(*Selection); It; ++It)
+	{
+		if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(*It))
+		{
+			return Cage;
+		}
+	}
+
+	return nullptr;
+}
+
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::AddConnectorToCage(APCGExValencyCageBase* Cage)
+{
+	if (!Cage || !GEditor)
+	{
+		return nullptr;
+	}
+
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "AddConnector", "Add Connector"));
+	Cage->Modify();
+
+	UPCGExValencyCageConnectorComponent* NewConnector = NewObject<UPCGExValencyCageConnectorComponent>(Cage, NAME_None, RF_Transactional);
+	NewConnector->CreationMethod = EComponentCreationMethod::Instance;
+	NewConnector->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	NewConnector->RegisterComponent();
+	Cage->AddInstanceComponent(NewConnector);
+
+	// Select the new connector
+	GEditor->SelectActor(Cage, true, true);
+	GEditor->SelectComponent(NewConnector, true, true);
+
+	// Trigger rebuild and refresh
+	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+	OnSceneChanged.Broadcast();
+	RedrawViewports();
+
+	return NewConnector;
+}
+
+void UPCGExValencyCageEditorMode::RemoveConnector(UPCGExValencyCageConnectorComponent* Connector)
+{
+	if (!Connector || !GEditor)
+	{
+		return;
+	}
+
+	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner());
+	if (!Cage)
+	{
+		return;
+	}
+
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "RemoveConnector", "Remove Connector"));
+	Cage->Modify();
+	Connector->Modify();
+
+	// Clear selection before destroy
+	GEditor->SelectComponent(Connector, false, true);
+
+	Cage->RemoveInstanceComponent(Connector);
+	Connector->DestroyComponent();
+
+	// Trigger rebuild and refresh
+	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+	OnSceneChanged.Broadcast();
+	RedrawViewports();
+}
+
+UPCGExValencyCageConnectorComponent* UPCGExValencyCageEditorMode::DuplicateConnector(UPCGExValencyCageConnectorComponent* Connector)
+{
+	if (!Connector || !GEditor)
+	{
+		return nullptr;
+	}
+
+	APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner());
+	if (!Cage)
+	{
+		return nullptr;
+	}
+
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "DuplicateConnector", "Duplicate Connector"));
+	Cage->Modify();
+
+	UPCGExValencyCageConnectorComponent* NewConnector = NewObject<UPCGExValencyCageConnectorComponent>(Cage, NAME_None, RF_Transactional);
+	NewConnector->CreationMethod = EComponentCreationMethod::Instance;
+	NewConnector->AttachToComponent(Cage->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	NewConnector->RegisterComponent();
+	Cage->AddInstanceComponent(NewConnector);
+
+	// Copy properties from source
+	NewConnector->ConnectorType = Connector->ConnectorType;
+	NewConnector->Polarity = Connector->Polarity;
+	NewConnector->bEnabled = Connector->bEnabled;
+	NewConnector->DebugColorOverride = Connector->DebugColorOverride;
+
+	// Offset the duplicate slightly in local X
+	FTransform SourceTransform = Connector->GetRelativeTransform();
+	SourceTransform.AddToTranslation(FVector(20.0, 0.0, 0.0));
+	NewConnector->SetRelativeTransform(SourceTransform);
+
+	// Deselect the original connector, then select the new one
+	GEditor->SelectComponent(Connector, false, false);
+	GEditor->SelectActor(Cage, true, true);
+	GEditor->SelectComponent(NewConnector, true, true);
+
+	// Trigger rebuild and refresh
+	Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+	OnSceneChanged.Broadcast();
+	RedrawViewports();
+
+	return NewConnector;
+}
+
+// ========== Connector Command Execute/CanExecute ==========
+
+void UPCGExValencyCageEditorMode::ExecuteAddConnector()
+{
+	if (APCGExValencyCageBase* Cage = GetSelectedCage())
+	{
+		AddConnectorToCage(Cage);
+	}
+}
+
+bool UPCGExValencyCageEditorMode::CanExecuteAddConnector() const
+{
+	return GetSelectedCage() != nullptr;
+}
+
+void UPCGExValencyCageEditorMode::ExecuteRemoveConnector()
+{
+	if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
+	{
+		RemoveConnector(Connector);
+	}
+}
+
+bool UPCGExValencyCageEditorMode::CanExecuteRemoveConnector() const
+{
+	return GetSelectedConnector() != nullptr;
+}
+
+void UPCGExValencyCageEditorMode::ExecuteDuplicateConnector()
+{
+	if (UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector())
+	{
+		DuplicateConnector(Connector);
+	}
+}
+
+bool UPCGExValencyCageEditorMode::CanExecuteDuplicateConnector() const
+{
+	return GetSelectedConnector() != nullptr;
+}
+
+void UPCGExValencyCageEditorMode::ExecuteCycleConnectorPolarity()
+{
+	UPCGExValencyCageConnectorComponent* Connector = GetSelectedConnector();
+	if (!Connector)
+	{
+		return;
+	}
+
+	FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "CycleConnectorPolarity", "Cycle Connector Polarity"));
+	Connector->Modify();
+
+	// Cycle polarity: Universal -> Plug -> Port -> Universal
+	switch (Connector->Polarity)
+	{
+	case EPCGExConnectorPolarity::Universal: Connector->Polarity = EPCGExConnectorPolarity::Plug; break;
+	case EPCGExConnectorPolarity::Plug: Connector->Polarity = EPCGExConnectorPolarity::Port; break;
+	case EPCGExConnectorPolarity::Port: Connector->Polarity = EPCGExConnectorPolarity::Universal; break;
+	}
+
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
+	{
+		Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+	}
+
+	OnSceneChanged.Broadcast();
+	RedrawViewports();
+}
+
+bool UPCGExValencyCageEditorMode::CanExecuteCycleConnectorPolarity() const
+{
+	return GetSelectedConnector() != nullptr;
 }

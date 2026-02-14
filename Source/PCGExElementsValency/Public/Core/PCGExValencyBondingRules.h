@@ -1,6 +1,5 @@
-// Copyright 2026 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,6 +14,7 @@
 
 class UPCGExMeshCollection;
 class UPCGExActorCollection;
+class UPCGExValencyConnectorSet;
 
 /**
  * Compiled layer data optimized for runtime performance.
@@ -230,42 +230,42 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	TArray<FPCGExValencyModuleTags> ModuleTags;
 
 	/**
-	 * Per-module socket headers.
-	 * X = start index in AllModuleSockets, Y = count of sockets.
-	 * Allows efficient socket lookup per module.
+	 * Per-module connector headers.
+	 * X = start index in AllModuleConnectors, Y = count of connectors.
+	 * Allows efficient connector lookup per module.
 	 */
 	UPROPERTY()
-	TArray<FIntPoint> ModuleSocketHeaders;
+	TArray<FIntPoint> ModuleConnectorHeaders;
 
-	/** Flattened array of all sockets for all modules (with OrbitalIndex assigned) */
+	/** Flattened array of all connectors for all modules (with OrbitalIndex assigned) */
 	UPROPERTY()
-	TArray<FPCGExValencyModuleSocket> AllModuleSockets;
+	TArray<FPCGExValencyModuleConnector> AllModuleConnectors;
 
 	/**
-	 * Get all sockets for a module as a view into the flattened array.
+	 * Get all connectors for a module as a view into the flattened array.
 	 * @param ModuleIndex - Index of the module
-	 * @return Array view of the module's sockets (empty if none)
+	 * @return Array view of the module's connectors (empty if none)
 	 */
-	TConstArrayView<FPCGExValencyModuleSocket> GetModuleSockets(int32 ModuleIndex) const
+	TConstArrayView<FPCGExValencyModuleConnector> GetModuleConnectors(int32 ModuleIndex) const
 	{
-		if (!ModuleSocketHeaders.IsValidIndex(ModuleIndex))
+		if (!ModuleConnectorHeaders.IsValidIndex(ModuleIndex))
 		{
-			return TConstArrayView<FPCGExValencyModuleSocket>();
+			return TConstArrayView<FPCGExValencyModuleConnector>();
 		}
 
-		const FIntPoint& Header = ModuleSocketHeaders[ModuleIndex];
-		if (Header.Y == 0 || !AllModuleSockets.IsValidIndex(Header.X))
+		const FIntPoint& Header = ModuleConnectorHeaders[ModuleIndex];
+		if (Header.Y == 0 || !AllModuleConnectors.IsValidIndex(Header.X))
 		{
-			return TConstArrayView<FPCGExValencyModuleSocket>();
+			return TConstArrayView<FPCGExValencyModuleConnector>();
 		}
 
-		return TConstArrayView<FPCGExValencyModuleSocket>(&AllModuleSockets[Header.X], Header.Y);
+		return TConstArrayView<FPCGExValencyModuleConnector>(&AllModuleConnectors[Header.X], Header.Y);
 	}
 
-	/** Get the number of sockets for a module */
-	int32 GetModuleSocketCount(int32 ModuleIndex) const
+	/** Get the number of connectors for a module */
+	int32 GetModuleConnectorCount(int32 ModuleIndex) const
 	{
-		return ModuleSocketHeaders.IsValidIndex(ModuleIndex) ? ModuleSocketHeaders[ModuleIndex].Y : 0;
+		return ModuleConnectorHeaders.IsValidIndex(ModuleIndex) ? ModuleConnectorHeaders[ModuleIndex].Y : 0;
 	}
 
 	/** Per-module placement policy (parallel array). Controls solver participation. */
@@ -373,6 +373,10 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Layers")
 	TArray<TObjectPtr<UPCGExValencyOrbitalSet>> OrbitalSets;
+
+	/** Connector set defining connector types and compatibility rules */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Connectors")
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Module definitions */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Modules")

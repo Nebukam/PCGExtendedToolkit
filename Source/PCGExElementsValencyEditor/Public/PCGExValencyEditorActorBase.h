@@ -29,7 +29,10 @@ public:
 	APCGExValencyEditorActorBase();
 
 	//~ Begin AActor Interface
+	virtual void PostEditMove(bool bFinished) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void EditorApplyTranslation(const FVector& DeltaTranslation, bool bAltDown, bool bShiftDown, bool bCtrlDown) override;
+	virtual void EditorApplyRotation(const FRotator& DeltaRotation, bool bAltDown, bool bShiftDown, bool bCtrlDown) override;
 	//~ End AActor Interface
 
 	/**
@@ -59,4 +62,26 @@ protected:
 	 * Cage subclasses: call Super::OnPostEditChangeProperty() to get cage-base property handling.
 	 */
 	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) {}
+
+	//~ Begin CTRL+Drag Asset Dragging
+
+	/**
+	 * Collect actors that should move with this actor during CTRL+drag.
+	 * Override in subclasses to provide the relevant contained actors.
+	 * Default: returns nothing (no actors follow).
+	 * @param OutActors Array to populate with actors to drag along
+	 */
+	virtual void CollectDraggableActors(TArray<AActor*>& OutActors) const {}
+
+private:
+	/** Whether contained assets are currently being dragged */
+	bool bIsDraggingAssets = false;
+
+	/** Actors being dragged along with the cage */
+	TArray<TWeakObjectPtr<AActor>> DraggedActors;
+
+	void BeginDragContainedAssets();
+	void EndDragContainedAssets();
+
+	//~ End CTRL+Drag Asset Dragging
 };

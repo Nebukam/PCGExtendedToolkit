@@ -7,13 +7,13 @@
 
 void FPCGExValencyGrowthOperation::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
-	const UPCGExValencySocketRules* InSocketRules,
+	const UPCGExValencyConnectorSet* InConnectorSet,
 	FPCGExBoundsTracker& InBoundsTracker,
 	FPCGExGrowthBudget& InBudget,
 	int32 InSeed)
 {
 	CompiledRules = InCompiledRules;
-	SocketRules = InSocketRules;
+	ConnectorSet = InConnectorSet;
 	BoundsTracker = &InBoundsTracker;
 	Budget = &InBudget;
 	RandomStream.Initialize(InSeed);
@@ -22,10 +22,10 @@ void FPCGExValencyGrowthOperation::Initialize(
 
 void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 {
-	if (!CompiledRules || !SocketRules || !BoundsTracker || !Budget) { return; }
+	if (!CompiledRules || !ConnectorSet || !BoundsTracker || !Budget) { return; }
 
-	// Build initial frontier from seed modules' sockets
-	TArray<FPCGExOpenSocket> Frontier;
+	// Build initial frontier from seed modules' connectors
+	TArray<FPCGExOpenConnector> Frontier;
 
 	for (int32 PlacedIdx = 0; PlacedIdx < OutPlaced.Num(); ++PlacedIdx)
 	{
@@ -34,26 +34,26 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 		// Dead-end modules don't expand
 		if (CompiledRules->ModuleIsDeadEnd[Placed.ModuleIndex]) { continue; }
 
-		// Expand all sockets (seeds have no "used" socket)
+		// Expand all connectors (seeds have no "used" connector)
 		ExpandFrontier(Placed, PlacedIdx, -1, Frontier);
 	}
 
 	// Growth loop
 	while (Frontier.Num() > 0 && Budget->CanPlaceMore())
 	{
-		const int32 SelectedIdx = SelectNextSocket(Frontier);
+		const int32 SelectedIdx = SelectNextConnector(Frontier);
 		if (SelectedIdx == INDEX_NONE) { break; }
 
-		const FPCGExOpenSocket Socket = Frontier[SelectedIdx];
+		const FPCGExOpenConnector Connector = Frontier[SelectedIdx];
 		Frontier.RemoveAtSwap(SelectedIdx);
 
 		// Check depth budget
-		if (!Budget->CanGrowDeeper(Socket.Depth + 1)) { continue; }
+		if (!Budget->CanGrowDeeper(Connector.Depth + 1)) { continue; }
 
-		// Find compatible modules for this socket type
+		// Find compatible modules for this connector type
 		TArray<int32> CandidateModules;
-		TArray<int32> CandidateSocketIndices;
-		FindCompatibleModules(Socket.SocketType, CandidateModules, CandidateSocketIndices);
+		TArray<int32> CandidateConnectorIndices;
+		FindCompatibleModules(Connector.ConnectorType, CandidateModules, CandidateConnectorIndices);
 
 		if (CandidateModules.IsEmpty()) { continue; }
 
@@ -62,7 +62,7 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 		{
 			const int32 j = RandomStream.RandRange(0, i);
 			CandidateModules.Swap(i, j);
-			CandidateSocketIndices.Swap(i, j);
+			CandidateConnectorIndices.Swap(i, j);
 		}
 
 		// Try candidates in weighted-random order
@@ -83,15 +83,15 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 		for (int32 OrderIdx : WeightedOrder)
 		{
 			const int32 ModuleIdx = CandidateModules[OrderIdx];
-			const int32 SocketIdx = CandidateSocketIndices[OrderIdx];
+			const int32 ConnectorIdx = CandidateConnectorIndices[OrderIdx];
 
 			// Check weight budget
-			if (!Budget->CanAfford(Socket.CumulativeWeight, CompiledRules->ModuleWeights[ModuleIdx])) { continue; }
+			if (!Budget->CanAfford(Connector.CumulativeWeight, CompiledRules->ModuleWeights[ModuleIdx])) { continue; }
 
 			// Check distribution constraints
 			if (!DistributionTracker.CanSpawn(ModuleIdx)) { continue; }
 
-			if (TryPlaceModule(Socket, ModuleIdx, SocketIdx, OutPlaced, Frontier))
+			if (TryPlaceModule(Connector, ModuleIdx, ConnectorIdx, OutPlaced, Frontier))
 			{
 				bPlaced = true;
 				break;
@@ -100,7 +100,7 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 
 		if (!bPlaced && Budget->bStopOnFirstFailure)
 		{
-			// Remove all frontier sockets from the same seed branch
+			// Remove all frontier connectors from the same seed branch
 			// (simple approach: just stop the whole growth)
 			break;
 		}
@@ -108,65 +108,65 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 }
 
 void FPCGExValencyGrowthOperation::FindCompatibleModules(
-	FName SocketType,
+	FName ConnectorType,
 	TArray<int32>& OutModuleIndices,
-	TArray<int32>& OutSocketIndices) const
+	TArray<int32>& OutConnectorIndices) const
 {
-	if (!CompiledRules || !SocketRules) { return; }
+	if (!CompiledRules || !ConnectorSet) { return; }
 
-	// Find the socket type index in the rules
-	const int32 SourceTypeIndex = SocketRules->FindSocketTypeIndex(SocketType);
+	// Find the connector type index in the rules
+	const int32 SourceTypeIndex = ConnectorSet->FindConnectorTypeIndex(ConnectorType);
 	if (SourceTypeIndex == INDEX_NONE) { return; }
 
-	// Get the compatibility mask for this socket type
-	const int64 CompatMask = SocketRules->GetCompatibilityMask(SourceTypeIndex);
+	// Get the compatibility mask for this connector type
+	const int64 CompatMask = ConnectorSet->GetCompatibilityMask(SourceTypeIndex);
 
-	// Scan all modules for compatible sockets
+	// Scan all modules for compatible connectors
 	for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
 	{
-		const TConstArrayView<FPCGExValencyModuleSocket> Sockets = CompiledRules->GetModuleSockets(ModuleIdx);
+		const TConstArrayView<FPCGExValencyModuleConnector> Connectors = CompiledRules->GetModuleConnectors(ModuleIdx);
 
-		for (int32 SocketIdx = 0; SocketIdx < Sockets.Num(); ++SocketIdx)
+		for (int32 ConnectorIdx = 0; ConnectorIdx < Connectors.Num(); ++ConnectorIdx)
 		{
-			const FPCGExValencyModuleSocket& ModuleSocket = Sockets[SocketIdx];
+			const FPCGExValencyModuleConnector& ModuleConnector = Connectors[ConnectorIdx];
 
-			// Find this socket's type index
-			const int32 TargetTypeIndex = SocketRules->FindSocketTypeIndex(ModuleSocket.SocketType);
+			// Find this connector's type index
+			const int32 TargetTypeIndex = ConnectorSet->FindConnectorTypeIndex(ModuleConnector.ConnectorType);
 			if (TargetTypeIndex == INDEX_NONE) { continue; }
 
 			// Check compatibility via bitmask
 			if ((CompatMask & (1LL << TargetTypeIndex)) != 0)
 			{
 				OutModuleIndices.Add(ModuleIdx);
-				OutSocketIndices.Add(SocketIdx);
+				OutConnectorIndices.Add(ConnectorIdx);
 			}
 		}
 	}
 }
 
 FTransform FPCGExValencyGrowthOperation::ComputeAttachmentTransform(
-	const FPCGExOpenSocket& ParentSocket,
+	const FPCGExOpenConnector& ParentConnector,
 	int32 ChildModuleIndex,
-	int32 ChildSocketIndex) const
+	int32 ChildConnectorIndex) const
 {
-	// Get child socket's effective offset (local space)
-	const TConstArrayView<FPCGExValencyModuleSocket> ChildSockets = CompiledRules->GetModuleSockets(ChildModuleIndex);
-	check(ChildSockets.IsValidIndex(ChildSocketIndex));
-	const FPCGExValencyModuleSocket& ChildSocket = ChildSockets[ChildSocketIndex];
-	const FTransform ChildSocketLocal = ChildSocket.GetEffectiveOffset(SocketRules);
+	// Get child connector's effective offset (local space)
+	const TConstArrayView<FPCGExValencyModuleConnector> ChildConnectors = CompiledRules->GetModuleConnectors(ChildModuleIndex);
+	check(ChildConnectors.IsValidIndex(ChildConnectorIndex));
+	const FPCGExValencyModuleConnector& ChildConnector = ChildConnectors[ChildConnectorIndex];
+	const FTransform ChildConnectorLocal = ChildConnector.GetEffectiveOffset(ConnectorSet);
 
-	// Socket attachment: T_B = T_ParentSocket * Rotate180_X * Inverse(S_B[j])
-	// ParentSocket.WorldTransform already includes parent module transform * parent socket offset
+	// Connector attachment: T_B = T_ParentConnector * Rotate180_X * Inverse(S_B[j])
+	// ParentConnector.WorldTransform already includes parent module transform * parent connector offset
 
-	// 180-degree rotation around local X axis (sockets face each other)
+	// 180-degree rotation around local X axis (connectors face each other)
 	const FQuat FlipRotation(FVector::XAxisVector, PI);
 	const FTransform FlipTransform(FlipRotation);
 
-	// Inverse of child socket's local offset
-	const FTransform ChildSocketInverse = ChildSocketLocal.Inverse();
+	// Inverse of child connector's local offset
+	const FTransform ChildConnectorInverse = ChildConnectorLocal.Inverse();
 
-	// Compose: ParentSocketWorld * Flip * InverseChildSocket
-	return ChildSocketInverse * FlipTransform * ParentSocket.WorldTransform;
+	// Compose: ParentConnectorWorld * Flip * InverseChildConnector
+	return ChildConnectorInverse * FlipTransform * ParentConnector.WorldTransform;
 }
 
 FBox FPCGExValencyGrowthOperation::ComputeWorldBounds(int32 ModuleIndex, const FTransform& WorldTransform) const
@@ -181,14 +181,14 @@ FBox FPCGExValencyGrowthOperation::ComputeWorldBounds(int32 ModuleIndex, const F
 }
 
 bool FPCGExValencyGrowthOperation::TryPlaceModule(
-	const FPCGExOpenSocket& Socket,
+	const FPCGExOpenConnector& Connector,
 	int32 ModuleIndex,
-	int32 ChildSocketIndex,
+	int32 ChildConnectorIndex,
 	TArray<FPCGExPlacedModule>& OutPlaced,
-	TArray<FPCGExOpenSocket>& OutFrontier)
+	TArray<FPCGExOpenConnector>& OutFrontier)
 {
 	// Compute attachment transform
-	const FTransform WorldTransform = ComputeAttachmentTransform(Socket, ModuleIndex, ChildSocketIndex);
+	const FTransform WorldTransform = ComputeAttachmentTransform(Connector, ModuleIndex, ChildConnectorIndex);
 
 	// Compute world bounds
 	const FBox WorldBounds = ComputeWorldBounds(ModuleIndex, WorldTransform);
@@ -204,12 +204,12 @@ bool FPCGExValencyGrowthOperation::TryPlaceModule(
 	NewModule.ModuleIndex = ModuleIndex;
 	NewModule.WorldTransform = WorldTransform;
 	NewModule.WorldBounds = WorldBounds;
-	NewModule.ParentIndex = Socket.PlacedModuleIndex;
-	NewModule.ParentSocketIndex = Socket.SocketIndex;
-	NewModule.ChildSocketIndex = ChildSocketIndex;
-	NewModule.Depth = Socket.Depth + 1;
-	NewModule.SeedIndex = OutPlaced.IsValidIndex(Socket.PlacedModuleIndex) ? OutPlaced[Socket.PlacedModuleIndex].SeedIndex : 0;
-	NewModule.CumulativeWeight = Socket.CumulativeWeight + CompiledRules->ModuleWeights[ModuleIndex];
+	NewModule.ParentIndex = Connector.PlacedModuleIndex;
+	NewModule.ParentConnectorIndex = Connector.ConnectorIndex;
+	NewModule.ChildConnectorIndex = ChildConnectorIndex;
+	NewModule.Depth = Connector.Depth + 1;
+	NewModule.SeedIndex = OutPlaced.IsValidIndex(Connector.PlacedModuleIndex) ? OutPlaced[Connector.PlacedModuleIndex].SeedIndex : 0;
+	NewModule.CumulativeWeight = Connector.CumulativeWeight + CompiledRules->ModuleWeights[ModuleIndex];
 
 	const int32 NewIndex = OutPlaced.Num();
 	OutPlaced.Add(NewModule);
@@ -225,7 +225,7 @@ bool FPCGExValencyGrowthOperation::TryPlaceModule(
 	// Expand frontier (unless dead-end)
 	if (!CompiledRules->ModuleIsDeadEnd[ModuleIndex])
 	{
-		ExpandFrontier(NewModule, NewIndex, ChildSocketIndex, OutFrontier);
+		ExpandFrontier(NewModule, NewIndex, ChildConnectorIndex, OutFrontier);
 	}
 
 	return true;
@@ -234,31 +234,31 @@ bool FPCGExValencyGrowthOperation::TryPlaceModule(
 void FPCGExValencyGrowthOperation::ExpandFrontier(
 	const FPCGExPlacedModule& Placed,
 	int32 PlacedIndex,
-	int32 UsedSocketIndex,
-	TArray<FPCGExOpenSocket>& OutFrontier)
+	int32 UsedConnectorIndex,
+	TArray<FPCGExOpenConnector>& OutFrontier)
 {
-	const TConstArrayView<FPCGExValencyModuleSocket> Sockets = CompiledRules->GetModuleSockets(Placed.ModuleIndex);
+	const TConstArrayView<FPCGExValencyModuleConnector> Connectors = CompiledRules->GetModuleConnectors(Placed.ModuleIndex);
 
-	for (int32 SocketIdx = 0; SocketIdx < Sockets.Num(); ++SocketIdx)
+	for (int32 ConnectorIdx = 0; ConnectorIdx < Connectors.Num(); ++ConnectorIdx)
 	{
-		// Skip the socket that was used for attachment
-		if (SocketIdx == UsedSocketIndex) { continue; }
+		// Skip the connector that was used for attachment
+		if (ConnectorIdx == UsedConnectorIndex) { continue; }
 
-		const FPCGExValencyModuleSocket& ModuleSocket = Sockets[SocketIdx];
+		const FPCGExValencyModuleConnector& ModuleConnector = Connectors[ConnectorIdx];
 
-		// Compute world-space socket transform
-		const FTransform SocketLocal = ModuleSocket.GetEffectiveOffset(SocketRules);
-		const FTransform SocketWorld = SocketLocal * Placed.WorldTransform;
+		// Compute world-space connector transform
+		const FTransform ConnectorLocal = ModuleConnector.GetEffectiveOffset(ConnectorSet);
+		const FTransform ConnectorWorld = ConnectorLocal * Placed.WorldTransform;
 
-		FPCGExOpenSocket OpenSocket;
-		OpenSocket.PlacedModuleIndex = PlacedIndex;
-		OpenSocket.SocketIndex = SocketIdx;
-		OpenSocket.SocketType = ModuleSocket.SocketType;
-		OpenSocket.WorldTransform = SocketWorld;
-		OpenSocket.Depth = Placed.Depth;
-		OpenSocket.CumulativeWeight = Placed.CumulativeWeight;
+		FPCGExOpenConnector OpenConnector;
+		OpenConnector.PlacedModuleIndex = PlacedIndex;
+		OpenConnector.ConnectorIndex = ConnectorIdx;
+		OpenConnector.ConnectorType = ModuleConnector.ConnectorType;
+		OpenConnector.WorldTransform = ConnectorWorld;
+		OpenConnector.Depth = Placed.Depth;
+		OpenConnector.CumulativeWeight = Placed.CumulativeWeight;
 
-		OutFrontier.Add(OpenSocket);
+		OutFrontier.Add(OpenConnector);
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "GameFramework/Volume.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Core/PCGExValencyConnectorSet.h"
 
 #include "ValencyContextVolume.generated.h"
 
@@ -36,6 +37,9 @@ public:
 
 	/** Get the orbital set (either override or from BondingRules) */
 	UPCGExValencyOrbitalSet* GetEffectiveOrbitalSet() const;
+
+	/** Get the effective connector set (override or from BondingRules) */
+	UPCGExValencyConnectorSet* GetEffectiveConnectorSet() const;
 
 	/** Get default probe radius for cages in this volume */
 	float GetDefaultProbeRadius() const { return DefaultProbeRadius; }
@@ -74,6 +78,13 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency", AdvancedDisplay)
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSetOverride;
+
+	/**
+	 * Optional connector set override.
+	 * If not set, uses ConnectorSet from BondingRules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency")
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSetOverride;
 
 	/**
 	 * Default probe radius for cages in this volume.
@@ -147,9 +158,30 @@ public:
 	 */
 	static bool IsValencyModeActive();
 
+	/**
+	 * Check if this volume has a deferred PCG regeneration that is ready to execute.
+	 * Returns true when at least one full frame has passed since the last regeneration request,
+	 * ensuring no rapid-fire slider ticks are still incoming.
+	 */
+	bool ShouldExecutePendingRegenerate() const { return PendingRegenerateFrame > 0 && GFrameCounter > PendingRegenerateFrame; }
+
+	/**
+	 * Execute the deferred PCG regeneration (flush + cleanup + generate).
+	 * Called by the editor mode tick when at least one frame has passed since the request.
+	 */
+	void ExecutePendingRegenerate();
+
 protected:
-	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
+	/** Request PCG regeneration — defers actual work by one frame to avoid async flush races */
 	void RegeneratePCGActors();
+
+	/** Execute the actual flush + cleanup + generate cycle */
+	void ExecuteRegenerate();
+
 	/** Notify contained cages that volume properties changed */
 	void NotifyContainedCages();
+
+private:
+	/** Frame counter when regeneration was last requested (0 = none pending) */
+	uint64 PendingRegenerateFrame = 0;
 };
