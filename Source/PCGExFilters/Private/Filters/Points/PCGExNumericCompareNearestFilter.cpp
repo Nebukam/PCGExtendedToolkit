@@ -131,18 +131,9 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 
 	if (InverseMatcher)
 	{
-		// Per-point matching — IO=0: single MatchableSource, see FDistanceFilter for details
 		PerPointExclude = IgnoreList;
-		PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
-		Pt.IO = 0;
-		bool bAnyMatch = false;
-		for (const FPCGExTaggedData& Candidate : TargetCandidates)
-		{
-			PCGExMatching::FScope Scope(1, true);
-			if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
-			else { PerPointExclude.Add(Candidate.Data); }
-		}
-		if (!bAnyMatch) { return bNoMatchResult; }
+		if (!InverseMatcher->BuildPerPointExclude(PointDataFacade->Source->GetInPoint(PointIndex), TargetCandidates, PerPointExclude))
+		{ return bNoMatchResult; }
 		ExcludePtr = &PerPointExclude;
 	}
 

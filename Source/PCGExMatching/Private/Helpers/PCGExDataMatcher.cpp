@@ -313,6 +313,24 @@ namespace PCGExMatching
 		return InCandidates.Num() != NumIgnored;
 	}
 
+	bool FDataMatcher::BuildPerPointExclude(
+		PCGExData::FConstPoint InPoint,
+		const TArray<FPCGExTaggedData>& InCandidates,
+		TSet<const UPCGData*>& OutExclude) const
+	{
+		InPoint.IO = 0; // Single MatchableSource — indexes into per-source getter arrays
+
+		bool bAnyMatch = false;
+		for (const FPCGExTaggedData& Candidate : InCandidates)
+		{
+			FScope Scope(1, true);
+			if (Test(InPoint, Candidate, Scope)) { bAnyMatch = true; }
+			else { OutExclude.Add(Candidate.Data); }
+		}
+
+		return bAnyMatch;
+	}
+
 	int32 FDataMatcher::GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources) const
 	{
 		TArray<FPCGExTaggedData>& MatchableSourcesRef = *MatchableSources.Get();

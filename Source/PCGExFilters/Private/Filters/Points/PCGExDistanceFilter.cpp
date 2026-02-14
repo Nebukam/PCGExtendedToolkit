@@ -160,20 +160,9 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 
 	if (InverseMatcher)
 	{
-		// Per-point matching: test this specific point's attributes against each target candidate.
-		// IO=0 because the matcher was initialized with a single MatchableSource (the input facade),
-		// and FConstPoint.IO indexes into the per-source getter arrays inside match rules.
 		PerPointExclude = IgnoreList;
-		PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
-		Pt.IO = 0;
-		bool bAnyMatch = false;
-		for (const FPCGExTaggedData& Candidate : TargetCandidates)
-		{
-			PCGExMatching::FScope Scope(1, true);
-			if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
-			else { PerPointExclude.Add(Candidate.Data); }
-		}
-		if (!bAnyMatch) { return bNoMatchResult; }
+		if (!InverseMatcher->BuildPerPointExclude(PointDataFacade->Source->GetInPoint(PointIndex), TargetCandidates, PerPointExclude))
+		{ return bNoMatchResult; }
 		ExcludePtr = &PerPointExclude;
 	}
 

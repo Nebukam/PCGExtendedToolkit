@@ -93,6 +93,11 @@ namespace PCGExMatching
 		 *  For per-point filtering, call Test(FConstPoint, ...) per-point instead. */
 		bool PopulateIgnoreListFromCandidates(const TArray<FPCGExTaggedData>& InCandidates, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 
+		/** Per-point exclude builder for inverse matching. Tests the given point against each candidate,
+		 *  adding non-matching candidates' Data to OutExclude. Sets InPoint.IO=0 internally (required
+		 *  for inverse matching with a single MatchableSource). Returns true if at least one candidate matched. */
+		bool BuildPerPointExclude(PCGExData::FConstPoint InPoint, const TArray<FPCGExTaggedData>& InCandidates, TSet<const UPCGData*>& OutExclude) const;
+
 		int32 GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources = nullptr) const;
 
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;

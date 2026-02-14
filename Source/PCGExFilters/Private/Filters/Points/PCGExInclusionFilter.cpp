@@ -130,16 +130,8 @@ namespace PCGExPointFilter
 
 		if (InverseMatcher)
 		{
-			PCGExData::FConstPoint Pt = PointDataFacade->Source->GetInPoint(PointIndex);
-			Pt.IO = 0; // Single MatchableSource
-			bool bAnyMatch = false;
-			for (const FPCGExTaggedData& Candidate : *TypedFilterFactory->Datas)
-			{
-				PCGExMatching::FScope Scope(1, true);
-				if (InverseMatcher->Test(Pt, Candidate, Scope)) { bAnyMatch = true; }
-				else { PerPointExclude.Add(Candidate.Data); }
-			}
-			if (!bAnyMatch) { return bNoMatchResult; }
+			if (!InverseMatcher->BuildPerPointExclude(PointDataFacade->Source->GetInPoint(PointIndex), *TypedFilterFactory->Datas, PerPointExclude))
+			{ return bNoMatchResult; }
 			AdditionalExclude = &PerPointExclude;
 		}
 
