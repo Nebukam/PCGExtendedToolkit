@@ -12,6 +12,7 @@
 #include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Core/PCGExValencyConnectorSet.h"
 #include "EditorMode/PCGExValencyCageConnectorVisualizer.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
@@ -261,6 +262,7 @@ void FPCGExValencyDrawHelper::DrawCageConnectors(FPrimitiveDrawInterface* PDI, c
 	const UPCGExValencyConnectorSet* ConnectorSet = Cage->GetEffectiveConnectorSet();
 	const float DiamondSize = Settings->ConnectorVisualizerSize;
 	const float ArrowLength = Settings->ConnectorArrowLength;
+	const UPCGExValencyCageConnectorComponent* SelectedConnector = UPCGExValencyCageEditorMode::GetSelectedConnector();
 
 	for (UPCGExValencyCageConnectorComponent* ConnectorComp : ConnectorComponents)
 	{
@@ -285,72 +287,66 @@ void FPCGExValencyDrawHelper::DrawCageConnectors(FPrimitiveDrawInterface* PDI, c
 		// Enqueue hit proxy for click detection
 		PDI->SetHitProxy(new HPCGExConnectorHitProxy(ConnectorComp));
 
-		// Draw diamond at connector position (3D octahedron: 6 vertices, 12 edges)
-		{
-			const FVector Top = ConnectorLocation + FVector(0, 0, DiamondSize);
-			const FVector Bottom = ConnectorLocation - FVector(0, 0, DiamondSize);
-			const FVector Front = ConnectorLocation + FVector(DiamondSize, 0, 0);
-			const FVector Back = ConnectorLocation - FVector(DiamondSize, 0, 0);
-			const FVector Right = ConnectorLocation + FVector(0, DiamondSize, 0);
-			const FVector Left = ConnectorLocation - FVector(0, DiamondSize, 0);
-
-			// Top pyramid edges
-			PDI->DrawLine(Top, Front, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Top, Back, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Top, Right, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Top, Left, Color, SDPG_Foreground, 2.0f);
-
-			// Bottom pyramid edges
-			PDI->DrawLine(Bottom, Front, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Bottom, Back, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Bottom, Right, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Bottom, Left, Color, SDPG_Foreground, 2.0f);
-
-			// Equator edges
-			PDI->DrawLine(Front, Right, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Right, Back, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Back, Left, Color, SDPG_Foreground, 2.0f);
-			PDI->DrawLine(Left, Front, Color, SDPG_Foreground, 2.0f);
-		}
-
-		// Draw polarity-aware arrow along connector's forward axis
-		const FVector Forward = ConnectorTransform.GetRotation().GetForwardVector();
-
-		if (ConnectorComp->Polarity == EPCGExConnectorPolarity::Plug)
-		{
-			// Plug: diamond + outward arrow (along forward)
-			const FVector ArrowEnd = ConnectorLocation + Forward * ArrowLength;
-			PDI->DrawLine(ConnectorLocation, ArrowEnd, Color, SDPG_Foreground, 1.5f);
-
-			// Arrowhead with 4 prongs
-			const FVector ArrowRight = FVector::CrossProduct(Forward, FVector::UpVector).GetSafeNormal();
-			const FVector ArrowUp = FVector::CrossProduct(ArrowRight, Forward).GetSafeNormal();
-			const float HeadSize = DiamondSize * 0.5f;
-			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize + ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize - ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize + ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize - ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-		}
-		else if (ConnectorComp->Polarity == EPCGExConnectorPolarity::Port)
-		{
-			// Port: diamond + inward arrow (arrow points toward diamond center)
-			const FVector ArrowStart = ConnectorLocation + Forward * ArrowLength;
-			PDI->DrawLine(ArrowStart, ConnectorLocation, Color, SDPG_Foreground, 1.5f);
-
-			// Arrowhead at connector location pointing inward
-			const FVector InwardDir = -Forward;
-			const FVector ArrowRight = FVector::CrossProduct(InwardDir, FVector::UpVector).GetSafeNormal();
-			const FVector ArrowUp = FVector::CrossProduct(ArrowRight, InwardDir).GetSafeNormal();
-			const float HeadSize = DiamondSize * 0.5f;
-			PDI->DrawLine(ConnectorLocation, ConnectorLocation - InwardDir * HeadSize + ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ConnectorLocation, ConnectorLocation - InwardDir * HeadSize - ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ConnectorLocation, ConnectorLocation - InwardDir * HeadSize + ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-			PDI->DrawLine(ConnectorLocation, ConnectorLocation - InwardDir * HeadSize - ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
-		}
-		// Universal: diamond only, no arrow
+		const FQuat Rotation = ConnectorTransform.GetRotation();
+		DrawConnectorShape(PDI, ConnectorLocation, Rotation.GetForwardVector(), Rotation.GetRightVector(), Rotation.GetUpVector(), ConnectorComp->Polarity, DiamondSize, ArrowLength, Color, ConnectorComp == SelectedConnector);
 
 		// Clear hit proxy
 		PDI->SetHitProxy(nullptr);
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawConnectorCircle(FPrimitiveDrawInterface* PDI, const FVector& Center, const FVector& AxisX, const FVector& AxisY, float Radius, const FLinearColor& Color, float Thickness, int32 NumSegments)
+{
+	const float AngleStep = 2.0f * UE_PI / NumSegments;
+	FVector PrevPoint = Center + AxisX * Radius;
+
+	for (int32 i = 1; i <= NumSegments; ++i)
+	{
+		const float Angle = AngleStep * i;
+		const FVector NextPoint = Center + (AxisX * FMath::Cos(Angle) + AxisY * FMath::Sin(Angle)) * Radius;
+		PDI->DrawLine(PrevPoint, NextPoint, Color, SDPG_Foreground, Thickness);
+		PrevPoint = NextPoint;
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawConnectorShape(FPrimitiveDrawInterface* PDI, const FVector& Location, const FVector& Forward, const FVector& Right, const FVector& Up, EPCGExConnectorPolarity Polarity, float Size, float PinLength, const FLinearColor& Color, bool bSelected)
+{
+	const float ShapeThickness = bSelected ? 2.0f : 1.0f;
+	const float LineThickness = bSelected ? 1.5f : 0.75f;
+	const float PinSpacing = Size * 0.4f;
+
+	if (Polarity == EPCGExConnectorPolarity::Port)
+	{
+		// Port (female socket): circle face + 2 horizontal dot holes offset slightly forward
+		DrawConnectorCircle(PDI, Location, Right, Up, Size, Color, ShapeThickness);
+
+		const float DotRadius = Size * 0.12f;
+		const FVector DotOffset = Forward * Size * 0.15f;
+		DrawConnectorCircle(PDI, Location + Right * PinSpacing + DotOffset, Right, Up, DotRadius, Color, LineThickness, 8);
+		DrawConnectorCircle(PDI, Location - Right * PinSpacing + DotOffset, Right, Up, DotRadius, Color, LineThickness, 8);
+	}
+	else if (Polarity == EPCGExConnectorPolarity::Plug)
+	{
+		// Plug (male): smaller circle + 2 horizontal parallel pin lines (30% length)
+		const float PlugRadius = Size * 0.85f;
+		DrawConnectorCircle(PDI, Location, Right, Up, PlugRadius, Color, ShapeThickness);
+
+		const float ShortPinLength = PinLength * 0.3f;
+		const FVector Pin1Start = Location + Right * PinSpacing;
+		const FVector Pin2Start = Location - Right * PinSpacing;
+		PDI->DrawLine(Pin1Start, Pin1Start + Forward * ShortPinLength, Color, SDPG_Foreground, LineThickness);
+		PDI->DrawLine(Pin2Start, Pin2Start + Forward * ShortPinLength, Color, SDPG_Foreground, LineThickness);
+	}
+	else
+	{
+		// Universal: hexagon (same radius as plug) + forward line + center dot
+		const float UniversalRadius = Size * 0.85f;
+		DrawConnectorCircle(PDI, Location, Right, Up, UniversalRadius, Color, ShapeThickness, 6);
+
+		PDI->DrawLine(Location, Location + Forward * PinLength, Color, SDPG_Foreground, LineThickness);
+
+		const float DotRadius = Size * 0.12f;
+		DrawConnectorCircle(PDI, Location, Right, Up, DotRadius, Color, LineThickness, 8);
 	}
 }
 

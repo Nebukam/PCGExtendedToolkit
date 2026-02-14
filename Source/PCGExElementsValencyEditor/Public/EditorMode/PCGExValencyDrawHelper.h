@@ -16,6 +16,7 @@ class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
 class UPCGExValencyCageConnectorComponent;
+enum class EPCGExConnectorPolarity : uint8;
 
 /**
  * Stateless helper class for Valency editor mode drawing operations.
@@ -34,7 +35,7 @@ public:
 	static void DrawCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
 
 	/**
-	 * Draw connector component diamonds and direction arrows for a cage.
+	 * Draw connector component polarity shapes for a cage.
 	 * Bypasses the component visualizer to work for ALL cages (selected and unselected).
 	 * @param PDI Primitive draw interface
 	 * @param Cage The cage whose connectors to draw
@@ -97,6 +98,21 @@ public:
 	 */
 	static void DrawPatternCageLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyCagePattern* PatternCage, bool bIsSelected);
 
+	/**
+	 * Draw a single connector's polarity shape (Port/Plug/Universal).
+	 * Shared by both the component visualizer and the editor mode render callback.
+	 * @param PDI Primitive draw interface
+	 * @param Location Connector world position
+	 * @param Forward Connector's forward axis (face normal)
+	 * @param Right Connector's right axis
+	 * @param Up Connector's up axis
+	 * @param Polarity The connector polarity
+	 * @param Size Base shape radius
+	 * @param PinLength Length of pin/line extensions along forward
+	 * @param Color Draw color
+	 */
+	static void DrawConnectorShape(FPrimitiveDrawInterface* PDI, const FVector& Location, const FVector& Forward, const FVector& Right, const FVector& Up, EPCGExConnectorPolarity Polarity, float Size, float PinLength, const FLinearColor& Color, bool bSelected = false);
+
 	// ========== Low-Level Drawing Primitives ==========
 
 	/**
@@ -155,6 +171,9 @@ public:
 	static void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
 
 private:
+	/** Draw a circle (or dot) in the plane defined by two axes. */
+	static void DrawConnectorCircle(FPrimitiveDrawInterface* PDI, const FVector& Center, const FVector& AxisX, const FVector& AxisY, float Radius, const FLinearColor& Color, float Thickness, int32 NumSegments = 24);
+
 	/** Get cached settings (avoids repeated GetDefault calls) */
 	static const UPCGExValencyEditorSettings* GetSettings();
 };

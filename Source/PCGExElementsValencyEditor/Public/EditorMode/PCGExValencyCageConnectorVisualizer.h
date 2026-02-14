@@ -23,7 +23,7 @@ struct HPCGExConnectorHitProxy : public HComponentVisProxy
 
 /**
  * Component visualizer for UPCGExValencyCageConnectorComponent.
- * Draws a diamond shape at the connector's world position with polarity-aware arrows.
+ * Draws polarity shapes at connector positions. Delegates to FPCGExValencyDrawHelper for rendering.
  */
 class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageConnectorVisualizer : public FComponentVisualizer
 {
@@ -36,6 +36,4 @@ public:
 	virtual void EndEditing() override;
 	//~ End FComponentVisualizer Interface
 
-private:
-	static void DrawDiamond(FPrimitiveDrawInterface* PDI, const FVector& Center, float Size, const FLinearColor& Color, float Thickness);
 };
