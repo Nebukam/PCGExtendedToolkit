@@ -5,9 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyMap.h"
 #include "Data/PCGExPointIO.h"
+
+class UPCGExValencyConnectorSet;
 
 #include "PCGExWriteModuleConnectors.generated.h"
 
@@ -40,19 +41,12 @@ protected:
 	//~End UPCGSettings
 
 public:
-	// This node requires BondingRules (for connector data) but not OrbitalSet
+	// BondingRules, OrbitalSet, and ConnectorSet are resolved from the Valency Map
 	virtual bool WantsOrbitalSet() const override { return false; }
-	virtual bool WantsBondingRules() const override { return true; }
+	virtual bool WantsBondingRules() const override { return false; }
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-
-	/**
-	 * Connector set asset defining connector types.
-	 * Required for connector type -> index mapping and compatibility data.
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Suffix for the ValencyEntry attribute to read (e.g. "Main" -> "PCGEx/V/Entry/Main") */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -89,10 +83,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorType"))
 	FName ConnectorTypeAttributeName = FName("ConnectorType");
 
-	/** Quiet mode - suppress missing connector set errors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingConnectorSet = false;
-
 private:
 	friend class FPCGExWriteModuleConnectorsElement;
 };
@@ -101,12 +91,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsContext final : FPCGE
 {
 	friend class FPCGExWriteModuleConnectorsElement;
 
-	virtual void RegisterAssetDependencies() override;
-
 	/** Valency unpacker for resolving ValencyEntry hashes */
 	TSharedPtr<PCGExValency::FValencyUnpacker> ValencyUnpacker;
 
-	/** Connector set (for type -> index mapping) */
+	/** Connector set (resolved from BondingRules in Valency Map) */
 	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Output point collection for connectors */
@@ -122,7 +110,6 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteModuleConnectors)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

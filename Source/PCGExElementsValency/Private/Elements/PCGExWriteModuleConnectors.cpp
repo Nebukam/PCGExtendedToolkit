@@ -30,17 +30,6 @@ TArray<FPCGPinProperties> UPCGExWriteModuleConnectorsSettings::OutputPinProperti
 PCGExData::EIOInit UPCGExWriteModuleConnectorsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 PCGExData::EIOInit UPCGExWriteModuleConnectorsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
-void FPCGExWriteModuleConnectorsContext::RegisterAssetDependencies()
-{
-	FPCGExValencyProcessorContext::RegisterAssetDependencies();
-
-	const UPCGExWriteModuleConnectorsSettings* Settings = GetInputSettings<UPCGExWriteModuleConnectorsSettings>();
-	if (Settings && !Settings->ConnectorSet.IsNull())
-	{
-		AddAssetDependency(Settings->ConnectorSet.ToSoftObjectPath());
-	}
-}
-
 PCGEX_INITIALIZE_ELEMENT(WriteModuleConnectors)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(WriteModuleConnectors)
 
@@ -50,12 +39,6 @@ bool FPCGExWriteModuleConnectorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-	if (Settings->ConnectorSet.IsNull())
-	{
-		if (!Settings->bQuietMissingConnectorSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
-		return false;
-	}
-
 	// Create output collection for connector points
 	Context->ConnectorOutputCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->ConnectorOutputCollection->OutputPin = FName("Connectors");
@@ -63,63 +46,87 @@ bool FPCGExWriteModuleConnectorsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExWriteModuleConnectorsElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
-
-	if (!Context->ConnectorSet && !Settings->ConnectorSet.IsNull())
-	{
-		Context->ConnectorSet = Settings->ConnectorSet.Get();
-	}
-}
-
 bool FPCGExWriteModuleConnectorsElement::PostBoot(FPCGExContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
-
-	// Create and unpack Valency Map
+	// Unpack Valency Map first — this loads BondingRules via LoadBlocking_AnyThread
 	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
 	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
 
 	if (!Context->ValencyUnpacker->HasValidMapping())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from the provided input."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from input."));
 		return false;
 	}
 
-	if (!Context->ConnectorSet)
+	// Resolve BondingRules from map (first entry)
+	for (const auto& Pair : Context->ValencyUnpacker->GetBondingRules())
 	{
-		if (!Settings->bQuietMissingConnectorSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
-		return false;
+		Context->BondingRules = Pair.Value;
+		break;
 	}
 
-	// Validate connector set
-	TArray<FText> ValidationErrors;
-	if (!Context->ConnectorSet->Validate(ValidationErrors))
-	{
-		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
-		return false;
-	}
-
-	// Compile connector set
-	Context->ConnectorSet->Compile();
-
-	// Validate bonding rules (required for module connector lookup)
 	if (!Context->BondingRules)
 	{
-		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules provided.")); }
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules found in Valency Map."));
 		return false;
 	}
 
 	if (!Context->BondingRules->IsCompiled())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules are not compiled."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules from Valency Map are not compiled."));
 		return false;
 	}
+
+	// Resolve OrbitalSet from BondingRules (needed by base cluster processor)
+	if (Context->BondingRules->OrbitalSets.Num() > 0)
+	{
+		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
+	}
+
+	// Base PostBoot — WantsBondingRules/WantsOrbitalSet are false, so it skips their validation
+	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
+
+	// Manually validate OrbitalSet (base skips since WantsOrbitalSet=false)
+	if (!Context->OrbitalSet)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no OrbitalSets. Rebuild the Bonding Rules asset."));
+		return false;
+	}
+
+	TArray<FText> OrbitalValidationErrors;
+	if (!Context->OrbitalSet->Validate(OrbitalValidationErrors))
+	{
+		for (const FText& Error : OrbitalValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		return false;
+	}
+
+	// Build orbital direction resolver (base skips since WantsOrbitalSet=false)
+	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
+		return false;
+	}
+
+	// Resolve ConnectorSet from BondingRules
+	Context->ConnectorSet = Context->BondingRules->ConnectorSet;
+
+	if (!Context->ConnectorSet)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no Connector Set."));
+		return false;
+	}
+
+	// Validate and compile connector set
+	TArray<FText> ConnectorValidationErrors;
+	if (!Context->ConnectorSet->Validate(ConnectorValidationErrors))
+	{
+		for (const FText& Error : ConnectorValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		return false;
+	}
+
+	Context->ConnectorSet->Compile();
 
 	return true;
 }
