@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "StructUtils/InstancedStruct.h"
 
 #include "PCGExValencyConnectorSet.generated.h"
 
@@ -84,6 +85,20 @@ namespace PCGExValencyConnector
 }
 
 /**
+ * Base struct for connector constraints.
+ * Subclass to define specific constraint types (angular range, surface offset, volume, etc.).
+ * Constraints can be set as type-level defaults on FPCGExValencyConnectorEntry
+ * and overridden per-instance on FPCGExValencyModuleConnector.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExConnectorConstraint
+{
+	GENERATED_BODY()
+
+	virtual ~FPCGExConnectorConstraint() = default;
+};
+
+/**
  * A single connector type definition.
  * Connectors are abstract connection points - they ARE orbitals with non-directional identity.
  * Unlike directional orbitals, connectors are matched by type rather than spatial direction.
@@ -124,6 +139,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyConnectorEntry
 	/** Debug visualization color */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
+
+	/** Default constraints applied to all connectors of this type (can be overridden per-instance) */
+	UPROPERTY(EditAnywhere, Category = "Constraints", meta=(BaseStruct="/Script/PCGExElementsValency.PCGExConnectorConstraint"))
+	TArray<FInstancedStruct> DefaultConstraints;
 
 #if WITH_EDITORONLY_DATA
 	/** Visual icon index (0-63). -1 = auto-assign from array position. */
@@ -358,6 +377,18 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleConnector
 	/** Connector polarity - determines connection compatibility */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	EPCGExConnectorPolarity Polarity = EPCGExConnectorPolarity::Universal;
+
+	/** Per-instance constraint overrides (if non-empty, replaces type-level DefaultConstraints) */
+	UPROPERTY(EditAnywhere, Category = "Constraints", meta=(BaseStruct="/Script/PCGExElementsValency.PCGExConnectorConstraint"))
+	TArray<FInstancedStruct> ConstraintOverrides;
+
+	/**
+	 * Get the effective constraints for this connector instance.
+	 * Returns ConstraintOverrides if non-empty, otherwise falls back to the type's DefaultConstraints.
+	 * @param ConnectorSet The connector set containing type-level default constraints
+	 * @return Reference to the effective constraints array
+	 */
+	const TArray<FInstancedStruct>& GetEffectiveConstraints(const UPCGExValencyConnectorSet* ConnectorSet) const;
 
 	/** Orbital index this connector maps to (assigned during compilation, runtime only) */
 	int32 OrbitalIndex = -1;

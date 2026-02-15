@@ -62,13 +62,15 @@ protected:
 	// ========== Shared Utilities ==========
 
 	/**
-	 * Find all modules whose connectors are compatible with the given connector type.
+	 * Find all modules whose connectors are compatible with the given connector type and polarity.
 	 * @param ConnectorType The connector type to find compatible modules for
+	 * @param SourcePolarity Polarity of the source connector (checked against candidate polarities)
 	 * @param OutModuleIndices Module indices that have a compatible connector
 	 * @param OutConnectorIndices Corresponding connector indices on those modules
 	 */
 	void FindCompatibleModules(
 		FName ConnectorType,
+		EPCGExConnectorPolarity SourcePolarity,
 		TArray<int32>& OutModuleIndices,
 		TArray<int32>& OutConnectorIndices) const;
 
