@@ -4,13 +4,14 @@
 #include "Core/PCGExPatternMatcherOperation.h"
 
 #include "Core/PCGExValencyCommon.h"
+#include "Core/PCGExValencyMap.h"
 #include "Data/PCGExData.h"
 
 void FPCGExPatternMatcherOperation::Initialize(
 	const TSharedPtr<PCGExClusters::FCluster>& InCluster,
 	const FPCGExValencyPatternSetCompiled* InCompiledPatterns,
 	const PCGExValency::FOrbitalCache* InOrbitalCache,
-	const TSharedPtr<PCGExData::TBuffer<int64>>& InModuleDataReader,
+	const TSharedPtr<PCGExData::TBuffer<int64>>& InValencyEntryReader,
 	int32 InNumNodes,
 	TSet<int32>* InClaimedNodes,
 	int32 InSeed, const TSharedPtr<PCGExPatternMatcher::FMatcherAllocations>& InAllocations)
@@ -18,7 +19,7 @@ void FPCGExPatternMatcherOperation::Initialize(
 	Cluster = InCluster;
 	CompiledPatterns = InCompiledPatterns;
 	OrbitalCache = InOrbitalCache;
-	ModuleDataReader = InModuleDataReader;
+	ValencyEntryReader = InValencyEntryReader;
 	NumNodes = InNumNodes;
 	ClaimedNodes = InClaimedNodes;
 	Allocations = InAllocations;
@@ -75,10 +76,12 @@ void FPCGExPatternMatcherOperation::Annotate(
 
 int32 FPCGExPatternMatcherOperation::GetModuleIndex(int32 NodeIndex) const
 {
-	if (!ModuleDataReader) { return -1; }
+	if (!ValencyEntryReader) { return -1; }
 	const int32 PointIndex = GetPointIndex(NodeIndex);
 	if (PointIndex < 0) { return -1; }
-	return PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(PointIndex));
+	const uint64 Hash = static_cast<uint64>(ValencyEntryReader->Read(PointIndex));
+	if (Hash == PCGExValency::EntryData::INVALID_ENTRY) { return -1; }
+	return PCGExValency::EntryData::GetModuleIndex(Hash);
 }
 
 void UPCGExPatternMatcherFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)

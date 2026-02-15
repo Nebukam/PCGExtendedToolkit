@@ -7,6 +7,8 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyConnectorSet.h"
+#include "Core/PCGExValencyBondingRules.h"
+#include "Core/PCGExValencyMap.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExWriteValencyOrbitals.generated.h"
@@ -49,6 +51,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -62,16 +65,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExOrbitalAssignmentMode AssignmentMode = EPCGExOrbitalAssignmentMode::Direction;
 
-	/** The orbital set defining layer name, orbitals, and matching parameters */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Direction", EditConditionHides))
-	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
+	/** The bonding rules data asset (provides OrbitalSet and ConnectorSet) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
-	/**
-	 * Connector set defining connector types and compatibility.
-	 * Each connector type maps to an orbital index for solver compatibility.
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Connector", EditConditionHides))
-	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
+	/** Suffix for attribute naming (e.g. "Main" -> "PCGEx/V/Mask/Main", "PCGEx/V/Orbital/Main") */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName Suffix = FName("Main");
 
 	/**
 	 * Edge attribute containing packed connector references (int64).
@@ -89,9 +89,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Warnings", meta=(PCG_NotOverridable))
 	bool bWarnOnNoMatch = true;
 
-	/** Quiet mode - suppress missing orbital set/connector set errors */
+	/** Quiet mode - suppress missing bonding rules errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingOrbitalSet = false;
+	bool bQuietMissingBondingRules = false;
 
 	/** Quiet mode - suppress warnings when connector attribute is missing from edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Connector", EditConditionHides))
@@ -110,12 +110,18 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 	/** Assignment mode (cached from settings) */
 	EPCGExOrbitalAssignmentMode AssignmentMode = EPCGExOrbitalAssignmentMode::Direction;
 
+	/** Suffix for attribute naming (cached from settings) */
+	FName Suffix = FName("Main");
+
 	// ========== Direction Mode ==========
 
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** Cached orbital data for fast lookup during processing */
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+
+	/** Loaded bonding rules */
+	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	// ========== Connector Mode ==========
 
@@ -124,19 +130,11 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 	/** Connector type index to orbital index mapping (built during PostBoot) */
 	TArray<int32> ConnectorToOrbitalMap;
 
-	/** Get the layer name based on current mode */
-	FName GetLayerName() const
-	{
-		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Direction && OrbitalSet)
-		{
-			return OrbitalSet->LayerName;
-		}
-		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Connector && ConnectorSet)
-		{
-			return ConnectorSet->LayerName;
-		}
-		return FName("Main");
-	}
+	/** Valency packer for output Valency Map */
+	TSharedPtr<PCGExValency::FValencyPacker> ValencyPacker;
+
+	/** Get the layer name (suffix) */
+	FName GetLayerName() const { return Suffix; }
 
 	/** Get the orbital/connector count based on current mode */
 	int32 GetOrbitalCount() const

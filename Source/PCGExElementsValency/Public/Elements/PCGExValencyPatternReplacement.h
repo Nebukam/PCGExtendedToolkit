@@ -33,9 +33,10 @@ protected:
 	//~End UPCGSettings
 
 public:
-	// This node requires BondingRules (which provides OrbitalSet)
-	virtual bool WantsOrbitalSet() const override { return true; }
-	virtual bool WantsBondingRules() const override { return true; }
+	// BondingRules and OrbitalSet are resolved from the Valency Map, not direct references
+	virtual bool WantsOrbitalSet() const override { return false; }
+	virtual bool WantsBondingRules() const override { return false; }
+	virtual bool WantsValencyMap() const override { return true; }
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
@@ -98,9 +99,9 @@ namespace PCGExValencyPatternReplacement
 		friend class FBatch;
 
 	protected:
-		/** Module data reader/writer (packed int64 from Staging output) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
+		/** ValencyEntry reader/writer (for pattern matching and flag propagation) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Matcher operation (created from factory) */
 		TSharedPtr<FPCGExPatternMatcherOperation> MatcherOperation;
@@ -153,9 +154,9 @@ namespace PCGExValencyPatternReplacement
 
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
-		/** Module data reader/writer (packed int64, owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
+		/** ValencyEntry reader/writer (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Pattern name writer (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;

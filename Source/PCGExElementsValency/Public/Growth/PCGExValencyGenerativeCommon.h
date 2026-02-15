@@ -61,6 +61,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExOpenConnector
 	/** Cached connector type for fast compatibility lookup */
 	FName ConnectorType;
 
+	/** Cached connector polarity for compatibility check */
+	EPCGExConnectorPolarity Polarity = EPCGExConnectorPolarity::Universal;
+
 	/** Pre-computed world-space connector transform */
 	FTransform WorldTransform = FTransform::Identity;
 

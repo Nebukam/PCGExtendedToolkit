@@ -53,7 +53,7 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 		// Find compatible modules for this connector type
 		TArray<int32> CandidateModules;
 		TArray<int32> CandidateConnectorIndices;
-		FindCompatibleModules(Connector.ConnectorType, CandidateModules, CandidateConnectorIndices);
+		FindCompatibleModules(Connector.ConnectorType, Connector.Polarity, CandidateModules, CandidateConnectorIndices);
 
 		if (CandidateModules.IsEmpty()) { continue; }
 
@@ -109,6 +109,7 @@ void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
 
 void FPCGExValencyGrowthOperation::FindCompatibleModules(
 	FName ConnectorType,
+	EPCGExConnectorPolarity SourcePolarity,
 	TArray<int32>& OutModuleIndices,
 	TArray<int32>& OutConnectorIndices) const
 {
@@ -134,8 +135,9 @@ void FPCGExValencyGrowthOperation::FindCompatibleModules(
 			const int32 TargetTypeIndex = ConnectorSet->FindConnectorTypeIndex(ModuleConnector.ConnectorType);
 			if (TargetTypeIndex == INDEX_NONE) { continue; }
 
-			// Check compatibility via bitmask
-			if ((CompatMask & (1LL << TargetTypeIndex)) != 0)
+			// Check type compatibility via bitmask AND polarity compatibility
+			if ((CompatMask & (1LL << TargetTypeIndex)) != 0 &&
+				PCGExValencyConnector::ArePolaritiesCompatible(SourcePolarity, ModuleConnector.Polarity))
 			{
 				OutModuleIndices.Add(ModuleIdx);
 				OutConnectorIndices.Add(ConnectorIdx);
@@ -254,6 +256,7 @@ void FPCGExValencyGrowthOperation::ExpandFrontier(
 		OpenConnector.PlacedModuleIndex = PlacedIndex;
 		OpenConnector.ConnectorIndex = ConnectorIdx;
 		OpenConnector.ConnectorType = ModuleConnector.ConnectorType;
+		OpenConnector.Polarity = ModuleConnector.Polarity;
 		OpenConnector.WorldTransform = ConnectorWorld;
 		OpenConnector.Depth = Placed.Depth;
 		OpenConnector.CumulativeWeight = Placed.CumulativeWeight;

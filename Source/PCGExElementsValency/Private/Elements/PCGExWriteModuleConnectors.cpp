@@ -3,6 +3,7 @@
 
 #include "Elements/PCGExWriteModuleConnectors.h"
 
+#include "PCGParamData.h"
 #include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Data/PCGExData.h"
@@ -11,6 +12,13 @@
 
 #define LOCTEXT_NAMESPACE "PCGExWriteModuleConnectors"
 #define PCGEX_NAMESPACE WriteModuleConnectors
+
+TArray<FPCGPinProperties> UPCGExWriteModuleConnectorsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	// Valency Map pin is auto-added by base class via WantsValencyMap()
+	return PinProperties;
+}
 
 TArray<FPCGPinProperties> UPCGExWriteModuleConnectorsSettings::OutputPinProperties() const
 {
@@ -22,17 +30,6 @@ TArray<FPCGPinProperties> UPCGExWriteModuleConnectorsSettings::OutputPinProperti
 PCGExData::EIOInit UPCGExWriteModuleConnectorsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 PCGExData::EIOInit UPCGExWriteModuleConnectorsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
-void FPCGExWriteModuleConnectorsContext::RegisterAssetDependencies()
-{
-	FPCGExValencyProcessorContext::RegisterAssetDependencies();
-
-	const UPCGExWriteModuleConnectorsSettings* Settings = GetInputSettings<UPCGExWriteModuleConnectorsSettings>();
-	if (Settings && !Settings->ConnectorSet.IsNull())
-	{
-		AddAssetDependency(Settings->ConnectorSet.ToSoftObjectPath());
-	}
-}
-
 PCGEX_INITIALIZE_ELEMENT(WriteModuleConnectors)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(WriteModuleConnectors)
 
@@ -42,12 +39,6 @@ bool FPCGExWriteModuleConnectorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-	if (Settings->ConnectorSet.IsNull())
-	{
-		if (!Settings->bQuietMissingConnectorSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
-		return false;
-	}
-
 	// Create output collection for connector points
 	Context->ConnectorOutputCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->ConnectorOutputCollection->OutputPin = FName("Connectors");
@@ -55,53 +46,28 @@ bool FPCGExWriteModuleConnectorsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExWriteModuleConnectorsElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
-
-	if (!Context->ConnectorSet && !Settings->ConnectorSet.IsNull())
-	{
-		Context->ConnectorSet = Settings->ConnectorSet.Get();
-	}
-}
-
 bool FPCGExWriteModuleConnectorsElement::PostBoot(FPCGExContext* InContext) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
-
+	// Base class: ConsumeValencyMap -> BondingRules, OrbitalSet, ConnectorSet, Suffix, MaxOrbitals
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
+	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
+
+	// Node-specific: validate + compile ConnectorSet (base resolved it but didn't validate)
 	if (!Context->ConnectorSet)
 	{
-		if (!Settings->bQuietMissingConnectorSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no Connector Set."));
 		return false;
 	}
 
-	// Validate connector set
-	TArray<FText> ValidationErrors;
-	if (!Context->ConnectorSet->Validate(ValidationErrors))
+	TArray<FText> ConnectorValidationErrors;
+	if (!Context->ConnectorSet->Validate(ConnectorValidationErrors))
 	{
-		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		for (const FText& Error : ConnectorValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
 		return false;
 	}
 
-	// Compile connector set
 	Context->ConnectorSet->Compile();
-
-	// Validate bonding rules (required for module connector lookup)
-	if (!Context->BondingRules)
-	{
-		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules provided.")); }
-		return false;
-	}
-
-	if (!Context->BondingRules->IsCompiled())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules are not compiled."));
-		return false;
-	}
 
 	return true;
 }
@@ -141,13 +107,14 @@ namespace PCGExWriteModuleConnectors
 
 		if (!PCGExValencyMT::IProcessor::Process(InTaskManager)) { return false; }
 
-		// Get the module data reader
-		ModuleDataReader = VtxDataFacade->GetReadable<int64>(Settings->ModuleDataAttributeName);
-		if (!ModuleDataReader)
+		// Get the ValencyEntry reader
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
+		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
+		if (!ValencyEntryReader)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
-				FTEXT("Module data attribute '{0}' not found on vertices."),
-				FText::FromName(Settings->ModuleDataAttributeName)));
+				FTEXT("ValencyEntry attribute '{0}' not found on vertices. Run Valency : Solve first."),
+				FText::FromName(EntryAttrName)));
 			return false;
 		}
 
@@ -165,8 +132,9 @@ namespace PCGExWriteModuleConnectors
 
 		for (int32 i = 0; i < NumVertices; ++i)
 		{
-			const int64 ModuleData = ModuleDataReader->Read(i);
-			const int32 ModuleIndex = static_cast<int32>(ModuleData & 0xFFFFFFFF);
+			const uint64 ValencyHash = ValencyEntryReader->Read(i);
+			if (ValencyHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+			const int32 ModuleIndex = PCGExValency::EntryData::GetModuleIndex(ValencyHash);
 
 			if (ModuleIndex >= 0 && ModuleIndex < Context->BondingRules->Modules.Num())
 			{
@@ -231,8 +199,9 @@ namespace PCGExWriteModuleConnectors
 		int32 ConnectorIndex = 0;
 		for (int32 VertexIdx = 0; VertexIdx < NumVertices; ++VertexIdx)
 		{
-			const int64 ModuleData = ModuleDataReader->Read(VertexIdx);
-			const int32 ModuleIndex = static_cast<int32>(ModuleData & 0xFFFFFFFF);
+			const uint64 ValencyHash = ValencyEntryReader->Read(VertexIdx);
+			if (ValencyHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+			const int32 ModuleIndex = PCGExValency::EntryData::GetModuleIndex(ValencyHash);
 
 			if (ModuleIndex < 0 || ModuleIndex >= Context->BondingRules->Modules.Num())
 			{
@@ -318,16 +287,18 @@ namespace PCGExWriteModuleConnectors
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-		// Register module data attribute for reading
-		FacadePreloader.Register<int64>(Context, Settings->ModuleDataAttributeName);
+		// Register ValencyEntry attribute for reading
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
+		FacadePreloader.Register<int64>(Context, EntryAttrName);
 	}
 
 	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-		// Create module data reader
-		ModuleDataReader = VtxDataFacade->GetReadable<int64>(Settings->ModuleDataAttributeName);
+		// Create ValencyEntry reader
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
+		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
 
 		PCGExValencyMT::IBatch::OnProcessingPreparationComplete();
 	}
@@ -337,7 +308,7 @@ namespace PCGExWriteModuleConnectors
 		if (!PCGExValencyMT::IBatch::PrepareSingle(InProcessor)) { return false; }
 
 		FProcessor* TypedProcessor = static_cast<FProcessor*>(InProcessor.Get());
-		TypedProcessor->ModuleDataReader = ModuleDataReader;
+		TypedProcessor->ValencyEntryReader = ValencyEntryReader;
 
 		return true;
 	}

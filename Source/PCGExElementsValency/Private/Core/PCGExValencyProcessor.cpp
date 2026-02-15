@@ -3,6 +3,7 @@
 
 #include "Core/PCGExValencyProcessor.h"
 
+#include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Core/PCGExCachedOrbitalCache.h"
 #include "Core/PCGExValencyOrbitalSet.h"
@@ -10,12 +11,25 @@
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 
+TArray<FPCGPinProperties> UPCGExValencyProcessorSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (WantsValencyMap())
+	{
+		PCGEX_PIN_PARAM(PCGExValency::Labels::SourceValencyMapLabel, "Valency map.", Required)
+	}
+	return PinProperties;
+}
+
 void FPCGExValencyProcessorContext::RegisterAssetDependencies()
 {
 	FPCGExClustersProcessorContext::RegisterAssetDependencies();
 
 	const UPCGExValencyProcessorSettings* Settings = GetInputSettings<UPCGExValencyProcessorSettings>();
 	if (!Settings) { return; }
+
+	// WantsValencyMap nodes have no soft ptrs to register
+	if (Settings->WantsValencyMap()) { return; }
 
 	// Register OrbitalSet if wanted and provided
 	if (Settings->WantsOrbitalSet() && !Settings->OrbitalSet.IsNull())
@@ -35,6 +49,9 @@ bool FPCGExValencyProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyProcessor)
+
+	// WantsValencyMap nodes have no soft ptrs to validate — map is consumed in PostBoot
+	if (Settings->WantsValencyMap()) { return true; }
 
 	// Validate OrbitalSet if wanted
 	if (Settings->WantsOrbitalSet() && Settings->OrbitalSet.IsNull())
@@ -79,6 +96,9 @@ void FPCGExValencyProcessorElement::PostLoadAssetsDependencies(FPCGExContext* In
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyProcessor)
 
+	// WantsValencyMap nodes skip soft ptr loading
+	if (Settings->WantsValencyMap()) { return; }
+
 	// Load BondingRules first (OrbitalSet may come from it)
 	if (!Settings->BondingRules.IsNull())
 	{
@@ -102,6 +122,12 @@ bool FPCGExValencyProcessorElement::PostBoot(FPCGExContext* InContext) const
 	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyProcessor)
+
+	if (Settings->WantsValencyMap())
+	{
+		if (!ConsumeValencyMap(InContext)) { return false; }
+		return true;
+	}
 
 	// Validate BondingRules if wanted
 	if (Settings->WantsBondingRules())
@@ -149,7 +175,91 @@ bool FPCGExValencyProcessorElement::PostBoot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
 			return false;
 		}
+
+		// Set Suffix and MaxOrbitals on context for downstream use
+		Context->Suffix = Context->OrbitalSet->LayerName;
+		Context->MaxOrbitals = Context->OrbitalSet->Num();
 	}
+
+	return true;
+}
+
+bool FPCGExValencyProcessorElement::ConsumeValencyMap(FPCGExContext* InContext) const
+{
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyProcessor)
+
+	// 1. Set suffix from settings
+	Context->Suffix = Settings->Suffix;
+
+	// 2. Collect raw input param data for output duplication, then unpack
+	for (const FPCGTaggedData& InTaggedData : InContext->InputData.GetParamsByPin(PCGExValency::Labels::SourceValencyMapLabel))
+	{
+		if (const UPCGParamData* ParamData = Cast<UPCGParamData>(InTaggedData.Data))
+		{
+			Context->InputValencyMapData.Add(ParamData);
+		}
+	}
+
+	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
+	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
+
+	if (!Context->ValencyUnpacker->HasValidMapping())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from input."));
+		return false;
+	}
+
+	// 3. Resolve BondingRules (first entry)
+	for (const auto& Pair : Context->ValencyUnpacker->GetBondingRules())
+	{
+		Context->BondingRules = Pair.Value;
+		break;
+	}
+
+	if (!Context->BondingRules)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules found in Valency Map."));
+		return false;
+	}
+
+	if (!Context->BondingRules->IsCompiled())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules from Valency Map are not compiled."));
+		return false;
+	}
+
+	// 4. Resolve OrbitalSet from BondingRules
+	if (Context->BondingRules->OrbitalSets.Num() > 0)
+	{
+		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
+	}
+
+	if (!Context->OrbitalSet)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no OrbitalSets. Rebuild the Bonding Rules asset."));
+		return false;
+	}
+
+	// 5. MaxOrbitals from map metadata, fallback to OrbitalSet
+	Context->MaxOrbitals = Context->ValencyUnpacker->GetOrbitalCount(Context->BondingRules);
+	if (Context->MaxOrbitals <= 0) { Context->MaxOrbitals = Context->OrbitalSet->Num(); }
+
+	// 6. Validate OrbitalSet + build OrbitalResolver
+	TArray<FText> ValidationErrors;
+	if (!Context->OrbitalSet->Validate(ValidationErrors))
+	{
+		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		return false;
+	}
+
+	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
+		return false;
+	}
+
+	// 7. Resolve ConnectorSet from BondingRules (optional, may be null)
+	Context->ConnectorSet = Context->BondingRules->ConnectorSet;
 
 	return true;
 }
@@ -173,9 +283,9 @@ namespace PCGExValencyMT
 		if (!Context->OrbitalSet) { return false; }
 
 		FilterVtxScope(PCGExMT::FScope(0, NumNodes));
-		
+
 		// Get edge indices reader for this processor's edge facade
-		const FName IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
+		const FName IdxAttributeName = PCGExValency::Attributes::GetOrbitalAttributeName(Context->Suffix);
 		EdgeIndicesReader = EdgeDataFacade->GetReadable<int64>(IdxAttributeName);
 
 		if (!EdgeIndicesReader)
@@ -225,9 +335,9 @@ namespace PCGExValencyMT
 			return false;
 		}
 
-		// Get OrbitalSet for layer name (for cache identification)
+		// Use Suffix for cache identification
 		FPCGExValencyProcessorContext* Context = static_cast<FPCGExValencyProcessorContext*>(ExecutionContext);
-		const FName LayerName = Context->OrbitalSet ? Context->OrbitalSet->LayerName : NAME_None;
+		const FName LayerName = Context->Suffix;
 		const uint32 ContextHash = PCGExValency::FOrbitalCacheFactory::ComputeContextHash(LayerName, MaxOrbitals);
 
 		// Try cluster cache first
@@ -283,7 +393,7 @@ namespace PCGExValencyMT
 		FPCGExValencyProcessorContext* Context = GetContext<FPCGExValencyProcessorContext>();
 		if (Context && Context->OrbitalSet)
 		{
-			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetOrbitalMaskAttributeName());
+			FacadePreloader.Register<int64>(ExecutionContext, PCGExValency::Attributes::GetMaskAttributeName(Context->Suffix));
 		}
 	}
 
@@ -294,10 +404,10 @@ namespace PCGExValencyMT
 
 		if (Context && Context->OrbitalSet)
 		{
-			MaxOrbitals = Context->OrbitalSet->Num();
+			MaxOrbitals = Context->MaxOrbitals > 0 ? Context->MaxOrbitals : Context->OrbitalSet->Num();
 
 			// Create orbital mask reader from vertex facade
-			const FName MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
+			const FName MaskAttributeName = PCGExValency::Attributes::GetMaskAttributeName(Context->Suffix);
 			OrbitalMaskReader = VtxDataFacade->GetReadable<int64>(MaskAttributeName);
 
 			if (!OrbitalMaskReader)

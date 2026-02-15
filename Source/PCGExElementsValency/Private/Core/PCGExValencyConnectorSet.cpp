@@ -331,6 +331,26 @@ FTransform FPCGExValencyModuleConnector::GetEffectiveOffset(const UPCGExValencyC
 	return FTransform::Identity;
 }
 
+const TArray<FInstancedStruct>& FPCGExValencyModuleConnector::GetEffectiveConstraints(const UPCGExValencyConnectorSet* ConnectorSet) const
+{
+	if (ConstraintOverrides.Num() > 0)
+	{
+		return ConstraintOverrides;
+	}
+
+	if (ConnectorSet)
+	{
+		const int32 TypeIndex = ConnectorSet->FindConnectorTypeIndex(ConnectorType);
+		if (ConnectorSet->ConnectorTypes.IsValidIndex(TypeIndex))
+		{
+			return ConnectorSet->ConnectorTypes[TypeIndex].DefaultConstraints;
+		}
+	}
+
+	static const TArray<FInstancedStruct> EmptyConstraints;
+	return EmptyConstraints;
+}
+
 #pragma endregion
 
 #undef LOCTEXT_NAMESPACE

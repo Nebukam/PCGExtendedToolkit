@@ -5,8 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExValencyConnectorSet.h"
+#include "Core/PCGExValencyMap.h"
 #include "Data/PCGExPointIO.h"
+
+class UPCGExValencyConnectorSet;
 
 #include "PCGExWriteModuleConnectors.generated.h"
 
@@ -33,31 +35,19 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
-	// This node requires BondingRules (for connector data) but not OrbitalSet
+	// BondingRules, OrbitalSet, and ConnectorSet are resolved from the Valency Map
 	virtual bool WantsOrbitalSet() const override { return false; }
-	virtual bool WantsBondingRules() const override { return true; }
+	virtual bool WantsBondingRules() const override { return false; }
+	virtual bool WantsValencyMap() const override { return true; }
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-
-	/**
-	 * Connector set asset defining connector types.
-	 * Required for connector type -> index mapping and compatibility data.
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
-
-	/**
-	 * Attribute name for the module data (from staging output).
-	 * Default matches the output from ValencyStaging with layer "Main".
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName ModuleDataAttributeName = FName("PCGEx/V/Module/Main");
 
 	/**
 	 * Attribute name for the packed connector reference output.
@@ -90,10 +80,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputConnectorType"))
 	FName ConnectorTypeAttributeName = FName("ConnectorType");
 
-	/** Quiet mode - suppress missing connector set errors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingConnectorSet = false;
-
 private:
 	friend class FPCGExWriteModuleConnectorsElement;
 };
@@ -101,11 +87,6 @@ private:
 struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsContext final : FPCGExValencyProcessorContext
 {
 	friend class FPCGExWriteModuleConnectorsElement;
-
-	virtual void RegisterAssetDependencies() override;
-
-	/** Connector set (for type -> index mapping) */
-	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Output point collection for connectors */
 	TSharedPtr<PCGExData::FPointIOCollection> ConnectorOutputCollection;
@@ -120,7 +101,6 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteModuleConnectors)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
@@ -132,8 +112,8 @@ namespace PCGExWriteModuleConnectors
 		friend class FBatch;
 
 	protected:
-		/** Module data reader (from staging output) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		/** ValencyEntry reader (from Solve output, via Valency Map) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
 
 		/** Output connector points (local collection, merged into context output) */
 		TSharedPtr<PCGExData::FPointIO> ConnectorOutput;
@@ -156,8 +136,8 @@ namespace PCGExWriteModuleConnectors
 
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
-		/** Module data reader (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		/** ValencyEntry reader (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
