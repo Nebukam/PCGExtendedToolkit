@@ -1,7 +1,7 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/PCGExValencyStaging.h"
+#include "Elements/PCGExValencyBonding.h"
 
 #include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
@@ -12,10 +12,10 @@
 #include "Solvers/PCGExValencyEntropySolver.h"
 #include "Core/PCGExValencyLog.h"
 
-#define LOCTEXT_NAMESPACE "PCGExValencyStaging"
-#define PCGEX_NAMESPACE ValencyStaging
+#define LOCTEXT_NAMESPACE "PCGExValencyBonding"
+#define PCGEX_NAMESPACE ValencyBonding
 
-void UPCGExValencyStagingSettings::PostInitProperties()
+void UPCGExValencyBondingSettings::PostInitProperties()
 {
 	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
@@ -25,7 +25,7 @@ void UPCGExValencyStagingSettings::PostInitProperties()
 }
 
 
-TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExValencyBondingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceBondingRulesLabel, "Bonding rules data asset override", Advanced)
@@ -33,59 +33,59 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExValencyStagingSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExValencyBondingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_PARAMS(PCGExValency::Labels::OutputValencyMapLabel, "Valency map for resolving ValencyEntry hashes", Required)
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExValencyStagingSettings::GetMainOutputInitMode() const
+PCGExData::EIOInit UPCGExValencyBondingSettings::GetMainOutputInitMode() const
 {
 	return PCGExData::EIOInit::Duplicate; // Duplicate since we're writing to vtx data
 }
 
-PCGExData::EIOInit UPCGExValencyStagingSettings::GetEdgeOutputInitMode() const
+PCGExData::EIOInit UPCGExValencyBondingSettings::GetEdgeOutputInitMode() const
 {
 	return PCGExData::EIOInit::Forward;
 }
 
-PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyStaging)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyBonding)
 
-void FPCGExValencyStagingContext::RegisterAssetDependencies()
+void FPCGExValencyBondingContext::RegisterAssetDependencies()
 {
 	FPCGExValencyProcessorContext::RegisterAssetDependencies();
 	// Base class handles OrbitalSet and BondingRules registration via WantsOrbitalSet()/WantsBondingRules()
 }
 
-FPCGElementPtr UPCGExValencyStagingSettings::CreateElement() const
+FPCGElementPtr UPCGExValencyBondingSettings::CreateElement() const
 {
-	return MakeShared<FPCGExValencyStagingElement>();
+	return MakeShared<FPCGExValencyBondingElement>();
 }
 
-bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
+bool FPCGExValencyBondingElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExValencyProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyBonding)
 
 	PCGEX_OPERATION_VALIDATE(Solver)
 
 	return true;
 }
 
-void FPCGExValencyStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+void FPCGExValencyBondingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
 {
 	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
 	// Base class handles OrbitalSet and BondingRules loading via WantsOrbitalSet()/WantsBondingRules()
 }
 
-bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
+bool FPCGExValencyBondingElement::PostBoot(FPCGExContext* InContext) const
 {
 	// Base class validates OrbitalSet and BondingRules via WantsOrbitalSet()/WantsBondingRules()
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyBonding)
 
 	// Ensure bonding rules are compiled
 	if (!Context->BondingRules->IsCompiled())
@@ -116,9 +116,9 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+bool FPCGExValencyBondingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyBonding)
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -129,7 +129,7 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 				// Assign fixed pick filter factories to batch
 				if (Settings->bEnableFixedPicks && !Context->FixedPickFilterFactories.IsEmpty())
 				{
-					static_cast<PCGExValencyStaging::FBatch*>(NewBatch.Get())->FixedPickFilterFactories = &Context->FixedPickFilterFactories;
+					static_cast<PCGExValencyBonding::FBatch*>(NewBatch.Get())->FixedPickFilterFactories = &Context->FixedPickFilterFactories;
 				}
 			}))
 		{
@@ -149,11 +149,11 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 	return Context->TryComplete();
 }
 
-namespace PCGExValencyStaging
+namespace PCGExValencyBonding
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValencyStaging::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValencyBonding::Process);
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
 
@@ -576,7 +576,7 @@ namespace PCGExValencyStaging
 	{
 		PCGExValencyMT::IBatch::RegisterBuffersDependencies(FacadePreloader);
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyBonding)
 
 		// Let solver register its buffer dependencies (e.g., priority attribute)
 		if (Context->Solver)
@@ -593,7 +593,7 @@ namespace PCGExValencyStaging
 
 	void FBatch::OnProcessingPreparationComplete()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyBonding)
 
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 

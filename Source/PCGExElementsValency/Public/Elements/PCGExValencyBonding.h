@@ -9,7 +9,7 @@
 #include "Core/PCGExValencyMap.h"
 #include "Core/PCGExClusterFilter.h"
 
-#include "PCGExValencyStaging.generated.h"
+#include "PCGExValencyBonding.generated.h"
 
 class UPCGExValencySolverInstancedFactory;
 
@@ -39,7 +39,7 @@ enum class EPCGExFixedPickIncompatibleBehavior : uint8
  * Uses orbital-based compatibility rules to place modules on cluster vertices.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "wfc wave function collapse valency staging", PCGExNodeLibraryDoc="valency/valency-staging"))
-class PCGEXELEMENTSVALENCY_API UPCGExValencyStagingSettings : public UPCGExValencyProcessorSettings
+class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingSettings : public UPCGExValencyProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Solve", "WFC-like solver for cluster vertices using orbital-based compatibility rules.");
+	PCGEX_NODE_INFOS(ValencyBonding, "Valency : Bonding", "WFC-like solver for cluster vertices using orbital-based compatibility rules.");
 
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
@@ -129,9 +129,9 @@ public:
 	
 };
 
-struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingContext final : FPCGExValencyProcessorContext
 {
-	friend class FPCGExValencyStagingElement;
+	friend class FPCGExValencyBondingElement;
 
 	virtual void RegisterAssetDependencies() override;
 
@@ -148,10 +148,10 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class PCGEXELEMENTSVALENCY_API FPCGExValencyStagingElement final : public FPCGExValencyProcessorElement
+class PCGEXELEMENTSVALENCY_API FPCGExValencyBondingElement final : public FPCGExValencyProcessorElement
 {
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyStaging)
+	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyBonding)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
@@ -159,11 +159,11 @@ protected:
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
-namespace PCGExValencyStaging
+namespace PCGExValencyBonding
 {
 	class FBatch;
 
-	class FProcessor final : public PCGExValencyMT::TProcessor<FPCGExValencyStagingContext, UPCGExValencyStagingSettings>
+	class FProcessor final : public PCGExValencyMT::TProcessor<FPCGExValencyBondingContext, UPCGExValencyBondingSettings>
 	{
 		friend class FBatch;
 
