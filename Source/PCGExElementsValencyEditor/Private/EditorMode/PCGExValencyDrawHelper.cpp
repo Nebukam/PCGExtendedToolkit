@@ -11,6 +11,7 @@
 #include "SceneView.h"
 #include "Components/PCGExValencyCageConnectorComponent.h"
 #include "Core/PCGExValencyConnectorSet.h"
+#include "EditorMode/PCGExConstraintVisualizer.h"
 #include "EditorMode/PCGExValencyCageConnectorVisualizer.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Cages/PCGExValencyCageBase.h"
@@ -22,6 +23,7 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Engine/Engine.h"
+#include "StructUtils/InstancedStruct.h"
 
 const UPCGExValencyEditorSettings* FPCGExValencyDrawHelper::GetSettings()
 {
@@ -1022,5 +1024,118 @@ void FPCGExValencyDrawHelper::DrawPatternCageLabels(FCanvas* Canvas, const FScen
 	{
 		const FString ProxyInfo = FString::Printf(TEXT("Proxies: %d"), PatternCage->ProxiedCages.Num());
 		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset - 20.0f), ProxyInfo, LabelColor * 0.7f);
+	}
+}
+
+// ========== Constraint Visualization ==========
+
+void FPCGExValencyDrawHelper::DrawCageConstraints(
+	FPrimitiveDrawInterface* PDI,
+	const APCGExValencyCageBase* Cage,
+	EPCGExConstraintDetailLevel DetailLevel,
+	const UPCGExValencyCageConnectorComponent* SelectedConnector)
+{
+	if (!PDI || !Cage) { return; }
+
+	TInlineComponentArray<UPCGExValencyCageConnectorComponent*> Connectors;
+	Cage->GetComponents(Connectors);
+
+	for (UPCGExValencyCageConnectorComponent* Connector : Connectors)
+	{
+		if (!Connector) { continue; }
+
+		const bool bIsSelected = (Connector == SelectedConnector);
+		const EPCGExConstraintDetailLevel ConnectorDetailLevel =
+			bIsSelected ? EPCGExConstraintDetailLevel::Detail : DetailLevel;
+
+		DrawConnectorConstraints(PDI, Connector, ConnectorDetailLevel, bIsSelected);
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawConnectorConstraints(
+	FPrimitiveDrawInterface* PDI,
+	const UPCGExValencyCageConnectorComponent* Connector,
+	EPCGExConstraintDetailLevel DetailLevel,
+	bool bIsSelectedConnector)
+{
+	if (!PDI || !Connector) { return; }
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	if (!Settings) { return; }
+
+	// Get the connector set from the owning cage
+	const APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Connector->GetOwner());
+	if (!Cage) { return; }
+
+	// Try to get the connector set for effective constraint resolution
+	const UPCGExValencyConnectorSet* ConnSet = nullptr;
+
+	// The connector set is typically on the volume — but for visualization we just need
+	// the DefaultConstraints from the component's type definition.
+	// Check if any containing volume has a connector set.
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolRef : Cage->GetContainingVolumes())
+	{
+		if (AValencyContextVolume* Vol = VolRef.Get())
+		{
+			ConnSet = Vol->GetEffectiveConnectorSet();
+			if (ConnSet) { break; }
+		}
+	}
+
+	// Build the effective constraint list
+	// For visualization, we check component-level overrides first, then type defaults
+	TArray<const FInstancedStruct*> ConstraintPtrs;
+
+	// Check component-level constraint overrides (editor-time: stored on UPCGExValencyCageConnectorComponent)
+	// The component doesn't directly hold constraints — they're on the data model side.
+	// For now, use the ConnectorSet type defaults if available.
+	if (ConnSet)
+	{
+		const int32 TypeIdx = ConnSet->FindConnectorTypeIndex(Connector->ConnectorType);
+		if (ConnSet->ConnectorTypes.IsValidIndex(TypeIdx))
+		{
+			const TArray<FInstancedStruct>& Defaults = ConnSet->ConnectorTypes[TypeIdx].DefaultConstraints;
+			for (const FInstancedStruct& Instance : Defaults)
+			{
+				ConstraintPtrs.Add(&Instance);
+			}
+		}
+	}
+
+	if (ConstraintPtrs.IsEmpty()) { return; }
+
+	// Get transform and color
+	const FTransform ConnectorWorld = Connector->GetComponentTransform();
+	const FLinearColor BaseColor = bIsSelectedConnector
+		? Settings->ConstraintActiveColor
+		: (DetailLevel == EPCGExConstraintDetailLevel::Indicator
+			? Settings->ConstraintIndicatorColor
+			: Settings->ConstraintZoneColor);
+
+	// Dispatch to registered visualizers
+	const FConstraintVisualizerRegistry& Registry = FConstraintVisualizerRegistry::Get();
+
+	for (const FInstancedStruct* InstancePtr : ConstraintPtrs)
+	{
+		if (!InstancePtr || !InstancePtr->GetScriptStruct()) { continue; }
+
+		const FPCGExConnectorConstraint* Constraint = InstancePtr->GetPtr<FPCGExConnectorConstraint>();
+		if (!Constraint || !Constraint->bEnabled) { continue; }
+
+		IConstraintVisualizer* Visualizer = Registry.Find(InstancePtr->GetScriptStruct());
+		if (!Visualizer) { continue; }
+
+		switch (DetailLevel)
+		{
+		case EPCGExConstraintDetailLevel::Indicator:
+			Visualizer->DrawIndicator(PDI, ConnectorWorld, *Constraint, BaseColor);
+			break;
+		case EPCGExConstraintDetailLevel::Zone:
+			Visualizer->DrawZone(PDI, ConnectorWorld, *Constraint, BaseColor);
+			break;
+		case EPCGExConstraintDetailLevel::Detail:
+			Visualizer->DrawDetail(PDI, ConnectorWorld, *Constraint, BaseColor, bIsSelectedConnector);
+			break;
+		}
 	}
 }

@@ -17,6 +17,7 @@ class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
 class UPCGExValencyCageConnectorComponent;
 enum class EPCGExConnectorPolarity : uint8;
+enum class EPCGExConstraintDetailLevel : uint8;
 
 /**
  * Stateless helper class for Valency editor mode drawing operations.
@@ -112,6 +113,34 @@ public:
 	 * @param Color Draw color
 	 */
 	static void DrawConnectorShape(FPrimitiveDrawInterface* PDI, const FVector& Location, const FVector& Forward, const FVector& Right, const FVector& Up, EPCGExConnectorPolarity Polarity, float Size, float PinLength, const FLinearColor& Color, bool bSelected = false);
+
+	// ========== Constraint Visualization ==========
+
+	/**
+	 * Draw constraint indicators/zones for all connectors on a cage.
+	 * @param PDI Primitive draw interface
+	 * @param Cage The cage whose connector constraints to draw
+	 * @param DetailLevel Controls how much detail to render
+	 * @param SelectedConnector The currently selected connector (nullptr if none)
+	 */
+	static void DrawCageConstraints(
+		FPrimitiveDrawInterface* PDI,
+		const APCGExValencyCageBase* Cage,
+		EPCGExConstraintDetailLevel DetailLevel,
+		const UPCGExValencyCageConnectorComponent* SelectedConnector = nullptr);
+
+	/**
+	 * Draw constraints for a single connector at the given detail level.
+	 * @param PDI Primitive draw interface
+	 * @param Connector The connector component
+	 * @param DetailLevel Controls rendering detail
+	 * @param bIsSelectedConnector Whether this connector is currently selected
+	 */
+	static void DrawConnectorConstraints(
+		FPrimitiveDrawInterface* PDI,
+		const UPCGExValencyCageConnectorComponent* Connector,
+		EPCGExConstraintDetailLevel DetailLevel,
+		bool bIsSelectedConnector);
 
 	// ========== Low-Level Drawing Primitives ==========
 

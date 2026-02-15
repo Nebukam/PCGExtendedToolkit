@@ -14,6 +14,7 @@
 #include "ToolContextInterfaces.h"
 
 #include "Editor/UnrealEdEngine.h"
+#include "EditorMode/PCGExConstraintVisualizer.h"
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "Cages/PCGExValencyCageBase.h"
@@ -241,6 +242,53 @@ void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* Rende
 			if (APCGExValencyCageBase* Cage = CagePtr.Get())
 			{
 				FPCGExValencyDrawHelper::DrawCageConnectors(PDI, Cage);
+			}
+		}
+	}
+
+	// Draw constraint visualization
+	if (VisibilityFlags.bShowConstraints)
+	{
+		const UPCGExValencyCageConnectorComponent* SelectedConn = GetSelectedConnector();
+
+		// Determine which cages are selected for detail level decisions
+		TSet<const APCGExValencyCageBase*> SelectedCageSet;
+		if (GEditor)
+		{
+			USelection* Selection = GEditor->GetSelectedActors();
+			for (FSelectionIterator It(*Selection); It; ++It)
+			{
+				if (const APCGExValencyCageBase* SelectedCage = Cast<APCGExValencyCageBase>(*It))
+				{
+					SelectedCageSet.Add(SelectedCage);
+				}
+			}
+		}
+
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+		{
+			APCGExValencyCageBase* Cage = CagePtr.Get();
+			if (!Cage) { continue; }
+
+			const bool bCageSelected = SelectedCageSet.Contains(Cage);
+
+			if (SelectedConn && SelectedConn->GetOwner() == Cage)
+			{
+				// This cage has the selected connector — draw at Detail level
+				FPCGExValencyDrawHelper::DrawCageConstraints(
+					PDI, Cage, EPCGExConstraintDetailLevel::Detail, SelectedConn);
+			}
+			else if (bCageSelected)
+			{
+				// Cage selected but no connector — Zone level
+				FPCGExValencyDrawHelper::DrawCageConstraints(
+					PDI, Cage, EPCGExConstraintDetailLevel::Zone);
+			}
+			else
+			{
+				// Not selected — Indicator only
+				FPCGExValencyDrawHelper::DrawCageConstraints(
+					PDI, Cage, EPCGExConstraintDetailLevel::Indicator);
 			}
 		}
 	}

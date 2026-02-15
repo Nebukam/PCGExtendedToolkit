@@ -16,6 +16,7 @@
 #include "EditorMode/PCGExValencyDrawHelper.h"
 
 IMPLEMENT_HIT_PROXY(HPCGExConnectorHitProxy, HComponentVisProxy);
+IMPLEMENT_HIT_PROXY(HPCGExConstraintHandleHitProxy, HComponentVisProxy);
 
 #pragma region FPCGExValencyCageConnectorVisualizer
 

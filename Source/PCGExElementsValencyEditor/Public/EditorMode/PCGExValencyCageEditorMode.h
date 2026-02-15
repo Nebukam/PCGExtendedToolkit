@@ -34,6 +34,7 @@ struct FValencyVisibilityFlags
 	bool bShowVolumes = true;
 	bool bShowGhostMeshes = true;
 	bool bShowPatterns = true;
+	bool bShowConstraints = true;
 };
 
 /**

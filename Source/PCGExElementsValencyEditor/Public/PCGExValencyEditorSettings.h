@@ -214,6 +214,20 @@ public:
 	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
 	UMaterialInterface* GetGhostMaterial() const;
 
+	// ========== Connector Constraints ==========
+
+	/** Color for constraint zone wireframes (angular arcs, surface rects, volumes) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Constraints")
+	FLinearColor ConstraintZoneColor = FLinearColor(0.8f, 0.5f, 0.1f, 0.6f);
+
+	/** Color for active/selected constraint handles */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Constraints")
+	FLinearColor ConstraintActiveColor = FLinearColor(1.0f, 0.7f, 0.0f, 1.0f);
+
+	/** Color for constraint indicator dots */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Constraints")
+	FLinearColor ConstraintIndicatorColor = FLinearColor(0.8f, 0.5f, 0.1f, 1.0f);
+
 	// ========== Connector Visualizer ==========
 
 	/** Show connector component visualizers in the viewport */

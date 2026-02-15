@@ -10,6 +10,7 @@
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencySolverOperation.h"
+#include "Growth/PCGExConnectorConstraintResolver.h"
 #include "PCGExValencyGenerativeCommon.h"
 
 #include "PCGExValencyGrowthOperation.generated.h"
@@ -84,12 +85,25 @@ protected:
 		int32 ChildConnectorIndex) const;
 
 	/**
-	 * Try to place a module at a connector. Returns true if placed.
+	 * Try to place a module at a connector. Evaluates constraints to generate
+	 * candidate transforms and tries each until one fits or all are exhausted.
 	 */
 	bool TryPlaceModule(
 		const FPCGExOpenConnector& Connector,
 		int32 ModuleIndex,
 		int32 ChildConnectorIndex,
+		TArray<FPCGExPlacedModule>& OutPlaced,
+		TArray<FPCGExOpenConnector>& OutFrontier);
+
+	/**
+	 * Try to place a module at a specific pre-computed world transform.
+	 * Checks bounds overlap and creates the placement entry.
+	 */
+	bool TryPlaceModuleAt(
+		const FPCGExOpenConnector& Connector,
+		int32 ModuleIndex,
+		int32 ChildConnectorIndex,
+		const FTransform& WorldTransform,
 		TArray<FPCGExPlacedModule>& OutPlaced,
 		TArray<FPCGExOpenConnector>& OutFrontier);
 
@@ -116,6 +130,7 @@ protected:
 	FPCGExGrowthBudget* Budget = nullptr;
 	FRandomStream RandomStream;
 	PCGExValency::FDistributionTracker DistributionTracker;
+	FPCGExConstraintResolver ConstraintResolver;
 };
 
 /**

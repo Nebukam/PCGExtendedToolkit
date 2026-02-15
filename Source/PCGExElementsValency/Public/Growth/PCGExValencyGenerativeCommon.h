@@ -98,6 +98,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExGrowthBudget
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Budget")
 	bool bStopOnFirstFailure = false;
 
+	/** Maximum candidate transforms to attempt per connector (constraint budget) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Budget", meta = (ClampMin = "1", ClampMax = "64"))
+	int32 MaxCandidatesPerConnector = 16;
+
 	/** Runtime: current total placed count */
 	int32 CurrentTotal = 0;
 

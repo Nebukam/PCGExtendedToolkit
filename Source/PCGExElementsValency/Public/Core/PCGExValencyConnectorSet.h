@@ -85,10 +85,30 @@ namespace PCGExValencyConnector
 }
 
 /**
+ * Constraint role — determines how a constraint participates in the placement pipeline.
+ */
+UENUM(BlueprintType)
+enum class EPCGExConstraintRole : uint8
+{
+	Generator UMETA(DisplayName = "Generator", ToolTip = "Produces multiple transform variants from a base"),
+	Modifier  UMETA(DisplayName = "Modifier",  ToolTip = "Applies offset/jitter to each variant"),
+	Filter    UMETA(DisplayName = "Filter",    ToolTip = "Rejects invalid variants")
+};
+
+// Forward declaration
+struct FPCGExConstraintContext;
+
+/**
  * Base struct for connector constraints.
  * Subclass to define specific constraint types (angular range, surface offset, volume, etc.).
  * Constraints can be set as type-level defaults on FPCGExValencyConnectorEntry
  * and overridden per-instance on FPCGExValencyModuleConnector.
+ *
+ * Each constraint has a role (Generator/Modifier/Filter) that determines its place
+ * in the placement pipeline:
+ * 1. Generators produce N transform variants from a base transform
+ * 2. Modifiers apply offsets to each variant
+ * 3. Filters reject invalid variants
  */
 USTRUCT(BlueprintType)
 struct PCGEXELEMENTSVALENCY_API FPCGExConnectorConstraint
@@ -96,6 +116,40 @@ struct PCGEXELEMENTSVALENCY_API FPCGExConnectorConstraint
 	GENERATED_BODY()
 
 	virtual ~FPCGExConnectorConstraint() = default;
+
+	/** Whether this constraint is active */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Constraint")
+	bool bEnabled = true;
+
+	/** Get the role of this constraint in the placement pipeline */
+	virtual EPCGExConstraintRole GetRole() const { return EPCGExConstraintRole::Filter; }
+
+	/** Max number of variants this constraint can produce (generators only) */
+	virtual int32 GetMaxVariants() const { return 1; }
+
+	/** Generate transform variants from the base attachment transform (generators only) */
+	virtual void GenerateVariants(
+		const FPCGExConstraintContext& Context,
+		FRandomStream& Random,
+		TArray<FTransform>& OutVariants) const
+	{
+	}
+
+	/** Apply modification to a transform in-place (modifiers only) */
+	virtual void ApplyModification(
+		const FPCGExConstraintContext& Context,
+		FTransform& InOutTransform,
+		FRandomStream& Random) const
+	{
+	}
+
+	/** Check if a candidate transform is valid (filters only). Return false to reject. */
+	virtual bool IsValid(
+		const FPCGExConstraintContext& Context,
+		const FTransform& CandidateTransform) const
+	{
+		return true;
+	}
 };
 
 /**

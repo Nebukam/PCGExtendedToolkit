@@ -752,6 +752,109 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 		]
 	];
 
+	// Constraints section
+	{
+		// Get effective constraints for this connector type
+		UPCGExValencyConnectorSet* EffConnSet = nullptr;
+		if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
+		{
+			EffConnSet = OwnerCage->GetEffectiveConnectorSet();
+		}
+
+		int32 ConstraintCount = 0;
+		FString ConstraintSource;
+
+		if (EffConnSet)
+		{
+			const int32 TypeIdx = EffConnSet->FindConnectorTypeIndex(Connector->ConnectorType);
+			if (EffConnSet->ConnectorTypes.IsValidIndex(TypeIdx))
+			{
+				const TArray<FInstancedStruct>& Defaults = EffConnSet->ConnectorTypes[TypeIdx].DefaultConstraints;
+				ConstraintCount = Defaults.Num();
+				ConstraintSource = ConstraintCount > 0 ? TEXT("Default") : TEXT("None");
+
+				if (ConstraintCount > 0)
+				{
+					Content->AddSlot().AutoHeight().Padding(0, 6, 0, 2)
+					[
+						MakeSectionHeader(NSLOCTEXT("PCGExValency", "ConstraintsHeader", "Constraints"))
+					];
+
+					for (int32 i = 0; i < Defaults.Num(); ++i)
+					{
+						const FInstancedStruct& Instance = Defaults[i];
+						if (!Instance.GetScriptStruct()) { continue; }
+
+						const FPCGExConnectorConstraint* Constraint = Instance.GetPtr<FPCGExConnectorConstraint>();
+						const FString TypeName = Instance.GetScriptStruct()->GetDisplayNameText().ToString();
+						const bool bIsEnabled = Constraint && Constraint->bEnabled;
+
+						FString RoleStr;
+						if (Constraint)
+						{
+							switch (Constraint->GetRole())
+							{
+							case EPCGExConstraintRole::Generator: RoleStr = TEXT("Gen"); break;
+							case EPCGExConstraintRole::Modifier: RoleStr = TEXT("Mod"); break;
+							case EPCGExConstraintRole::Filter: RoleStr = TEXT("Flt"); break;
+							}
+						}
+
+						Content->AddSlot().AutoHeight().Padding(8, 1)
+						[
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.VAlign(VAlign_Center)
+							.Padding(0, 0, 4, 0)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromString(FString::Printf(TEXT("[%s]"), *RoleStr)))
+								.Font(FCoreStyle::GetDefaultFontStyle("Bold", 7))
+								.ColorAndOpacity(FSlateColor(FLinearColor(0.8f, 0.5f, 0.1f)))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							.VAlign(VAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromString(TypeName))
+								.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+								.ColorAndOpacity(FSlateColor(bIsEnabled ? FLinearColor::White : FLinearColor(0.5f, 0.5f, 0.5f)))
+							]
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.VAlign(VAlign_Center)
+							.Padding(4, 0, 0, 0)
+							[
+								SNew(STextBlock)
+								.Text(NSLOCTEXT("PCGExValency", "ConstraintDefaultBadge", "[Default]"))
+								.Font(FCoreStyle::GetDefaultFontStyle("Italic", 7))
+								.ColorAndOpacity(FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f, 0.7f)))
+							]
+						];
+					}
+				}
+			}
+		}
+
+		if (ConstraintCount == 0)
+		{
+			Content->AddSlot().AutoHeight().Padding(0, 6, 0, 2)
+			[
+				MakeSectionHeader(NSLOCTEXT("PCGExValency", "ConstraintsHeaderEmpty", "Constraints"))
+			];
+
+			Content->AddSlot().AutoHeight().Padding(8, 1)
+			[
+				SNew(STextBlock)
+				.Text(NSLOCTEXT("PCGExValency", "NoConstraints", "No constraints defined"))
+				.Font(FCoreStyle::GetDefaultFontStyle("Italic", 8))
+				.ColorAndOpacity(FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f)))
+			];
+		}
+	}
+
 	// Action buttons
 	Content->AddSlot().AutoHeight().Padding(0, 4, 0, 0)
 	[

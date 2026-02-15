@@ -18,6 +18,7 @@ void FPCGExValencyGrowthOperation::Initialize(
 	Budget = &InBudget;
 	RandomStream.Initialize(InSeed);
 	DistributionTracker.Initialize(CompiledRules);
+	ConstraintResolver.MaxCandidates = InBudget.MaxCandidatesPerConnector;
 }
 
 void FPCGExValencyGrowthOperation::Grow(TArray<FPCGExPlacedModule>& OutPlaced)
@@ -189,9 +190,68 @@ bool FPCGExValencyGrowthOperation::TryPlaceModule(
 	TArray<FPCGExPlacedModule>& OutPlaced,
 	TArray<FPCGExOpenConnector>& OutFrontier)
 {
-	// Compute attachment transform
-	const FTransform WorldTransform = ComputeAttachmentTransform(Connector, ModuleIndex, ChildConnectorIndex);
+	// Collect effective constraints from both parent and child sides
+	const TConstArrayView<FPCGExValencyModuleConnector> ParentConnectors =
+		CompiledRules->GetModuleConnectors(OutPlaced[Connector.PlacedModuleIndex].ModuleIndex);
+	const FPCGExValencyModuleConnector& ParentModuleConnector = ParentConnectors[Connector.ConnectorIndex];
 
+	const TConstArrayView<FPCGExValencyModuleConnector> ChildConnectors =
+		CompiledRules->GetModuleConnectors(ModuleIndex);
+	const FPCGExValencyModuleConnector& ChildModuleConnector = ChildConnectors[ChildConnectorIndex];
+
+	const TArray<FInstancedStruct>& ParentConstraints = ParentModuleConnector.GetEffectiveConstraints(ConnectorSet);
+	const TArray<FInstancedStruct>& ChildConstraints = ChildModuleConnector.GetEffectiveConstraints(ConnectorSet);
+
+	// Fast path: no constraints on either side -> single transform (current behavior, zero overhead)
+	if (ParentConstraints.IsEmpty() && ChildConstraints.IsEmpty())
+	{
+		const FTransform WorldTransform = ComputeAttachmentTransform(Connector, ModuleIndex, ChildConnectorIndex);
+		return TryPlaceModuleAt(Connector, ModuleIndex, ChildConnectorIndex, WorldTransform, OutPlaced, OutFrontier);
+	}
+
+	// Merge constraints (parent wins on type collision)
+	TArray<FInstancedStruct> Merged;
+	FPCGExConstraintResolver::MergeConstraints(ParentConstraints, ChildConstraints, Merged);
+
+	// Build context
+	const FTransform BaseTransform = ComputeAttachmentTransform(Connector, ModuleIndex, ChildConnectorIndex);
+
+	FPCGExConstraintContext ConstraintContext;
+	ConstraintContext.ParentConnectorWorld = Connector.WorldTransform;
+	ConstraintContext.BaseAttachment = BaseTransform;
+	ConstraintContext.ChildConnectorLocal = ChildModuleConnector.GetEffectiveOffset(ConnectorSet);
+	ConstraintContext.OpenConnector = &Connector;
+	ConstraintContext.ChildModuleIndex = ModuleIndex;
+	ConstraintContext.ChildConnectorIndex = ChildConnectorIndex;
+
+	// Seed deterministic random for this specific connector evaluation
+	FRandomStream ConstraintRandom(
+		RandomStream.GetCurrentSeed() ^ (static_cast<uint32>(Budget->CurrentTotal) << 16) ^ static_cast<uint32>(Connector.ConnectorIndex));
+
+	// Resolve candidates through the constraint pipeline
+	TArray<FTransform> Candidates;
+	ConstraintResolver.Resolve(ConstraintContext, Merged, ConstraintRandom, Candidates);
+
+	// Try each candidate until one fits
+	for (const FTransform& CandidateTransform : Candidates)
+	{
+		if (TryPlaceModuleAt(Connector, ModuleIndex, ChildConnectorIndex, CandidateTransform, OutPlaced, OutFrontier))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool FPCGExValencyGrowthOperation::TryPlaceModuleAt(
+	const FPCGExOpenConnector& Connector,
+	int32 ModuleIndex,
+	int32 ChildConnectorIndex,
+	const FTransform& WorldTransform,
+	TArray<FPCGExPlacedModule>& OutPlaced,
+	TArray<FPCGExOpenConnector>& OutFrontier)
+{
 	// Compute world bounds
 	const FBox WorldBounds = ComputeWorldBounds(ModuleIndex, WorldTransform);
 

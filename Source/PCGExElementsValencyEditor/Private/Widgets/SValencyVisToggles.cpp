@@ -92,6 +92,14 @@ void SValencyVisToggles::Construct(const FArguments& InArgs)
 					NSLOCTEXT("PCGExValency", "TogglePatternsTip", "Show pattern bounds and proxy lines"),
 					&Flags.bShowPatterns)
 			]
+			+ SWrapBox::Slot()
+			.Padding(2)
+			[
+				MakeToggleButton(
+					NSLOCTEXT("PCGExValency", "ToggleConstraints", "Constraints"),
+					NSLOCTEXT("PCGExValency", "ToggleConstraintsTip", "Show connector constraint zones and indicators"),
+					&Flags.bShowConstraints)
+			]
 		]
 	];
 }

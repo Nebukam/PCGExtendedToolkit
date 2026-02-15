@@ -22,6 +22,36 @@ struct HPCGExConnectorHitProxy : public HComponentVisProxy
 };
 
 /**
+ * Hit proxy for constraint viewport handles.
+ * Identifies which constraint and handle index was clicked.
+ */
+struct HPCGExConstraintHandleHitProxy : public HComponentVisProxy
+{
+	DECLARE_HIT_PROXY();
+
+	/** Which constraint type this handle belongs to */
+	const UScriptStruct* ConstraintType = nullptr;
+
+	/** Index of the constraint in the connector's constraints array */
+	int32 ConstraintIndex = -1;
+
+	/** Which handle on this constraint was clicked */
+	int32 HandleIndex = -1;
+
+	HPCGExConstraintHandleHitProxy(
+		const UActorComponent* InComponent,
+		const UScriptStruct* InType,
+		int32 InConstraintIdx,
+		int32 InHandleIdx)
+		: HComponentVisProxy(InComponent, HPP_Wireframe)
+		, ConstraintType(InType)
+		, ConstraintIndex(InConstraintIdx)
+		, HandleIndex(InHandleIdx)
+	{
+	}
+};
+
+/**
  * Component visualizer for UPCGExValencyCageConnectorComponent.
  * Draws polarity shapes at connector positions. Delegates to FPCGExValencyDrawHelper for rendering.
  */
