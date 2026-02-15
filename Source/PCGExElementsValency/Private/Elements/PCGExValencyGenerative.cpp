@@ -36,6 +36,7 @@ TArray<FPCGPinProperties> UPCGExValencyGenerativeSettings::OutputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
+	PCGEX_PIN_PARAMS(PCGExValency::Labels::OutputValencyMapLabel, "Valency map for resolving ValencyEntry hashes", Required)
 	return PinProperties;
 }
 
@@ -135,8 +136,9 @@ bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
 	Context->GrowthFactory = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencyGrowthFactory, Settings->GrowthStrategy, NAME_None);
 	if (!Context->GrowthFactory) { return false; }
 
-	// Create pick packer
+	// Create pick packer and valency packer
 	Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
+	Context->ValencyPacker = MakeShared<PCGExValency::FValencyPacker>(Context);
 
 	// Get collections
 	Context->MeshCollection = Context->BondingRules->GetMeshCollection();
@@ -244,12 +246,20 @@ bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const
 	Context->MainBatch->Output();
 
 	// Output collection map
-	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
-	Context->PickPacker->PackToDataset(ParamData);
+	UPCGParamData* CollectionParamData = Context->ManagedObjects->New<UPCGParamData>();
+	Context->PickPacker->PackToDataset(CollectionParamData);
 
-	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
-	OutData.Pin = PCGExCollections::Labels::OutputCollectionMapLabel;
-	OutData.Data = ParamData;
+	FPCGTaggedData& CollectionOutData = Context->OutputData.TaggedData.Emplace_GetRef();
+	CollectionOutData.Pin = PCGExCollections::Labels::OutputCollectionMapLabel;
+	CollectionOutData.Data = CollectionParamData;
+
+	// Output valency map
+	UPCGParamData* ValencyParamData = Context->ManagedObjects->New<UPCGParamData>();
+	Context->ValencyPacker->PackToDataset(ValencyParamData);
+
+	FPCGTaggedData& ValencyOutData = Context->OutputData.TaggedData.Emplace_GetRef();
+	ValencyOutData.Pin = PCGExValency::Labels::OutputValencyMapLabel;
+	ValencyOutData.Data = ValencyParamData;
 
 	return Context->TryComplete();
 }
@@ -431,6 +441,11 @@ namespace PCGExValencyGenerative
 
 		// Create attribute writers
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, PCGExData::EBufferInit::Inherit);
+
+		// Create ValencyEntry writer for Valency Map pipeline
+		const FName ValencyEntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter = OutputFacade->GetWritable<int64>(ValencyEntryAttrName, 0, true, PCGExData::EBufferInit::Inherit);
+
 		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> DepthWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> SeedIndexWriter;
@@ -535,6 +550,14 @@ namespace PCGExValencyGenerative
 					OutBoundsMin[PlacedIdx] = OutBounds.Min;
 					OutBoundsMax[PlacedIdx] = OutBounds.Max;
 				}
+			}
+
+			// Write ValencyEntry hash for Valency Map pipeline
+			if (ValencyEntryWriter && Context->ValencyPacker)
+			{
+				const uint64 ValencyHash = Context->ValencyPacker->GetEntryIdx(
+					Context->BondingRules, static_cast<uint16>(ModuleIdx));
+				ValencyEntryWriter->SetValue(PlacedIdx, static_cast<int64>(ValencyHash));
 			}
 
 			// Write module name

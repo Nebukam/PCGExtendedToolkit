@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencyPattern.h"
+#include "Core/PCGExValencyMap.h"
 #include "Core/PCGExPatternMatcherOperation.h"
 
 #include "PCGExValencyPatternReplacement.generated.h"
@@ -52,6 +53,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FName PatternMatchIndexAttributeName = FName("PatternMatchIndex");
 
+	/** Suffix for the ValencyEntry attribute to read/write (e.g. "Main" -> "PCGEx/V/Entry/Main") */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FName EntrySuffix = FName("Main");
+
 	/** Suppress warnings about no patterns in bonding rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietNoPatterns = false;
@@ -74,6 +79,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementContext final : F
 
 	/** Registered matcher factory (from Settings) */
 	TObjectPtr<const UPCGExPatternMatcherFactory> MatcherFactory;
+
+	/** Valency unpacker for resolving ValencyEntry hashes */
+	TSharedPtr<PCGExValency::FValencyUnpacker> ValencyUnpacker;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -101,6 +109,10 @@ namespace PCGExValencyPatternReplacement
 		/** Module data reader/writer (packed int64 from Staging output) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
+
+		/** ValencyEntry reader/writer (for propagating flags to downstream nodes) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Matcher operation (created from factory) */
 		TSharedPtr<FPCGExPatternMatcherOperation> MatcherOperation;
@@ -156,6 +168,10 @@ namespace PCGExValencyPatternReplacement
 		/** Module data reader/writer (packed int64, owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
+
+		/** ValencyEntry reader/writer (for flag propagation, owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Pattern name writer (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;

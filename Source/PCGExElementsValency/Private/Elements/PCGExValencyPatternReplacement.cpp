@@ -3,6 +3,7 @@
 
 #include "Elements/PCGExValencyPatternReplacement.h"
 
+#include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
@@ -16,6 +17,7 @@
 TArray<FPCGPinProperties> UPCGExValencyPatternReplacementSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceValencyMapLabel, "Valency map from Solve or Generative nodes.", Required)
 	return PinProperties;
 }
 
@@ -65,6 +67,15 @@ bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) 
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
+
+	// Create and unpack Valency Map
+	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
+	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
+
+	if (!Context->ValencyUnpacker->HasValidMapping())
+	{
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not rebuild Valency Map. Flag propagation to ValencyEntry will be skipped."));
+	}
 
 	// Get compiled data
 	if (!Context->BondingRules->IsCompiled())
@@ -445,6 +456,58 @@ namespace PCGExValencyPatternReplacement
 			}
 		}
 
+		// Propagate flags to ValencyEntry attribute (for downstream Valency : Staging / Write Properties)
+		if (ValencyEntryReader && ValencyEntryWriter)
+		{
+			// Annotated flag
+			for (const int32 NodeIdx : AnnotatedNodes)
+			{
+				const int32 PointIdx = GetPointIdx(NodeIdx);
+				if (PointIdx < 0) { continue; }
+				int64 EntryHash = ValencyEntryReader->Read(PointIdx);
+				if (EntryHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+				EntryHash = PCGExValency::EntryData::SetFlag(static_cast<uint64>(EntryHash), PCGExValency::EntryData::Flags::Annotated);
+				ValencyEntryWriter->SetValue(PointIdx, static_cast<int64>(EntryHash));
+			}
+
+			// Consumed flag (for removed nodes)
+			for (const int32 NodeIdx : NodesToRemove)
+			{
+				const int32 PointIdx = GetPointIdx(NodeIdx);
+				if (PointIdx < 0) { continue; }
+				int64 EntryHash = ValencyEntryWriter->GetValue(PointIdx);
+				if (EntryHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+				EntryHash = PCGExValency::EntryData::SetFlag(static_cast<uint64>(EntryHash), PCGExValency::EntryData::Flags::Consumed);
+				ValencyEntryWriter->SetValue(PointIdx, static_cast<int64>(EntryHash));
+			}
+
+			// Collapsed flag (for kept collapse nodes)
+			for (const auto& Pair : CollapseReplacements)
+			{
+				const int32 PointIdx = GetPointIdx(Pair.Key);
+				if (PointIdx < 0) { continue; }
+				int64 EntryHash = ValencyEntryWriter->GetValue(PointIdx);
+				if (EntryHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+				EntryHash = PCGExValency::EntryData::SetFlag(static_cast<uint64>(EntryHash), PCGExValency::EntryData::Flags::Collapsed);
+				ValencyEntryWriter->SetValue(PointIdx, static_cast<int64>(EntryHash));
+			}
+
+			// Swapped flag + updated module index (for swap targets)
+			for (const auto& Pair : SwapTargets)
+			{
+				const int32 PointIdx = GetPointIdx(Pair.Key);
+				if (PointIdx < 0) { continue; }
+				int64 EntryHash = ValencyEntryWriter->GetValue(PointIdx);
+				if (EntryHash == PCGExValency::EntryData::INVALID_ENTRY) { continue; }
+				// Reconstruct hash with new module index and updated flags
+				const uint32 BondingRulesMapId = PCGExValency::EntryData::GetBondingRulesMapId(static_cast<uint64>(EntryHash));
+				uint16 ExistingFlags = PCGExValency::EntryData::GetPatternFlags(static_cast<uint64>(EntryHash));
+				ExistingFlags |= PCGExValency::EntryData::Flags::Swapped;
+				EntryHash = static_cast<int64>(PCGExValency::EntryData::Pack(BondingRulesMapId, static_cast<uint16>(Pair.Value), ExistingFlags));
+				ValencyEntryWriter->SetValue(PointIdx, EntryHash);
+			}
+		}
+
 		// Mark nodes for removal (actual removal happens in batch Write via point filtering)
 		// The NodesToRemove set is used by the batch to filter points
 	}
@@ -469,6 +532,13 @@ namespace PCGExValencyPatternReplacement
 		if (Context && Context->OrbitalSet)
 		{
 			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetModuleIdxAttributeName());
+		}
+
+		// Register ValencyEntry attribute for flag propagation
+		if (const UPCGExValencyPatternReplacementSettings* TypedSettings = Context ? Context->GetInputSettings<UPCGExValencyPatternReplacementSettings>() : nullptr)
+		{
+			const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(TypedSettings->EntrySuffix);
+			FacadePreloader.Register<int64>(ExecutionContext, EntryAttrName);
 		}
 
 		// Register buffer dependencies from matcher factory
@@ -503,6 +573,14 @@ namespace PCGExValencyPatternReplacement
 			}
 		}
 
+		// Create ValencyEntry reader/writer for flag propagation
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
+		if (ValencyEntryReader)
+		{
+			ValencyEntryWriter = VtxDataFacade->GetWritable<int64>(EntryAttrName, 0, true, PCGExData::EBufferInit::Inherit);
+		}
+
 		// Create pattern name writer
 		PatternNameWriter = VtxDataFacade->GetWritable<FName>(Settings->PatternNameAttributeName, FName(NAME_None), true, PCGExData::EBufferInit::New);
 
@@ -525,6 +603,8 @@ namespace PCGExValencyPatternReplacement
 		FProcessor* Processor = static_cast<FProcessor*>(InProcessor.Get());
 		Processor->ModuleDataReader = ModuleDataReader;
 		Processor->ModuleDataWriter = ModuleDataWriter;
+		Processor->ValencyEntryReader = ValencyEntryReader;
+		Processor->ValencyEntryWriter = ValencyEntryWriter;
 		Processor->PatternNameWriter = PatternNameWriter;
 		Processor->PatternMatchIndexWriter = PatternMatchIndexWriter;
 		Processor->MatcherAllocations = MatcherAllocations;

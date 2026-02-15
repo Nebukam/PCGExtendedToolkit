@@ -3,16 +3,11 @@
 
 #include "Elements/PCGExValencyStaging.h"
 
-#include "PCGExProperty.h"
 #include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
-#include "Helpers/PCGExCollectionsHelpers.h"
-#include "PCGExCollectionsCommon.h"
-#include "Collections/PCGExActorCollection.h"
-#include "Collections/PCGExMeshCollection.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Solvers/PCGExValencyEntropySolver.h"
 #include "Core/PCGExValencyLog.h"
@@ -29,47 +24,6 @@ void UPCGExValencyStagingSettings::PostInitProperties()
 	Super::PostInitProperties();
 }
 
-#if WITH_EDITOR
-void UPCGExValencyStagingSettings::ImportBondingRulesPropertyOutputConfigs()
-{
-	// Load bonding rules if not already loaded
-	UPCGExValencyBondingRules* LoadedRules = BondingRules.LoadSynchronous();
-	if (!LoadedRules)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: No Bonding Rules set."));
-		return;
-	}
-
-	// Compile if needed
-	if (!LoadedRules->IsCompiled())
-	{
-		if (!LoadedRules->Compile())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: Failed to compile Bonding Rules."));
-			return;
-		}
-	}
-
-	const FPCGExValencyBondingRulesCompiled* CompiledRules = LoadedRules->GetCompiledData();
-	if (!CompiledRules)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: No compiled data available."));
-		return;
-	}
-
-	const int32 AddedCount = PropertiesOutput.AutoPopulateFromRules(CompiledRules);
-
-	if (AddedCount > 0)
-	{
-		UE_LOG(LogTemp, Log, TEXT("AutoPopulatePropertyOutputConfigs: Added %d property output configs."), AddedCount);
-		Modify();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("AutoPopulatePropertyOutputConfigs: No new properties found to add."));
-	}
-}
-#endif
 
 TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() const
 {
@@ -82,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExValencyStagingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
+	PCGEX_PIN_PARAMS(PCGExValency::Labels::OutputValencyMapLabel, "Valency map for resolving ValencyEntry hashes", Required)
 	return PinProperties;
 }
 
@@ -150,14 +104,8 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);
 	if (!Context->Solver) { return false; }
 
-	// Create pick packer for CollectionMap mode
-	Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
-
-	Context->MeshCollection = Context->BondingRules->GetMeshCollection();
-	if (Context->MeshCollection) { Context->MeshCollection->BuildCache(); }
-
-	Context->ActorCollection = Context->BondingRules->GetActorCollection();
-	if (Context->ActorCollection) { Context->ActorCollection->BuildCache(); }
+	// Create valency packer for ValencyEntry hash writing
+	Context->ValencyPacker = MakeShared<PCGExValency::FValencyPacker>(Context);
 
 	// Get fixed pick filter factories if enabled (optional - empty array is valid)
 	if (Settings->bEnableFixedPicks)
@@ -193,10 +141,10 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	Context->OutputPointsAndEdges();
 
-	// Output collection map 
+	// Output valency map
 	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
-	Context->PickPacker->PackToDataset(ParamData);
-	Context->StageOutput(ParamData, PCGExCollections::Labels::OutputCollectionMapLabel, PCGExData::EStaging::None);
+	Context->ValencyPacker->PackToDataset(ParamData);
+	Context->StageOutput(ParamData, PCGExValency::Labels::OutputValencyMapLabel, PCGExData::EStaging::None);
 
 	return Context->TryComplete();
 }
@@ -241,11 +189,6 @@ namespace PCGExValencyStaging
 			return false;
 		}
 
-		FittingHandler.ScaleToFit = Settings->ScaleToFit;
-		FittingHandler.Justification = Settings->Justification;
-
-		if (!FittingHandler.Init(ExecutionContext, VtxDataFacade)) { return false; }
-
 		// Process valency states in parallel
 		StartParallelLoopForRange(ValencyStates.Num());
 
@@ -254,22 +197,14 @@ namespace PCGExValencyStaging
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->GetCompiledData();
-
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
-
-		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
-		TPCGValueRange<FVector> OutBoundsMin = VtxDataFacade->GetOut()->GetBoundsMinValueRange(false);
-		TPCGValueRange<FVector> OutBoundsMax = VtxDataFacade->GetOut()->GetBoundsMaxValueRange(false);
-		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const PCGExValency::FValencyState& State = ValencyStates[Index];
-			const PCGExClusters::FNode& Node = Nodes[State.NodeIndex];
-			const int32 PointIndex = Node.PointIndex;
+			const int32 PointIndex = Nodes[State.NodeIndex].PointIndex;
 
-			// Write packed module data (module index + flags)
+			// Write packed module data (module index + flags) for pattern replacement
 			if (ModuleDataWriter)
 			{
 				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
@@ -279,91 +214,22 @@ namespace PCGExValencyStaging
 			if (State.ResolvedModule >= 0)
 			{
 				FPlatformAtomics::InterlockedIncrement(&ResolvedCount);
-				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
-				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
 
-				// Write module name if enabled
-				if (ModuleNameWriter)
+				// Write ValencyEntry hash (encodes BondingRules identity + module index)
+				if (ValencyEntryWriter && Context->ValencyPacker)
 				{
-					ModuleNameWriter->SetValue(PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
-				}
-
-				// Write cage property outputs via helper
-				if (PropertyWriter)
-				{
-					PropertyWriter->WriteModuleProperties(PointIndex, State.ResolvedModule);
-				}
-
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)", State.NodeIndex, PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
-
-				if (EntryHashWriter && Context->PickPacker)
-				{
-					// Get the appropriate collection and entry index based on asset type
-					const UPCGExAssetCollection* Collection = nullptr;
-					FPCGExEntryAccessResult Result{};
-
-					int32 EntryIndex = -1;
-					int16 SecondaryIndex = -1;
-
-					FTransform& OutTransform = OutTransforms[PointIndex];
-
-					if (AssetType == EPCGExValencyAssetType::Mesh)
-					{
-						Collection = Context->MeshCollection;
-						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
-						Result = Collection->GetEntryRaw(EntryIndex);
-
-						if (Result.IsValid())
-						{
-							if (const PCGExAssetCollection::FMicroCache* MicroCache = Result.Entry->MicroCache.Get())
-							{
-								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[PointIndex]);
-							}
-						}
-					}
-					else if (AssetType == EPCGExValencyAssetType::Actor)
-					{
-						Collection = Context->ActorCollection;
-						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
-						Result = Collection->GetEntryRaw(EntryIndex);
-					}
-
-					if (Collection && Result.IsValid())
-					{
-						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
-						EntryHashWriter->SetValue(PointIndex, static_cast<int64>(Hash));
-
-						// Apply fitting
-						FBox OutBounds = Result.Entry->Staging.Bounds;
-						FVector Translation = FVector::ZeroVector;
-						FittingHandler.ComputeTransform(PointIndex, OutTransform, OutBounds, Translation);						
-						OutBoundsMin[Index] = OutBounds.Min;
-						OutBoundsMax[Index] = OutBounds.Max;
-						
-						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)", Hash, EntryIndex, SecondaryIndex);
-					}
-					else
-					{
-						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)", Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
-					}
-					
-					// Apply local transform if enabled (uses point seed to select among variants)
-					if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
-					{
-						const FTransform LocalTransform = CompiledBondingRules->GetModuleLocalTransform(State.ResolvedModule, InSeeds[PointIndex]);
-						OutTransform = LocalTransform * OutTransform;
-					}
+					const uint64 Hash = Context->ValencyPacker->GetEntryIdx(
+						Context->BondingRules, static_cast<uint16>(State.ResolvedModule));
+					ValencyEntryWriter->SetValue(PointIndex, static_cast<int64>(Hash));
 				}
 			}
 			else if (State.IsUnsolvable())
 			{
 				FPlatformAtomics::InterlockedIncrement(&UnsolvableCount);
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, PointIndex);
 			}
 			else if (State.IsBoundary())
 			{
 				FPlatformAtomics::InterlockedIncrement(&BoundaryCount);
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, PointIndex);
 			}
 
 			// Write unsolvable marker
@@ -729,15 +595,6 @@ namespace PCGExValencyStaging
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
 
-		EPCGPointNativeProperties PointAllocations = EPCGPointNativeProperties::Transform;
-
-		//if (Settings->ScaleToFit.IsEnabled()){
-		PointAllocations |= EPCGPointNativeProperties::BoundsMin;
-		PointAllocations |= EPCGPointNativeProperties::BoundsMax;
-		//}
-
-		VtxDataFacade->GetOut()->AllocateProperties(PointAllocations);
-
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 
 		// Create solver allocations (buffers are now preloaded)
@@ -746,8 +603,6 @@ namespace PCGExValencyStaging
 			SolverAllocations = Context->Solver->CreateAllocations(VtxDataFacade);
 		}
 
-		// Create staging-specific writers BEFORE calling base (base triggers PrepareSingle which forwards these)
-		// Module index attribute name comes from OrbitalSet (PCGEx/V/MIdx/{LayerName})
 		// Create Module data writer (int64: module index in low bits, pattern flags in high bits)
 		// Only create if BondingRules has patterns defined
 		if (Context->BondingRules && Context->BondingRules->IsCompiled() && Context->BondingRules->CompiledData.CompiledPatterns.HasPatterns())
@@ -756,28 +611,13 @@ namespace PCGExValencyStaging
 			ModuleDataWriter = OutputFacade->GetWritable<int64>(Context->OrbitalSet->GetModuleIdxAttributeName(), DefaultValue, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		// Write collection entry hash for downstream spawners
-		EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, PCGExData::EBufferInit::Inherit);
+		// Write ValencyEntry hash for downstream nodes
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		ValencyEntryWriter = OutputFacade->GetWritable<int64>(EntryAttrName, 0, true, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->bOutputUnsolvableMarker)
 		{
 			UnsolvableWriter = OutputFacade->GetWritable<bool>(Settings->UnsolvableAttributeName, false, true, PCGExData::EBufferInit::Inherit);
-		}
-
-		if (Settings->bOutputModuleName)
-		{
-			ModuleNameWriter = OutputFacade->GetWritable<FName>(Settings->ModuleNameAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
-		}
-
-		// Initialize property writer
-		if (Context->BondingRules && Context->BondingRules->IsCompiled())
-		{
-			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>();
-			PropertyWriter->Initialize(
-				Context->BondingRules,
-				Context->BondingRules->GetCompiledData(),
-				VtxDataFacade,
-				Settings->PropertiesOutput);
 		}
 
 		// Get fixed pick reader and create filter cache if enabled
@@ -814,10 +654,7 @@ namespace PCGExValencyStaging
 		// Forward staging-specific writers to processor
 		TypedProcessor->ModuleDataWriter = ModuleDataWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
-		TypedProcessor->EntryHashWriter = EntryHashWriter;
-		TypedProcessor->ModuleNameWriter = ModuleNameWriter;
-
-		// Note: PropertyWriter is forwarded by base class in TBatch::PrepareSingle
+		TypedProcessor->ValencyEntryWriter = ValencyEntryWriter;
 
 		// Forward fixed pick reader, filter cache, and factories to processor
 		TypedProcessor->FixedPickReader = FixedPickReader;

@@ -9,6 +9,7 @@
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyPropertyWriter.h"
+#include "Core/PCGExValencyMap.h"
 #include "Growth/PCGExValencyGenerativeCommon.h"
 #include "Growth/PCGExValencyGrowthOperation.h"
 #include "Fitting/PCGExFitting.h"
@@ -68,6 +69,10 @@ public:
 	/** Global bounds padding in world units (cm). Positive = gap between modules. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	float BoundsInflation = 0.0f;
+
+	/** Suffix for the ValencyEntry attribute name (e.g. "Main" -> "PCGEx/V/Entry/Main") */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FName EntrySuffix = FName("Main");
 
 	/** If enabled, applies module's local transform offset to output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
@@ -137,6 +142,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeContext final : FPCGExPoi
 
 	/** Pick packer for collection entry hash writing */
 	TSharedPtr<PCGExCollections::FPickPacker> PickPacker;
+
+	/** Valency packer for ValencyEntry hash writing */
+	TSharedPtr<PCGExValency::FValencyPacker> ValencyPacker;
 
 	UPCGExMeshCollection* MeshCollection = nullptr;
 	UPCGExActorCollection* ActorCollection = nullptr;

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencyConnectorSet.h"
+#include "Core/PCGExValencyMap.h"
 #include "Data/PCGExPointIO.h"
 
 #include "PCGExWriteModuleConnectors.generated.h"
@@ -33,6 +34,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -52,12 +54,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
-	/**
-	 * Attribute name for the module data (from staging output).
-	 * Default matches the output from ValencyStaging with layer "Main".
-	 */
+	/** Suffix for the ValencyEntry attribute to read (e.g. "Main" -> "PCGEx/V/Entry/Main") */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName ModuleDataAttributeName = FName("PCGEx/V/Module/Main");
+	FName EntrySuffix = FName("Main");
 
 	/**
 	 * Attribute name for the packed connector reference output.
@@ -104,6 +103,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsContext final : FPCGE
 
 	virtual void RegisterAssetDependencies() override;
 
+	/** Valency unpacker for resolving ValencyEntry hashes */
+	TSharedPtr<PCGExValency::FValencyUnpacker> ValencyUnpacker;
+
 	/** Connector set (for type -> index mapping) */
 	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
@@ -132,8 +134,8 @@ namespace PCGExWriteModuleConnectors
 		friend class FBatch;
 
 	protected:
-		/** Module data reader (from staging output) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		/** ValencyEntry reader (from Solve output, via Valency Map) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
 
 		/** Output connector points (local collection, merged into context output) */
 		TSharedPtr<PCGExData::FPointIO> ConnectorOutput;
@@ -156,8 +158,8 @@ namespace PCGExWriteModuleConnectors
 
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
-		/** Module data reader (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		/** ValencyEntry reader (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);

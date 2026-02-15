@@ -6,18 +6,12 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencySolverOperation.h"
-#include "Core/PCGExValencyPropertyWriter.h"
+#include "Core/PCGExValencyMap.h"
 #include "Core/PCGExClusterFilter.h"
-#include "Elements/PCGExAssetStaging.h"
 
 #include "PCGExValencyStaging.generated.h"
 
 class UPCGExValencySolverInstancedFactory;
-
-namespace PCGExCollections
-{
-	class FPickPacker;
-}
 
 /**
  * Selection mode when multiple modules match a fixed pick name.
@@ -56,7 +50,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Staging", "WFC-like asset staging on cluster vertices using orbital-based compatibility rules.");
+	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Solve", "WFC-like solver for cluster vertices using orbital-based compatibility rules.");
 
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
@@ -95,32 +89,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneUnsolvable = false;
 
-	/** If enabled, output the resolved module name as an attribute */
+	/** Suffix for the ValencyEntry attribute name (e.g. "Main" -> "PCGEx/V/Entry/Main") */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bOutputModuleName = false;
-
-	/** Attribute name for the resolved module name */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputModuleName"))
-	FName ModuleNameAttributeName = FName("ModuleName");
-
-	/** If enabled, applies the module's local transform offset to the point's transform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bApplyLocalTransforms = true;
-
-	// ========== Property Output ==========
-
-	/** Properties output configuration (cage properties and module tags) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	FPCGExValencyPropertyOutputSettings PropertiesOutput;
-
-#if WITH_EDITOR
-	/**
-	 * Auto-populate property output configs from bonding rules.
-	 * Scans all modules in the bonding rules and adds configs for each unique property.
-	 */
-	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Import Bonding Rules Properties"))
-	void ImportBondingRulesPropertyOutputConfigs();
-#endif
+	FName EntrySuffix = FName("Main");
 
 	// ========== Fixed Picks ==========
 
@@ -156,12 +127,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
 	bool bDefaultFixedPickFilterValue = true;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
-	FPCGExScaleToFitDetails ScaleToFit =FPCGExScaleToFitDetails(EPCGExFitMode::None);
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
-	FPCGExJustificationDetails Justification = FPCGExJustificationDetails(false);
-
 };
 
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
@@ -173,11 +138,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValenc
 	/** Solver factory (registered from settings) */
 	UPCGExValencySolverInstancedFactory* Solver = nullptr;
 
-	/** Pick packer for collection entry hash writing (shared across all batches) */
-	TSharedPtr<PCGExCollections::FPickPacker> PickPacker;
-
-	UPCGExMeshCollection* MeshCollection = nullptr;
-	UPCGExActorCollection* ActorCollection = nullptr;
+	/** Valency packer for ValencyEntry hash writing (shared across all batches) */
+	TSharedPtr<PCGExValency::FValencyPacker> ValencyPacker;
 
 	/** Fixed pick filter factories (optional, controls which points are eligible for fixed picking) */
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FixedPickFilterFactories;
@@ -215,8 +177,7 @@ namespace PCGExValencyStaging
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
-		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
-		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Fixed pick reader (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;
@@ -232,12 +193,7 @@ namespace PCGExValencyStaging
 
 		/** Solve result */
 		PCGExValency::FSolveResult SolveResult;
-		
-		FPCGExFittingDetailsHandler FittingHandler;
-		FPCGExFittingVariationsDetails Variations;
-		
-		//
-		
+
 		int32 ResolvedCount = 0;
 		int32 UnsolvableCount = 0;
 		int32 BoundaryCount = 0;
@@ -270,8 +226,7 @@ namespace PCGExValencyStaging
 		/** Attribute writers (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
-		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
-		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
 		/** Fixed pick reader (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;

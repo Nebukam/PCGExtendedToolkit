@@ -146,6 +146,11 @@ namespace PCGExValency
 		const FName SourceSolverLabel = FName("Solver");
 		const FName SourceClustersLabel = FName("Clusters");
 		const FName SourceFixedPickFiltersLabel = FName("FixedPickFilters");
+
+		const FName SourceValencyMapLabel = FName("Valency Map");
+		const FName OutputValencyMapLabel = FName("Valency Map");
+		const FName Tag_ValencyRulesPath = FName("PCGEx/V/Rules/Path");
+		const FName Tag_ValencyMapIdx = FName("PCGEx/V/Rules/Idx");
 	}
 
 	/**
