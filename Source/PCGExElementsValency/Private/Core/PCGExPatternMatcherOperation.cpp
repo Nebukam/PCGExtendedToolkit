@@ -4,6 +4,7 @@
 #include "Core/PCGExPatternMatcherOperation.h"
 
 #include "Core/PCGExValencyCommon.h"
+#include "Core/PCGExValencyMap.h"
 #include "Data/PCGExData.h"
 
 void FPCGExPatternMatcherOperation::Initialize(
@@ -78,7 +79,9 @@ int32 FPCGExPatternMatcherOperation::GetModuleIndex(int32 NodeIndex) const
 	if (!ModuleDataReader) { return -1; }
 	const int32 PointIndex = GetPointIndex(NodeIndex);
 	if (PointIndex < 0) { return -1; }
-	return PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(PointIndex));
+	const uint64 Hash = static_cast<uint64>(ModuleDataReader->Read(PointIndex));
+	if (Hash == PCGExValency::EntryData::INVALID_ENTRY) { return -1; }
+	return PCGExValency::EntryData::GetModuleIndex(Hash);
 }
 
 void UPCGExPatternMatcherFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)

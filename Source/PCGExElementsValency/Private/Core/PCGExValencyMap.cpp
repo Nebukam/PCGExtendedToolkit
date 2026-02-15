@@ -162,8 +162,15 @@ namespace PCGExValency
 
 	UPCGExValencyBondingRules* FValencyUnpacker::ResolveEntry(uint64 EntryHash, uint16& OutModuleIndex, uint16& OutPatternFlags)
 	{
+		if (!EntryData::IsValid(EntryHash))
+		{
+			OutModuleIndex = MAX_uint16;
+			OutPatternFlags = EntryData::Flags::None;
+			return nullptr;
+		}
+
 		const uint32 RulesMapId = EntryData::GetBondingRulesMapId(EntryHash);
-		OutModuleIndex = EntryData::GetModuleIndex(EntryHash);
+		OutModuleIndex = static_cast<uint16>(EntryData::GetModuleIndex(EntryHash));
 		OutPatternFlags = EntryData::GetPatternFlags(EntryHash);
 
 		UPCGExValencyBondingRules** Rules = BondingRulesMap.Find(RulesMapId);

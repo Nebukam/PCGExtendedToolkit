@@ -32,6 +32,11 @@ namespace PCGExValency
 	/**
 	 * Entry data encoding/decoding helpers.
 	 * Packs BondingRules identity + module index + pattern flags into a single uint64.
+	 *
+	 * IMPORTANT: INVALID_ENTRY = 0. Because H64/H32 are simple bit shifts, decoding 0 yields
+	 * all-zero fields (BondingRulesMapId=0, ModuleIndex=0, PatternFlags=0) — all potentially valid.
+	 * Extraction functions guard against this: GetModuleIndex returns -1 for INVALID_ENTRY.
+	 * Callers should also check INVALID_ENTRY before calling extraction functions where possible.
 	 */
 	namespace EntryData
 	{
@@ -45,8 +50,11 @@ namespace PCGExValency
 			constexpr uint16 Annotated = 1 << 3;   // Point was annotated by pattern (no removal)
 		}
 
-		/** Invalid entry sentinel */
+		/** Invalid entry sentinel. IMPORTANT: 0 is the sentinel — see note above. */
 		constexpr uint64 INVALID_ENTRY = 0;
+
+		/** Check if a ValencyEntry hash is valid (not the INVALID_ENTRY sentinel) */
+		FORCEINLINE bool IsValid(uint64 Hash) { return Hash != INVALID_ENTRY; }
 
 		/** Pack BondingRules map ID + module index + flags into uint64 */
 		FORCEINLINE uint64 Pack(uint32 BondingRulesMapId, uint16 ModuleIndex, uint16 PatternFlags = 0)
@@ -54,43 +62,47 @@ namespace PCGExValency
 			return PCGEx::H64(BondingRulesMapId, PCGEx::H32(ModuleIndex, PatternFlags));
 		}
 
-		/** Extract BondingRules map ID from hash (upper 32 bits) */
+		/** Extract BondingRules map ID from hash (upper 32 bits). Returns MAX_uint32 for INVALID_ENTRY. */
 		FORCEINLINE uint32 GetBondingRulesMapId(uint64 Hash)
 		{
+			if (Hash == INVALID_ENTRY) { return MAX_uint32; }
 			return PCGEx::H64A(Hash);
 		}
 
-		/** Extract module index from hash */
-		FORCEINLINE uint16 GetModuleIndex(uint64 Hash)
+		/** Extract module index from hash. Returns -1 for INVALID_ENTRY. */
+		FORCEINLINE int32 GetModuleIndex(uint64 Hash)
 		{
-			return PCGEx::H32A(PCGEx::H64B(Hash));
+			if (Hash == INVALID_ENTRY) { return -1; }
+			return static_cast<int32>(PCGEx::H32A(PCGEx::H64B(Hash)));
 		}
 
-		/** Extract pattern flags from hash */
+		/** Extract pattern flags from hash. Returns Flags::None for INVALID_ENTRY. */
 		FORCEINLINE uint16 GetPatternFlags(uint64 Hash)
 		{
+			if (Hash == INVALID_ENTRY) { return Flags::None; }
 			return PCGEx::H32B(PCGEx::H64B(Hash));
 		}
 
-		/** Replace pattern flags in hash, preserving BondingRules ID and module index */
+		/** Replace pattern flags in hash, preserving BondingRules ID and module index. Returns INVALID_ENTRY if Hash is invalid. */
 		FORCEINLINE uint64 SetPatternFlags(uint64 Hash, uint16 NewFlags)
 		{
-			return Pack(GetBondingRulesMapId(Hash), GetModuleIndex(Hash), NewFlags);
+			if (Hash == INVALID_ENTRY) { return INVALID_ENTRY; }
+			return Pack(GetBondingRulesMapId(Hash), static_cast<uint16>(GetModuleIndex(Hash)), NewFlags);
 		}
 
-		/** Set a single flag on the hash */
+		/** Set a single flag on the hash. Safe on INVALID_ENTRY (returns INVALID_ENTRY). */
 		FORCEINLINE uint64 SetFlag(uint64 Hash, uint16 Flag)
 		{
 			return SetPatternFlags(Hash, GetPatternFlags(Hash) | Flag);
 		}
 
-		/** Clear a single flag on the hash */
+		/** Clear a single flag on the hash. Safe on INVALID_ENTRY (returns INVALID_ENTRY). */
 		FORCEINLINE uint64 ClearFlag(uint64 Hash, uint16 Flag)
 		{
 			return SetPatternFlags(Hash, GetPatternFlags(Hash) & ~Flag);
 		}
 
-		/** Check if a specific flag is set */
+		/** Check if a specific flag is set. Returns false for INVALID_ENTRY. */
 		FORCEINLINE bool HasFlag(uint64 Hash, uint16 Flag)
 		{
 			return (GetPatternFlags(Hash) & Flag) != 0;

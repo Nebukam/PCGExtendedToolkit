@@ -63,18 +63,59 @@ bool FPCGExValencyPatternReplacementElement::Boot(FPCGExContext* InContext) cons
 
 bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) const
 {
-	// Base class handles BondingRules and OrbitalSet validation
-	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
-
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
 
-	// Create and unpack Valency Map
+	// Unpack Valency Map first — this loads BondingRules via LoadBlocking_AnyThread
 	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
 	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
 
 	if (!Context->ValencyUnpacker->HasValidMapping())
 	{
-		PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not rebuild Valency Map. Flag propagation to ValencyEntry will be skipped."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from input."));
+		return false;
+	}
+
+	// Resolve BondingRules from map (first entry)
+	for (const auto& Pair : Context->ValencyUnpacker->GetBondingRules())
+	{
+		Context->BondingRules = Pair.Value;
+		break;
+	}
+
+	if (!Context->BondingRules)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules found in Valency Map."));
+		return false;
+	}
+
+	// Resolve OrbitalSet from BondingRules
+	if (Context->BondingRules->OrbitalSets.Num() > 0)
+	{
+		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
+	}
+
+	// Base PostBoot — WantsBondingRules/WantsOrbitalSet are false, so it skips their validation
+	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
+
+	// Manually validate OrbitalSet (base skips since WantsOrbitalSet=false)
+	if (!Context->OrbitalSet)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no OrbitalSets. Rebuild the Bonding Rules asset."));
+		return false;
+	}
+
+	TArray<FText> ValidationErrors;
+	if (!Context->OrbitalSet->Validate(ValidationErrors))
+	{
+		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		return false;
+	}
+
+	// Build orbital direction resolver (base skips since WantsOrbitalSet=false)
+	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
+		return false;
 	}
 
 	// Get compiled data
@@ -143,10 +184,10 @@ namespace PCGExValencyPatternReplacement
 		// Parent handles: edge indices reader, BuildOrbitalCache(), InitializeValencyStates()
 		if (!TProcessor::Process(InTaskManager)) { return false; }
 
-		// Validate module data reader (required for pattern matching)
-		if (!ModuleDataReader)
+		// Validate ValencyEntry reader (required for pattern matching)
+		if (!ValencyEntryReader)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Module data attribute not found. Run Valency Staging with patterns first."));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("ValencyEntry attribute not found. Run Valency : Solve first."));
 			return false;
 		}
 
@@ -188,12 +229,12 @@ namespace PCGExValencyPatternReplacement
 			MatcherOperation = DefaultOp;
 		}
 
-		// Initialize the operation with shared state
+		// Initialize the operation with shared state (ValencyEntry reader provides module indices)
 		MatcherOperation->Initialize(
 			Cluster,
 			Context->CompiledPatterns,
 			OrbitalCache.Get(),
-			ModuleDataReader,
+			ValencyEntryReader,
 			NodesCount,
 			&ClaimedNodes,
 			Seed, MatcherAllocations);
@@ -410,53 +451,7 @@ namespace PCGExValencyPatternReplacement
 			}
 		}
 
-		// Update ModuleData attribute with pattern flags
-		if (ModuleDataWriter)
-		{
-			// First pass: Set Annotated flag for all matched nodes
-			for (const int32 NodeIdx : AnnotatedNodes)
-			{
-				const int32 PointIdx = GetPointIdx(NodeIdx);
-				if (PointIdx < 0) { continue; }
-				int64 PackedData = ModuleDataReader->Read(PointIdx);
-				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Annotated);
-				ModuleDataWriter->SetValue(PointIdx, PackedData);
-			}
-
-			// Second pass: Add Consumed flag for nodes being removed (preserves Annotated)
-			for (const int32 NodeIdx : NodesToRemove)
-			{
-				const int32 PointIdx = GetPointIdx(NodeIdx);
-				if (PointIdx < 0) { continue; }
-				int64 PackedData = ModuleDataWriter->GetValue(PointIdx); // Read from writer to get Annotated flag
-				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Consumed);
-				ModuleDataWriter->SetValue(PointIdx, PackedData);
-			}
-
-			// Add Collapsed flag for kept collapse nodes (preserves Annotated)
-			for (const auto& Pair : CollapseReplacements)
-			{
-				const int32 PointIdx = GetPointIdx(Pair.Key);
-				if (PointIdx < 0) { continue; }
-				int64 PackedData = ModuleDataWriter->GetValue(PointIdx);
-				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Collapsed);
-				ModuleDataWriter->SetValue(PointIdx, PackedData);
-			}
-
-			// Add Swapped flag and update module index (preserves Annotated)
-			for (const auto& Pair : SwapTargets)
-			{
-				const int32 PointIdx = GetPointIdx(Pair.Key);
-				if (PointIdx < 0) { continue; }
-				int64 PackedData = ModuleDataWriter->GetValue(PointIdx);
-				uint32 ExistingFlags = PCGExValency::ModuleData::GetFlags(PackedData);
-				ExistingFlags |= PCGExValency::ModuleData::Flags::Swapped;
-				PackedData = PCGExValency::ModuleData::Pack(Pair.Value, ExistingFlags);
-				ModuleDataWriter->SetValue(PointIdx, PackedData);
-			}
-		}
-
-		// Propagate flags to ValencyEntry attribute (for downstream Valency : Staging / Write Properties)
+		// Update ValencyEntry attribute with pattern flags
 		if (ValencyEntryReader && ValencyEntryWriter)
 		{
 			// Annotated flag
@@ -527,14 +522,9 @@ namespace PCGExValencyPatternReplacement
 	{
 		TBatch::RegisterBuffersDependencies(FacadePreloader);
 
-		// Register module data reader (int64, attribute name from OrbitalSet)
 		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
-		if (Context && Context->OrbitalSet)
-		{
-			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetModuleIdxAttributeName());
-		}
 
-		// Register ValencyEntry attribute for flag propagation
+		// Register ValencyEntry attribute
 		if (const UPCGExValencyPatternReplacementSettings* TypedSettings = Context ? Context->GetInputSettings<UPCGExValencyPatternReplacementSettings>() : nullptr)
 		{
 			const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(TypedSettings->EntrySuffix);
@@ -553,27 +543,7 @@ namespace PCGExValencyPatternReplacement
 		const UPCGExValencyPatternReplacementSettings* Settings = ExecutionContext->GetInputSettings<UPCGExValencyPatternReplacementSettings>();
 		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
 
-		// Create module data reader/writer (packed int64 from Staging)
-		if (Context && Context->OrbitalSet)
-		{
-			const FName ModuleAttrName = Context->OrbitalSet->GetModuleIdxAttributeName();
-			ModuleDataReader = VtxDataFacade->GetReadable<int64>(ModuleAttrName);
-
-			if (!ModuleDataReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context,
-				           FText::Format(FTEXT("Module attribute '{0}' not found. Run Valency Staging with patterns first."),
-					           FText::FromName(ModuleAttrName)));
-			}
-			else
-			{
-				// Writer uses inherit mode since we're modifying existing Staging output
-				const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
-				ModuleDataWriter = VtxDataFacade->GetWritable<int64>(ModuleAttrName, DefaultValue, true, PCGExData::EBufferInit::Inherit);
-			}
-		}
-
-		// Create ValencyEntry reader/writer for flag propagation
+		// Create ValencyEntry reader/writer
 		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
 		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
 		if (ValencyEntryReader)
@@ -601,8 +571,6 @@ namespace PCGExValencyPatternReplacement
 		if (!TBatch::PrepareSingle(InProcessor)) { return false; }
 
 		FProcessor* Processor = static_cast<FProcessor*>(InProcessor.Get());
-		Processor->ModuleDataReader = ModuleDataReader;
-		Processor->ModuleDataWriter = ModuleDataWriter;
 		Processor->ValencyEntryReader = ValencyEntryReader;
 		Processor->ValencyEntryWriter = ValencyEntryWriter;
 		Processor->PatternNameWriter = PatternNameWriter;
