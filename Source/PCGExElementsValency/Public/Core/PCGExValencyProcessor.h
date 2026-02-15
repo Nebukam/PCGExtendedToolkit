@@ -10,6 +10,7 @@
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyPropertyWriter.h"
+#include "Core/PCGExValencyMap.h"
 
 #include "PCGExValencyProcessor.generated.h"
 
@@ -36,21 +37,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Valency")
 	virtual bool WantsBondingRules() const { return false; }
 
+	/** Whether this node consumes a Valency Map (overrides WantsOrbitalSet/WantsBondingRules). */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Valency")
+	virtual bool WantsValencyMap() const { return false; }
+
 	/** Orbital set - determines which layer's orbital data to use */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsOrbitalSet()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsOrbitalSet() && !WantsValencyMap()", EditConditionHides))
 	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** The bonding rules data asset */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsBondingRules()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsBondingRules() && !WantsValencyMap()", EditConditionHides))
 	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
+	/** Suffix for attribute naming. Used by WantsValencyMap nodes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsValencyMap()", EditConditionHides))
+	FName Suffix = FName("Main");
+
 	/** Suppress warnings about missing orbital set */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsOrbitalSet()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsOrbitalSet() && !WantsValencyMap()", EditConditionHides))
 	bool bQuietMissingOrbitalSet = false;
 
 	/** Suppress warnings about missing bonding rules */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsBondingRules()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsBondingRules() && !WantsValencyMap()", EditConditionHides))
 	bool bQuietMissingBondingRules = false;
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 };
 
 /**
@@ -71,6 +82,21 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyProcessorContext : FPCGExClustersPr
 
 	/** Orbital direction cache (for computing orbital indices from directions) */
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+
+	/** Valency Map unpacker (populated by ConsumeValencyMap) */
+	TSharedPtr<PCGExValency::FValencyUnpacker> ValencyUnpacker;
+
+	/** ConnectorSet from BondingRules (populated by ConsumeValencyMap, may be null) */
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
+
+	/** Suffix for attribute naming (from settings or OrbitalSet LayerName) */
+	FName Suffix = FName("Main");
+
+	/** Orbital count (from Valency Map metadata or OrbitalSet->Num()) */
+	int32 MaxOrbitals = 0;
+
+	/** Raw input Valency Map param data (stored by ConsumeValencyMap for output duplication) */
+	TArray<const UPCGParamData*> InputValencyMapData;
 };
 
 /**
@@ -83,6 +109,9 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
+
+	/** Consume Valency Map from input pin, resolve BondingRules/OrbitalSet/ConnectorSet/Suffix/MaxOrbitals. */
+	bool ConsumeValencyMap(FPCGExContext* InContext) const;
 };
 
 namespace PCGExValencyMT

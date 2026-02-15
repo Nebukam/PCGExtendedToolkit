@@ -29,6 +29,7 @@ class UPCGExActorCollection;
  */
 namespace PCGExValency
 {
+	class FValencyUnpacker;
 	/**
 	 * Entry data encoding/decoding helpers.
 	 * Packs BondingRules identity + module index + pattern flags into a single uint64.
@@ -136,6 +137,7 @@ namespace PCGExValency
 	{
 		TArray<const UPCGExValencyBondingRules*> BondingRulesArray;
 		TMap<const UPCGExValencyBondingRules*, uint32> BondingRulesMap;
+		TMap<const UPCGExValencyBondingRules*, int32> OrbitalCountMap;
 		mutable FRWLock BondingRulesLock;
 
 		uint16 BaseHash = 0;
@@ -152,6 +154,19 @@ namespace PCGExValency
 		 * @return Packed 64-bit ValencyEntry hash
 		 */
 		uint64 GetEntryIdx(const UPCGExValencyBondingRules* InBondingRules, uint16 InModuleIndex, uint16 InPatternFlags = 0);
+
+		/** Register BondingRules without generating an entry hash (for producers like WriteOrbitals). */
+		void RegisterBondingRules(const UPCGExValencyBondingRules* InBondingRules);
+
+		/** Store orbital count metadata for a registered BondingRules. */
+		void SetOrbitalInfo(const UPCGExValencyBondingRules* InBondingRules, int32 MaxOrbitals);
+
+		/**
+		 * Seed this packer from an unpacker's data.
+		 * Copies BondingRules mappings and OrbitalCount so GetEntryIdx uses the same hash keys.
+		 * Call this BEFORE any GetEntryIdx/RegisterBondingRules calls.
+		 */
+		void SeedFrom(const FValencyUnpacker& InUnpacker);
 
 		/** Write BondingRules mapping to an attribute set (the Valency Map) */
 		void PackToDataset(const UPCGParamData* InAttributeSet);
@@ -175,16 +190,23 @@ namespace PCGExValency
 	{
 	protected:
 		TMap<uint32, UPCGExValencyBondingRules*> BondingRulesMap;
+		TMap<uint32, int32> OrbitalCountMap;
 		TSharedPtr<struct FStreamableHandle> BondingRulesHandle;
 
 	public:
 		FValencyUnpacker() = default;
 		~FValencyUnpacker();
 
+		/** Get orbital count stored for a BondingRules. Returns 0 if not in map. */
+		int32 GetOrbitalCount(const UPCGExValencyBondingRules* InBondingRules) const;
+
 		bool HasValidMapping() const { return !BondingRulesMap.IsEmpty(); }
 
 		/** Get read-only access to the BondingRules map */
 		const TMap<uint32, UPCGExValencyBondingRules*>& GetBondingRules() const { return BondingRulesMap; }
+
+		/** Get read-only access to the OrbitalCount map */
+		const TMap<uint32, int32>& GetOrbitalCountMap() const { return OrbitalCountMap; }
 
 		/** Unpack BondingRules mappings from an attribute set */
 		bool UnpackDataset(FPCGContext* InContext, const UPCGParamData* InAttributeSet);

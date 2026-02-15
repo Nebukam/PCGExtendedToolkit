@@ -153,12 +153,6 @@ public:
 		return FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *LayerName.ToString()));
 	}
 
-	/** Get the attribute name for vertex module index (solved output) */
-	FName GetModuleIdxAttributeName() const
-	{
-		return FName(FString::Printf(TEXT("PCGEx/V/Module/%s"), *LayerName.ToString()));
-	}
-
 	/**
 	 * Validate the orbital set - checks for duplicate bitmasks and valid BitmaskRefs.
 	 * @param OutErrors Array to receive error messages

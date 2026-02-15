@@ -44,13 +44,10 @@ public:
 	// BondingRules, OrbitalSet, and ConnectorSet are resolved from the Valency Map
 	virtual bool WantsOrbitalSet() const override { return false; }
 	virtual bool WantsBondingRules() const override { return false; }
+	virtual bool WantsValencyMap() const override { return true; }
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-
-	/** Suffix for the ValencyEntry attribute to read (e.g. "Main" -> "PCGEx/V/Entry/Main") */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName EntrySuffix = FName("Main");
 
 	/**
 	 * Attribute name for the packed connector reference output.
@@ -90,12 +87,6 @@ private:
 struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleConnectorsContext final : FPCGExValencyProcessorContext
 {
 	friend class FPCGExWriteModuleConnectorsElement;
-
-	/** Valency unpacker for resolving ValencyEntry hashes */
-	TSharedPtr<PCGExValency::FValencyUnpacker> ValencyUnpacker;
-
-	/** Connector set (resolved from BondingRules in Valency Map) */
-	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSet;
 
 	/** Output point collection for connectors */
 	TSharedPtr<PCGExData::FPointIOCollection> ConnectorOutputCollection;

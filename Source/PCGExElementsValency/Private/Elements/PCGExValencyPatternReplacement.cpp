@@ -3,7 +3,6 @@
 
 #include "Elements/PCGExValencyPatternReplacement.h"
 
-#include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
@@ -17,7 +16,7 @@
 TArray<FPCGPinProperties> UPCGExValencyPatternReplacementSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceValencyMapLabel, "Valency map from Solve or Generative nodes.", Required)
+	// Valency Map pin is auto-added by base class via WantsValencyMap()
 	return PinProperties;
 }
 
@@ -63,60 +62,10 @@ bool FPCGExValencyPatternReplacementElement::Boot(FPCGExContext* InContext) cons
 
 bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
-
-	// Unpack Valency Map first — this loads BondingRules via LoadBlocking_AnyThread
-	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
-	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
-
-	if (!Context->ValencyUnpacker->HasValidMapping())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from input."));
-		return false;
-	}
-
-	// Resolve BondingRules from map (first entry)
-	for (const auto& Pair : Context->ValencyUnpacker->GetBondingRules())
-	{
-		Context->BondingRules = Pair.Value;
-		break;
-	}
-
-	if (!Context->BondingRules)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules found in Valency Map."));
-		return false;
-	}
-
-	// Resolve OrbitalSet from BondingRules
-	if (Context->BondingRules->OrbitalSets.Num() > 0)
-	{
-		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
-	}
-
-	// Base PostBoot — WantsBondingRules/WantsOrbitalSet are false, so it skips their validation
+	// Base class: ConsumeValencyMap -> BondingRules, OrbitalSet, OrbitalResolver, ConnectorSet, Suffix, MaxOrbitals
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
-	// Manually validate OrbitalSet (base skips since WantsOrbitalSet=false)
-	if (!Context->OrbitalSet)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no OrbitalSets. Rebuild the Bonding Rules asset."));
-		return false;
-	}
-
-	TArray<FText> ValidationErrors;
-	if (!Context->OrbitalSet->Validate(ValidationErrors))
-	{
-		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
-		return false;
-	}
-
-	// Build orbital direction resolver (base skips since WantsOrbitalSet=false)
-	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
-		return false;
-	}
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
 
 	// Get compiled data
 	if (!Context->BondingRules->IsCompiled())
@@ -527,7 +476,7 @@ namespace PCGExValencyPatternReplacement
 		// Register ValencyEntry attribute
 		if (const UPCGExValencyPatternReplacementSettings* TypedSettings = Context ? Context->GetInputSettings<UPCGExValencyPatternReplacementSettings>() : nullptr)
 		{
-			const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(TypedSettings->EntrySuffix);
+			const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(TypedSettings->Suffix);
 			FacadePreloader.Register<int64>(ExecutionContext, EntryAttrName);
 		}
 
@@ -544,7 +493,7 @@ namespace PCGExValencyPatternReplacement
 		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
 
 		// Create ValencyEntry reader/writer
-		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
 		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
 		if (ValencyEntryReader)
 		{

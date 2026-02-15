@@ -28,7 +28,7 @@ void UPCGExValencyBondingSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExValencyBondingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceBondingRulesLabel, "Bonding rules data asset override", Advanced)
+	// Valency Map pin is auto-added by base class via WantsValencyMap()
 	if (bEnableFixedPicks) { PCGEX_PIN_FILTERS(PCGExValency::Labels::SourceFixedPickFiltersLabel, "Filters controlling which points are eligible for fixed picking.", Normal) }
 	return PinProperties;
 }
@@ -52,12 +52,6 @@ PCGExData::EIOInit UPCGExValencyBondingSettings::GetEdgeOutputInitMode() const
 
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyBonding)
 
-void FPCGExValencyBondingContext::RegisterAssetDependencies()
-{
-	FPCGExValencyProcessorContext::RegisterAssetDependencies();
-	// Base class handles OrbitalSet and BondingRules registration via WantsOrbitalSet()/WantsBondingRules()
-}
-
 FPCGElementPtr UPCGExValencyBondingSettings::CreateElement() const
 {
 	return MakeShared<FPCGExValencyBondingElement>();
@@ -74,23 +68,16 @@ bool FPCGExValencyBondingElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExValencyBondingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
-	// Base class handles OrbitalSet and BondingRules loading via WantsOrbitalSet()/WantsBondingRules()
-}
-
 bool FPCGExValencyBondingElement::PostBoot(FPCGExContext* InContext) const
 {
-	// Base class validates OrbitalSet and BondingRules via WantsOrbitalSet()/WantsBondingRules()
+	// Base class: ConsumeValencyMap -> BondingRules, OrbitalSet, ConnectorSet, Suffix, MaxOrbitals
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyBonding)
 
-	// Ensure bonding rules are compiled
+	// Compile BondingRules if needed (ConsumeValencyMap already checked IsCompiled, but re-check in case)
 	if (!Context->BondingRules->IsCompiled())
 	{
-		// TODO : Risky!
 		if (!Context->BondingRules->Compile())
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to compile Valency Bonding Rules."));
@@ -98,14 +85,13 @@ bool FPCGExValencyBondingElement::PostBoot(FPCGExContext* InContext) const
 		}
 	}
 
-	// Settings->BondingRules->EDITOR_RegisterTrackingKeys(Context);
-
 	// Register solver from settings
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);
 	if (!Context->Solver) { return false; }
 
-	// Create valency packer for ValencyEntry hash writing
+	// Create valency packer seeded from input map (preserves hash keys for output duplication)
 	Context->ValencyPacker = MakeShared<PCGExValency::FValencyPacker>(Context);
+	Context->ValencyPacker->SeedFrom(*Context->ValencyUnpacker);
 
 	// Get fixed pick filter factories if enabled (optional - empty array is valid)
 	if (Settings->bEnableFixedPicks)
@@ -141,10 +127,12 @@ bool FPCGExValencyBondingElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	Context->OutputPointsAndEdges();
 
-	// Output valency map
-	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
-	Context->ValencyPacker->PackToDataset(ParamData);
-	Context->StageOutput(ParamData, PCGExValency::Labels::OutputValencyMapLabel, PCGExData::EStaging::None);
+	// Output valency map - duplicate input data to preserve all metadata
+	for (const UPCGParamData* InputMap : Context->InputValencyMapData)
+	{
+		UPCGParamData* OutputMap = Context->ManagedObjects->DuplicateData<UPCGParamData>(InputMap);
+		Context->StageOutput(OutputMap, PCGExValency::Labels::OutputValencyMapLabel, PCGExData::EStaging::None);
+	}
 
 	return Context->TryComplete();
 }
@@ -203,13 +191,6 @@ namespace PCGExValencyBonding
 		{
 			const PCGExValency::FValencyState& State = ValencyStates[Index];
 			const int32 PointIndex = Nodes[State.NodeIndex].PointIndex;
-
-			// Write packed module data (module index + flags) for pattern replacement
-			if (ModuleDataWriter)
-			{
-				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
-				ModuleDataWriter->SetValue(PointIndex, PackedData);
-			}
 
 			if (State.ResolvedModule >= 0)
 			{
@@ -603,16 +584,8 @@ namespace PCGExValencyBonding
 			SolverAllocations = Context->Solver->CreateAllocations(VtxDataFacade);
 		}
 
-		// Create Module data writer (int64: module index in low bits, pattern flags in high bits)
-		// Only create if BondingRules has patterns defined
-		if (Context->BondingRules && Context->BondingRules->IsCompiled() && Context->BondingRules->CompiledData.CompiledPatterns.HasPatterns())
-		{
-			const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
-			ModuleDataWriter = OutputFacade->GetWritable<int64>(Context->OrbitalSet->GetModuleIdxAttributeName(), DefaultValue, true, PCGExData::EBufferInit::Inherit);
-		}
-
 		// Write ValencyEntry hash for downstream nodes
-		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
 		ValencyEntryWriter = OutputFacade->GetWritable<int64>(EntryAttrName, 0, true, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->bOutputUnsolvableMarker)
@@ -652,7 +625,6 @@ namespace PCGExValencyBonding
 		TypedProcessor->SolverAllocations = SolverAllocations;
 
 		// Forward staging-specific writers to processor
-		TypedProcessor->ModuleDataWriter = ModuleDataWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->ValencyEntryWriter = ValencyEntryWriter;
 

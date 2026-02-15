@@ -3,9 +3,11 @@
 
 #include "Elements/PCGExWriteValencyOrbitals.h"
 
+#include "PCGParamData.h"
 #include "Core/PCGExCachedOrbitalCache.h"
 #include "Core/PCGExValencyConnectorSet.h"
 #include "Core/PCGExValencyOrbitalCache.h"
+#include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 
@@ -21,6 +23,13 @@ TArray<FPCGPinProperties> UPCGExWriteValencyOrbitalsSettings::InputPinProperties
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExWriteValencyOrbitalsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExValency::Labels::OutputValencyMapLabel, "Valency map for downstream nodes", Required)
+	return PinProperties;
+}
+
 void FPCGExWriteValencyOrbitalsContext::RegisterAssetDependencies()
 {
 	FPCGExClustersProcessorContext::RegisterAssetDependencies();
@@ -28,19 +37,9 @@ void FPCGExWriteValencyOrbitalsContext::RegisterAssetDependencies()
 	const UPCGExWriteValencyOrbitalsSettings* Settings = GetInputSettings<UPCGExWriteValencyOrbitalsSettings>();
 	if (!Settings) { return; }
 
-	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
+	if (!Settings->BondingRules.IsNull())
 	{
-		if (!Settings->OrbitalSet.IsNull())
-		{
-			AddAssetDependency(Settings->OrbitalSet.ToSoftObjectPath());
-		}
-	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
-	{
-		if (!Settings->ConnectorSet.IsNull())
-		{
-			AddAssetDependency(Settings->ConnectorSet.ToSoftObjectPath());
-		}
+		AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
 	}
 }
 
@@ -54,22 +53,12 @@ bool FPCGExWriteValencyOrbitalsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
 	Context->AssignmentMode = Settings->AssignmentMode;
+	Context->Suffix = Settings->Suffix;
 
-	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
+	if (Settings->BondingRules.IsNull())
 	{
-		if (Settings->OrbitalSet.IsNull())
-		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
-			return false;
-		}
-	}
-	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
-	{
-		if (Settings->ConnectorSet.IsNull())
-		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
-			return false;
-		}
+		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules provided.")); }
+		return false;
 	}
 
 	return true;
@@ -81,19 +70,23 @@ void FPCGExWriteValencyOrbitalsElement::PostLoadAssetsDependencies(FPCGExContext
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
+	if (!Settings->BondingRules.IsNull())
+	{
+		Context->BondingRules = Settings->BondingRules.Get();
+	}
+
+	if (!Context->BondingRules) { return; }
+
 	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
-		if (!Context->OrbitalSet && !Settings->OrbitalSet.IsNull())
+		if (Context->BondingRules->OrbitalSets.Num() > 0)
 		{
-			Context->OrbitalSet = Settings->OrbitalSet.Get();
+			Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
 		}
 	}
 	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 	{
-		if (!Context->ConnectorSet && !Settings->ConnectorSet.IsNull())
-		{
-			Context->ConnectorSet = Settings->ConnectorSet.Get();
-		}
+		Context->ConnectorSet = Context->BondingRules->ConnectorSet;
 	}
 }
 
@@ -103,11 +96,21 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 
 	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
 
+	if (!Context->BondingRules)
+	{
+		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Bonding Rules.")); }
+		return false;
+	}
+
+	// Create packer for output Valency Map
+	Context->ValencyPacker = MakeShared<PCGExValency::FValencyPacker>(Context);
+	Context->ValencyPacker->RegisterBondingRules(Context->BondingRules);
+
 	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
 		if (!Context->OrbitalSet)
 		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
+			if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules has no OrbitalSets.")); }
 			return false;
 		}
 
@@ -130,7 +133,7 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 	{
 		if (!Context->ConnectorSet)
 		{
-			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Connector Set provided.")); }
+			if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules has no Connector Set.")); }
 			return false;
 		}
 
@@ -146,16 +149,16 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 		Context->ConnectorSet->Compile();
 
 		// Build connector type to orbital index mapping
-		// In connector mode, each connector type maps directly to an orbital index (0-63)
 		const int32 NumConnectorTypes = Context->ConnectorSet->Num();
 		Context->ConnectorToOrbitalMap.SetNum(NumConnectorTypes);
 		for (int32 i = 0; i < NumConnectorTypes; ++i)
 		{
-			// Connector type index directly maps to orbital index
-			// This allows the solver to work identically - it just sees orbital indices
 			Context->ConnectorToOrbitalMap[i] = i;
 		}
 	}
+
+	// Store orbital info in packer
+	Context->ValencyPacker->SetOrbitalInfo(Context->BondingRules, Context->GetOrbitalCount());
 
 	return true;
 }
@@ -180,6 +183,11 @@ bool FPCGExWriteValencyOrbitalsElement::AdvanceWork(FPCGExContext* InContext, co
 
 	Context->OutputPointsAndEdges();
 
+	// Output Valency Map
+	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
+	Context->ValencyPacker->PackToDataset(ParamData);
+	Context->StageOutput(ParamData, PCGExValency::Labels::OutputValencyMapLabel, PCGExData::EStaging::None);
+
 	return Context->TryComplete();
 }
 
@@ -191,17 +199,10 @@ namespace PCGExWriteValencyOrbitals
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		// Determine attribute name based on mode
-		FName IdxAttributeName;
-		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
+		// Determine attribute name based on suffix
+		const FName IdxAttributeName = PCGExValency::Attributes::GetOrbitalAttributeName(Context->Suffix);
+		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Connector)
 		{
-			IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
-		}
-		else // Connector mode
-		{
-			// In connector mode, we still write orbital indices to the same attribute pattern
-			// This ensures downstream solver compatibility
-			IdxAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *Context->ConnectorSet->LayerName.ToString()));
 
 			// Create connector reader for input packed connector references
 			ConnectorReader = EdgeDataFacade->GetReadable<int64>(Settings->ConnectorAttributeName);
@@ -435,19 +436,8 @@ namespace PCGExWriteValencyOrbitals
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
-		// Determine mask attribute name based on mode
-		FName MaskAttributeName;
-		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
-		{
-			if (!Context->OrbitalSet) { return; }
-			MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
-		}
-		else // Connector mode
-		{
-			if (!Context->ConnectorSet) { return; }
-			// Use same attribute pattern as orbitals for solver compatibility
-			MaskAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Mask/%s"), *Context->ConnectorSet->LayerName.ToString()));
-		}
+		// Use suffix-based attribute name
+		const FName MaskAttributeName = PCGExValency::Attributes::GetMaskAttributeName(Context->Suffix);
 
 		// Create vertex mask writer
 		MaskWriter = VtxDataFacade->GetWritable<int64>(MaskAttributeName, 0, false, PCGExData::EBufferInit::Inherit);

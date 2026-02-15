@@ -46,6 +46,53 @@ namespace PCGExValency
 		}
 	}
 
+	void FValencyPacker::RegisterBondingRules(const UPCGExValencyBondingRules* InBondingRules)
+	{
+		{
+			FReadScopeLock ReadScopeLock(BondingRulesLock);
+			if (BondingRulesMap.Contains(InBondingRules)) { return; }
+		}
+
+		{
+			FWriteScopeLock WriteScopeLock(BondingRulesLock);
+			if (BondingRulesMap.Contains(InBondingRules)) { return; }
+
+			uint32 RulesIndex = PCGEx::H32(BaseHash, BondingRulesArray.Add(InBondingRules));
+			BondingRulesMap.Add(InBondingRules, RulesIndex);
+		}
+	}
+
+	void FValencyPacker::SetOrbitalInfo(const UPCGExValencyBondingRules* InBondingRules, int32 MaxOrbitals)
+	{
+		FWriteScopeLock WriteScopeLock(BondingRulesLock);
+		OrbitalCountMap.Add(InBondingRules, MaxOrbitals);
+	}
+
+	void FValencyPacker::SeedFrom(const FValencyUnpacker& InUnpacker)
+	{
+		FWriteScopeLock WriteScopeLock(BondingRulesLock);
+
+		const auto& UnpackerBondingRules = InUnpacker.GetBondingRules();
+		const auto& UnpackerOrbitalCounts = InUnpacker.GetOrbitalCountMap();
+
+		for (const auto& Pair : UnpackerBondingRules)
+		{
+			const uint32 MapIdx = Pair.Key;
+			const UPCGExValencyBondingRules* Rules = Pair.Value;
+
+			if (!BondingRulesMap.Contains(Rules))
+			{
+				BondingRulesArray.Add(Rules);
+				BondingRulesMap.Add(Rules, MapIdx);
+			}
+
+			if (const int32* Count = UnpackerOrbitalCounts.Find(MapIdx))
+			{
+				OrbitalCountMap.Add(Rules, *Count);
+			}
+		}
+	}
+
 	void FValencyPacker::PackToDataset(const UPCGParamData* InAttributeSet)
 	{
 		FPCGMetadataAttribute<int32>* RulesIdx = InAttributeSet->Metadata->FindOrCreateAttribute<int32>(
@@ -54,12 +101,18 @@ namespace PCGExValency
 		FPCGMetadataAttribute<FSoftObjectPath>* RulesPath = InAttributeSet->Metadata->FindOrCreateAttribute<FSoftObjectPath>(
 			Labels::Tag_ValencyRulesPath, FSoftObjectPath(),
 			false, true, true);
+		FPCGMetadataAttribute<int32>* OrbitalCount = InAttributeSet->Metadata->FindOrCreateAttribute<int32>(
+			Labels::Tag_OrbitalCount, 0,
+			false, true, true);
 
 		for (const TPair<const UPCGExValencyBondingRules*, uint32>& Pair : BondingRulesMap)
 		{
 			const int64 Key = InAttributeSet->Metadata->AddEntry();
 			RulesIdx->SetValue(Key, Pair.Value);
 			RulesPath->SetValue(Key, FSoftObjectPath(Pair.Key));
+
+			const int32* Count = OrbitalCountMap.Find(Pair.Key);
+			OrbitalCount->SetValue(Key, Count ? *Count : 0);
 		}
 	}
 
@@ -94,6 +147,8 @@ namespace PCGExValency
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Valency map missing required attributes."));
 			return false;
 		}
+
+		const FPCGMetadataAttribute<int32>* OrbitalCount = InAttributeSet->Metadata->GetConstTypedAttribute<int32>(Labels::Tag_OrbitalCount);
 
 		// Load all referenced bonding rules
 		{
@@ -137,6 +192,12 @@ namespace PCGExValency
 			}
 
 			BondingRulesMap.Add(Idx, Rules);
+
+			// Read orbital count metadata if present
+			if (OrbitalCount)
+			{
+				OrbitalCountMap.Add(Idx, OrbitalCount->GetValueFromItemKey(i));
+			}
 		}
 
 		return true;
@@ -193,6 +254,22 @@ namespace PCGExValency
 		UPCGExActorCollection* Collection = InBondingRules->GetActorCollection();
 		if (Collection) { Collection->BuildCache(); }
 		return Collection;
+	}
+
+	int32 FValencyUnpacker::GetOrbitalCount(const UPCGExValencyBondingRules* InBondingRules) const
+	{
+		if (!InBondingRules) { return 0; }
+
+		// Find the map index for this BondingRules and look up orbital count
+		for (const auto& Pair : BondingRulesMap)
+		{
+			if (Pair.Value == InBondingRules)
+			{
+				const int32* Count = OrbitalCountMap.Find(Pair.Key);
+				return Count ? *Count : 0;
+			}
+		}
+		return 0;
 	}
 
 #pragma endregion

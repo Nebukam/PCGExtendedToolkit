@@ -143,7 +143,7 @@ public:
 	 * @param InCluster
 	 * @param InCompiledPatterns All compiled patterns from BondingRules
 	 * @param InOrbitalCache Orbital cache for this cluster
-	 * @param InModuleDataReader Reader for module data attribute
+	 * @param InValencyEntryReader Reader for ValencyEntry attribute
 	 * @param InNumNodes Number of nodes in the cluster
 	 * @param InClaimedNodes Set of already-claimed nodes (for exclusive matching)
 	 * @param InSeed Random seed for deterministic selection
@@ -153,7 +153,7 @@ public:
 		const TSharedPtr<PCGExClusters::FCluster>& InCluster,
 		const FPCGExValencyPatternSetCompiled* InCompiledPatterns,
 		const PCGExValency::FOrbitalCache* InOrbitalCache,
-		const TSharedPtr<PCGExData::TBuffer<int64>>& InModuleDataReader,
+		const TSharedPtr<PCGExData::TBuffer<int64>>& InValencyEntryReader,
 		int32 InNumNodes,
 		TSet<int32>* InClaimedNodes,
 		int32 InSeed, const TSharedPtr<PCGExPatternMatcher::FMatcherAllocations>& InAllocations = nullptr);
@@ -204,8 +204,8 @@ protected:
 	/** Orbital cache (owned externally by processor) */
 	const PCGExValency::FOrbitalCache* OrbitalCache = nullptr;
 
-	/** Module data reader (owned externally by batch) */
-	TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+	/** ValencyEntry reader (owned externally by batch) */
+	TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryReader;
 
 	/** Number of nodes in cluster */
 	int32 NumNodes = 0;

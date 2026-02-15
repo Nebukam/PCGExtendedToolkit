@@ -62,9 +62,10 @@ protected:
 	//~End UPCGSettings
 
 public:
-	// This node requires both OrbitalSet and BondingRules
-	virtual bool WantsOrbitalSet() const override { return true; }
-	virtual bool WantsBondingRules() const override { return true; }
+	// This node consumes a Valency Map (BondingRules + OrbitalSet resolved from map)
+	virtual bool WantsOrbitalSet() const override { return false; }
+	virtual bool WantsBondingRules() const override { return false; }
+	virtual bool WantsValencyMap() const override { return true; }
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
@@ -88,10 +89,6 @@ public:
 	/** If enabled, prune nodes that failed to solve */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneUnsolvable = false;
-
-	/** Suffix for the ValencyEntry attribute name (e.g. "Main" -> "PCGEx/V/Entry/Main") */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	FName EntrySuffix = FName("Main");
 
 	// ========== Fixed Picks ==========
 
@@ -133,8 +130,6 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingContext final : FPCGExValenc
 {
 	friend class FPCGExValencyBondingElement;
 
-	virtual void RegisterAssetDependencies() override;
-
 	/** Solver factory (registered from settings) */
 	UPCGExValencySolverInstancedFactory* Solver = nullptr;
 
@@ -154,7 +149,6 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyBonding)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
@@ -175,7 +169,6 @@ namespace PCGExValencyBonding
 		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
 
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 
@@ -224,7 +217,6 @@ namespace PCGExValencyBonding
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
 		/** Attribute writers (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> ValencyEntryWriter;
 

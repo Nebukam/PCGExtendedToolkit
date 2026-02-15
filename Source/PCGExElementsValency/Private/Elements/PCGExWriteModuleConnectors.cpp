@@ -16,7 +16,7 @@
 TArray<FPCGPinProperties> UPCGExWriteModuleConnectorsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceValencyMapLabel, "Valency map from Solve or Generative nodes.", Required)
+	// Valency Map pin is auto-added by base class via WantsValencyMap()
 	return PinProperties;
 }
 
@@ -48,77 +48,18 @@ bool FPCGExWriteModuleConnectorsElement::Boot(FPCGExContext* InContext) const
 
 bool FPCGExWriteModuleConnectorsElement::PostBoot(FPCGExContext* InContext) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
-
-	// Unpack Valency Map first — this loads BondingRules via LoadBlocking_AnyThread
-	Context->ValencyUnpacker = MakeShared<PCGExValency::FValencyUnpacker>();
-	Context->ValencyUnpacker->UnpackPin(InContext, PCGExValency::Labels::SourceValencyMapLabel);
-
-	if (!Context->ValencyUnpacker->HasValidMapping())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid Valency Map from input."));
-		return false;
-	}
-
-	// Resolve BondingRules from map (first entry)
-	for (const auto& Pair : Context->ValencyUnpacker->GetBondingRules())
-	{
-		Context->BondingRules = Pair.Value;
-		break;
-	}
-
-	if (!Context->BondingRules)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules found in Valency Map."));
-		return false;
-	}
-
-	if (!Context->BondingRules->IsCompiled())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules from Valency Map are not compiled."));
-		return false;
-	}
-
-	// Resolve OrbitalSet from BondingRules (needed by base cluster processor)
-	if (Context->BondingRules->OrbitalSets.Num() > 0)
-	{
-		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
-	}
-
-	// Base PostBoot — WantsBondingRules/WantsOrbitalSet are false, so it skips their validation
+	// Base class: ConsumeValencyMap -> BondingRules, OrbitalSet, ConnectorSet, Suffix, MaxOrbitals
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
-	// Manually validate OrbitalSet (base skips since WantsOrbitalSet=false)
-	if (!Context->OrbitalSet)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no OrbitalSets. Rebuild the Bonding Rules asset."));
-		return false;
-	}
+	PCGEX_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
-	TArray<FText> OrbitalValidationErrors;
-	if (!Context->OrbitalSet->Validate(OrbitalValidationErrors))
-	{
-		for (const FText& Error : OrbitalValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
-		return false;
-	}
-
-	// Build orbital direction resolver (base skips since WantsOrbitalSet=false)
-	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
-		return false;
-	}
-
-	// Resolve ConnectorSet from BondingRules
-	Context->ConnectorSet = Context->BondingRules->ConnectorSet;
-
+	// Node-specific: validate + compile ConnectorSet (base resolved it but didn't validate)
 	if (!Context->ConnectorSet)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Bonding Rules in Valency Map has no Connector Set."));
 		return false;
 	}
 
-	// Validate and compile connector set
 	TArray<FText> ConnectorValidationErrors;
 	if (!Context->ConnectorSet->Validate(ConnectorValidationErrors))
 	{
@@ -167,7 +108,7 @@ namespace PCGExWriteModuleConnectors
 		if (!PCGExValencyMT::IProcessor::Process(InTaskManager)) { return false; }
 
 		// Get the ValencyEntry reader
-		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
 		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
 		if (!ValencyEntryReader)
 		{
@@ -347,7 +288,7 @@ namespace PCGExWriteModuleConnectors
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
 		// Register ValencyEntry attribute for reading
-		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
 		FacadePreloader.Register<int64>(Context, EntryAttrName);
 	}
 
@@ -356,7 +297,7 @@ namespace PCGExWriteModuleConnectors
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteModuleConnectors)
 
 		// Create ValencyEntry reader
-		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->EntrySuffix);
+		const FName EntryAttrName = PCGExValency::EntryData::GetEntryAttributeName(Settings->Suffix);
 		ValencyEntryReader = VtxDataFacade->GetReadable<int64>(EntryAttrName);
 
 		PCGExValencyMT::IBatch::OnProcessingPreparationComplete();
