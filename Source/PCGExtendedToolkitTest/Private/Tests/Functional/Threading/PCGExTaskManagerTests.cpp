@@ -73,7 +73,10 @@ namespace MockTaskSystem
 	};
 
 	/**
-	 * Task group that manages multiple tasks
+	 * Task group that manages multiple tasks.
+	 * Mirrors production IAsyncHandleGroup: PendingRegistrations suppresses
+	 * premature completion, StartedCount adds a second consistency check,
+	 * and CAS ensures the callback fires exactly once.
 	 */
 	class FTaskGroup : public IHandle
 	{
@@ -81,26 +84,72 @@ namespace MockTaskSystem
 		mutable FCriticalSection RegistryLock;
 		TArray<TSharedPtr<IHandle>> Tasks;
 
+		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
+		std::atomic<int32> StartedCount{0};
 		std::atomic<int32> CompletedCount{0};
+		std::atomic<bool> bCompletionFired{false};
 
 		std::function<void()> OnAllComplete;
+
+		// RAII guard that blocks CheckCompletion during batch registration.
+		// Callers that register multiple tasks must hold a guard for the
+		// duration of the batch so that a fast-completing task cannot trigger
+		// group completion before all siblings are registered.
+		struct FRegistrationGuard
+		{
+			TSharedPtr<FTaskGroup> Parent;
+
+			explicit FRegistrationGuard(const TSharedPtr<FTaskGroup>& InParent)
+				: Parent(InParent)
+			{
+				Parent->PendingRegistrations.fetch_add(1, std::memory_order_acquire);
+			}
+
+			~FRegistrationGuard()
+			{
+				const int32 Remaining = Parent->PendingRegistrations.fetch_sub(1, std::memory_order_release) - 1;
+				if (Remaining == 0) { Parent->CheckCompletion(); }
+			}
+		};
 
 		void RegisterTask(TSharedPtr<IHandle> Task)
 		{
 			FScopeLock Lock(&RegistryLock);
 			Tasks.Add(Task);
-			ExpectedCount.fetch_add(1);
+			ExpectedCount.fetch_add(1, std::memory_order_acq_rel);
+		}
+
+		void NotifyTaskStarted()
+		{
+			StartedCount.fetch_add(1, std::memory_order_acq_rel);
 		}
 
 		void NotifyTaskComplete()
 		{
-			int32 Completed = CompletedCount.fetch_add(1) + 1;
-			int32 Expected = ExpectedCount.load();
+			CompletedCount.fetch_add(1, std::memory_order_acq_rel);
+			CheckCompletion();
+		}
 
-			if (Completed >= Expected && OnAllComplete)
+		void CheckCompletion()
+		{
+			// While any thread is still registering tasks, suppress completion.
+			if (PendingRegistrations.load(std::memory_order_acquire) > 0) { return; }
+
+			std::atomic_thread_fence(std::memory_order_seq_cst);
+
+			const int32 Completed = CompletedCount.load(std::memory_order_acquire);
+			const int32 Expected = ExpectedCount.load(std::memory_order_acquire);
+			const int32 Started = StartedCount.load(std::memory_order_acquire);
+
+			if (Completed >= Expected && Completed == Started && Expected > 0)
 			{
-				OnAllComplete();
+				// CAS ensures exactly one thread fires the callback.
+				bool bExpectedFalse = false;
+				if (bCompletionFired.compare_exchange_strong(bExpectedFalse, true))
+				{
+					if (OnAllComplete) { OnAllComplete(); }
+				}
 			}
 		}
 
@@ -131,10 +180,27 @@ namespace MockTaskSystem
 
 		void Execute()
 		{
-			if (IsCancelled()) return;
+			if (IsCancelled())
+			{
+				// Mirror production: cancelled tasks still notify the group
+				// so completion tracking stays consistent (Expected == Completed).
+				// Without this, cancelled tasks silently disappear and
+				// OnAllComplete can never fire.
+				if (auto G = Group.Pin())
+				{
+					G->NotifyTaskStarted();
+					G->NotifyTaskComplete();
+				}
+				return;
+			}
 
 			if (Start())
 			{
+				if (auto G = Group.Pin())
+				{
+					G->NotifyTaskStarted();
+				}
+
 				if (Work) Work();
 				Complete();
 
@@ -204,15 +270,19 @@ bool FPCGExTaskGroupCompletionTest::RunTest(const FString& Parameters)
 
 	const int32 NumTasks = 10;
 
-	// Launch tasks
-	for (int32 i = 0; i < NumTasks; ++i)
+	// Launch tasks within a registration guard so that fast-completing tasks
+	// cannot trigger group completion before all siblings are registered.
 	{
-		auto Task = MakeShared<FTask>([&ExecutedCount]()
+		FTaskGroup::FRegistrationGuard Guard(Manager);
+		for (int32 i = 0; i < NumTasks; ++i)
 		{
-			ExecutedCount.fetch_add(1);
-			FPlatformProcess::Sleep(0.001f); // Small delay
-		});
-		Manager->LaunchTask(Task);
+			auto Task = MakeShared<FTask>([&ExecutedCount]()
+			{
+				ExecutedCount.fetch_add(1);
+				FPlatformProcess::Sleep(0.001f); // Small delay
+			});
+			Manager->LaunchTask(Task);
+		}
 	}
 
 	// Wait for completion
@@ -386,6 +456,10 @@ bool FPCGExConcurrentTaskLaunchTest::RunTest(const FString& Parameters)
 		{
 			while (!StartFlag.load()) { FPlatformProcess::YieldThread(); }
 
+			// Each launcher thread holds a registration guard for its batch.
+			// This prevents premature completion: CheckCompletion is suppressed
+			// while any guard is alive, matching production FRegistrationGuard.
+			FTaskGroup::FRegistrationGuard Guard(Manager);
 			for (int32 i = 0; i < NumTasks / NumLaunchers; ++i)
 			{
 				auto Task = MakeShared<FTask>([&ExecutedCount]()
@@ -404,18 +478,16 @@ bool FPCGExConcurrentTaskLaunchTest::RunTest(const FString& Parameters)
 		F.Wait();
 	}
 
-	// Wait for all tasks to actually execute. Cannot rely on OnAllComplete here because
-	// NotifyTaskComplete checks Completed >= Expected, but Expected is incremented
-	// incrementally by the launcher threads. A fast task can complete before the next
-	// is registered, causing a premature Completed==Expected match.
+	// Wait for completion callback — FRegistrationGuard ensures it fires only
+	// after all launcher threads finish registration and all tasks complete.
 	double StartTime = FPlatformTime::Seconds();
-	while (ExecutedCount.load() < NumTasks && (FPlatformTime::Seconds() - StartTime) < 5.0)
+	while (!AllComplete.load() && (FPlatformTime::Seconds() - StartTime) < 5.0)
 	{
 		FPlatformProcess::Sleep(0.01f);
 	}
 
-	TestEqual(TEXT("All tasks executed"), ExecutedCount.load(), NumTasks);
 	TestTrue(TEXT("Completion callback fired"), AllComplete.load());
+	TestEqual(TEXT("All tasks executed"), ExecutedCount.load(), NumTasks);
 
 	return true;
 }
@@ -638,6 +710,133 @@ bool FPCGExWorkDistributionTest::RunTest(const FString& Parameters)
 	}
 
 	AddInfo(FString::Printf(TEXT("Work range: %d - %d"), MinWork, MaxWork));
+
+	return true;
+}
+
+// =============================================================================
+// Registration Guard Suppression Tests
+// =============================================================================
+
+/**
+ * Test that FRegistrationGuard suppresses premature completion.
+ * All tasks complete while the guard is held — callback must NOT fire
+ * until the guard destructs.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExRegistrationGuardSuppressionTest,
+	"PCGEx.Functional.Threading.TaskManager.RegistrationGuard.Suppression",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExRegistrationGuardSuppressionTest::RunTest(const FString& Parameters)
+{
+	using namespace MockTaskSystem;
+
+	auto Manager = MakeShared<FTaskManager>();
+	std::atomic<bool> AllComplete{false};
+	std::atomic<int32> ExecutedCount{0};
+
+	Manager->OnAllComplete = [&AllComplete]()
+	{
+		AllComplete.store(true);
+	};
+
+	const int32 NumTasks = 10;
+
+	{
+		FTaskGroup::FRegistrationGuard Guard(Manager);
+
+		for (int32 i = 0; i < NumTasks; ++i)
+		{
+			auto Task = MakeShared<FTask>([&ExecutedCount]()
+			{
+				ExecutedCount.fetch_add(1);
+			});
+			Manager->LaunchTask(Task);
+		}
+
+		// Wait for all tasks to finish executing (no sleep in tasks, so fast)
+		double WaitStart = FPlatformTime::Seconds();
+		while (ExecutedCount.load() < NumTasks && (FPlatformTime::Seconds() - WaitStart) < 5.0)
+		{
+			FPlatformProcess::Sleep(0.01f);
+		}
+
+		// All tasks executed but guard is still held — completion MUST be suppressed
+		TestEqual(TEXT("All tasks executed while guard held"), ExecutedCount.load(), NumTasks);
+		TestFalse(TEXT("Completion suppressed while guard held"), AllComplete.load());
+	}
+	// Guard released here — CheckCompletion runs and fires callback
+
+	// Brief wait for CheckCompletion to propagate
+	FPlatformProcess::Sleep(0.01f);
+
+	TestTrue(TEXT("Completion fires after guard release"), AllComplete.load());
+
+	return true;
+}
+
+// =============================================================================
+// Cancelled Task Completion Tests
+// =============================================================================
+
+/**
+ * Test that cancelled tasks still notify the group.
+ * In production, cancelled tasks call OnEnd → NotifyCompleted so the group
+ * can still reach completion. Without this, Expected > Completed forever
+ * and OnAllComplete never fires.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExCancelledTaskCompletionTest,
+	"PCGEx.Functional.Threading.TaskManager.CancelledTaskCompletion",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExCancelledTaskCompletionTest::RunTest(const FString& Parameters)
+{
+	using namespace MockTaskSystem;
+
+	auto Manager = MakeShared<FTaskManager>();
+	std::atomic<bool> AllComplete{false};
+	std::atomic<int32> ExecutedCount{0};
+
+	Manager->OnAllComplete = [&AllComplete]()
+	{
+		AllComplete.store(true);
+	};
+
+	const int32 NumTasks = 12;
+	int32 NumCancelled = 0;
+
+	{
+		FTaskGroup::FRegistrationGuard Guard(Manager);
+		for (int32 i = 0; i < NumTasks; ++i)
+		{
+			auto Task = MakeShared<FTask>([&ExecutedCount]()
+			{
+				ExecutedCount.fetch_add(1);
+			});
+
+			// Cancel every 3rd task before launch
+			if (i % 3 == 0)
+			{
+				Task->Cancel();
+				NumCancelled++;
+			}
+
+			Manager->LaunchTask(Task);
+		}
+	}
+
+	// Wait for completion
+	double StartTime = FPlatformTime::Seconds();
+	while (!AllComplete.load() && (FPlatformTime::Seconds() - StartTime) < 5.0)
+	{
+		FPlatformProcess::Sleep(0.01f);
+	}
+
+	TestTrue(TEXT("Completion fires despite cancelled tasks"), AllComplete.load());
+	TestEqual(TEXT("Only non-cancelled tasks executed work"), ExecutedCount.load(), NumTasks - NumCancelled);
+	TestEqual(TEXT("All tasks counted as completed"), Manager->GetCompletedCount(), NumTasks);
 
 	return true;
 }
