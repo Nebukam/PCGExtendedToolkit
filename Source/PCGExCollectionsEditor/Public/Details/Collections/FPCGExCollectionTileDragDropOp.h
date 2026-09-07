@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "DragAndDrop/DecoratedDragDropOp.h"
 #include "Input/DragAndDrop.h"
-#include "UObject/WeakObjectPtrTemplates.h"
+#include "UObject/WeakObjectPtr.h"
 
 class UPCGExAssetCollection;
 

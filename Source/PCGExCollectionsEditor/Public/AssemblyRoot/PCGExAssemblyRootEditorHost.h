@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Templates/SharedPointer.h"
-#include "UObject/WeakObjectPtrTemplates.h"
+#include "UObject/WeakObjectPtr.h"
 
 class AActor;
 class APCGExAssemblyRootActor;
