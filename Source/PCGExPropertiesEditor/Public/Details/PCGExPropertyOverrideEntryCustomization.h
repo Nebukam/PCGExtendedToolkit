@@ -6,7 +6,7 @@
 #include "IDetailPropertyRow.h"
 #include "IPropertyTypeCustomization.h"
 #include "StructUtils/InstancedStruct.h"
-#include "UObject/WeakObjectPtrTemplates.h"
+#include "UObject/WeakObjectPtr.h"
 
 class FStructOnScope;
 class IPropertyUtilities;
