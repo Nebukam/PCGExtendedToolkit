@@ -53,6 +53,9 @@ namespace PCGExMath::OBB
 	// SAT overlap test
 	PCGEXCORE_API bool SATOverlap(const FOBB& A, const FOBB& B);
 
+	// Triangle/OBB overlap (13-axis SAT in the box's local frame). Touching counts as overlap.
+	PCGEXCORE_API bool TriangleOverlap(const FOBB& Box, const FVector& A, const FVector& B, const FVector& C);
+
 	// SAT penetration depth (positive = overlapping, negative = separated).
 	// Returns the minimum overlap across all 15 SAT axes (Minimum Translation Vector magnitude).
 	PCGEXCORE_API float SATPenetrationDepth(const FOBB& A, const FOBB& B);
