@@ -48,6 +48,11 @@ void FPCGExCollectionsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>&
 {
 	IPCGExLegacyModuleInterface::RegisterToEditor(InStyle);
 
+	// FSlateIconFinder walks ClassIcon.<ClassName> across every registered style set; the stock assembly
+	// root shares the PCGDataAsset "Data Asset" source glyph since that is what it exports as.
+	InStyle->Set("ClassIcon.PCGExAssemblyRootActor", new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT("PCGEx_Editor_PCGDA_DataAsset"), TEXT(".svg")), FVector2D(16.0f)));
+	InStyle->Set("ClassThumbnail.PCGExAssemblyRootActor", new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT("PCGEx_Editor_PCGDA_DataAsset"), TEXT(".svg")), FVector2D(64.0f)));
+
 	PCGEX_REGISTER_PIN_ICON(IN_Selector)
 	PCGEX_REGISTER_PIN_ICON(OUT_Selector)
 

@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "K2Node_PCGExPropertyBase.h"
 
-#include "K2Node_SetPCGExEntryProperty.generated.h"
+#include "K2Node_SetPCGExCategoryProperty.generated.h"
 
 class FBlueprintActionDatabaseRegistrar;
 
-/** Writes an entry's custom property override by raw index and reads back the resolved value. See UK2Node_PCGExPropertyBase. */
-UCLASS(meta=(DisplayName="Set Entry Property", PCGExNodeLibraryDoc="staging/collections/helpers/collection-staging-pipeline/set-entry-property"))
-class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_SetPCGExEntryProperty : public UK2Node_PCGExPropertyBase
+/** Writes a category's custom property override (minting the row on demand) and reads back the resolved value. See UK2Node_PCGExPropertyBase. */
+UCLASS(meta=(DisplayName="Set Category Property", PCGExNodeLibraryDoc="staging/collections/helpers/collection-staging-pipeline/set-category-property"))
+class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_SetPCGExCategoryProperty : public UK2Node_PCGExPropertyBase
 {
 	GENERATED_BODY()
 
@@ -27,6 +27,6 @@ protected:
 
 	virtual EScope GetScope() const override
 	{
-		return EScope::Entry;
+		return EScope::Category;
 	}
 };
