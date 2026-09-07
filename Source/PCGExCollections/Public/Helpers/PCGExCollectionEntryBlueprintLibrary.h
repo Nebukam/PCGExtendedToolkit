@@ -18,16 +18,17 @@ class UPCGExAssetCollection;
 
 /**
  * Blueprint access to asset-collection entries by raw index: typed property override
- * read/write plus plain entry-field helpers (weight, category, tags, staging reads).
+ * read/write plus plain entry-field helpers (weight, category, tags, staging reads), and the
+ * two collection-side property tiers (per-category override rows, collection defaults).
  *
  * Primary consumer is UPCGExCollectionStagingPipeline hooks (which receive Collection +
  * EntryIndex), but everything here also works from editor utility blueprints/widgets.
  * Setters snapshot the collection for undo (Modify) and mark its package dirty; weight /
  * category / tag setters additionally invalidate the pick cache.
  *
- * The wildcard CustomThunk pair and the Object/Class variants are BlueprintInternalUseOnly:
- * UK2Node_GetPCGExEntryProperty / UK2Node_SetPCGExEntryProperty are the user-facing entries
- * and expand to calls to these functions at compile time (same split as
+ * The wildcard CustomThunk pairs and the Object/Class variants are BlueprintInternalUseOnly:
+ * the UK2Node_PCGExPropertyBase leaves (Get/Set Entry|Category|Collection Property) are the
+ * user-facing entries and expand to calls to these functions at compile time (same split as
  * UPCGExPropertyBlueprintLibrary, and for the same marshalling reasons).
  */
 UCLASS()
@@ -117,6 +118,128 @@ public:
 	static bool TrySetEntryPropertyClass(
 		UPCGExAssetCollection* Collection,
 		int32 EntryIndex,
+		FName PropertyName,
+		UClass* NewClass);
+
+	// Category tier -- per-category override rows; backing for the Get/Set Category Property K2 nodes.
+	// Reads: the category's enabled slot, then the collection default. Writes mint the row when absent
+	// (editor only; cooked targets warn and fail), enable the slot and dirty. NAME_None has no row.
+
+	UFUNCTION(BlueprintPure, CustomThunk, Category = "PCGEx|Collection",
+		meta = (CustomStructureParam = "OutValue", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Category Property Value"))
+	static bool TryGetCategoryPropertyValue(
+		const UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		int32& OutValue);
+
+	DECLARE_FUNCTION(execTryGetCategoryPropertyValue);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "PCGEx|Collection",
+		meta = (CustomStructureParam = "NewValue", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Category Property Override"))
+	static bool TrySetCategoryPropertyOverride(
+		UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		const int32& NewValue);
+
+	DECLARE_FUNCTION(execTrySetCategoryPropertyOverride);
+
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection",
+		meta = (DeterminesOutputType = "ExpectedClass", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Category Property Object"))
+	static UObject* TryGetCategoryPropertyObject(
+		const UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		UPARAM(meta = (AllowAbstract = "true")) TSubclassOf<UObject> ExpectedClass,
+		bool& bSuccess);
+
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection",
+		meta = (BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Category Property Object"))
+	static bool TrySetCategoryPropertyObject(
+		UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		UObject* NewObject);
+
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection",
+		meta = (DeterminesOutputType = "ExpectedClass", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Category Property Class"))
+	static TSubclassOf<UObject> TryGetCategoryPropertyClass(
+		const UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		UPARAM(meta = (AllowAbstract = "true")) TSubclassOf<UObject> ExpectedClass,
+		bool& bSuccess);
+
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection",
+		meta = (BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Category Property Class"))
+	static bool TrySetCategoryPropertyClass(
+		UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		UClass* NewClass);
+
+	// Collection tier -- the schema defaults; backing for the Get/Set Collection Property K2 nodes. Reads
+	// honor local -> ImportOverrides -> imported asset. Writes go to the local schema entry, or to the
+	// ImportOverrides slot (enabled by the write) for an imported property -- the asset is never touched.
+
+	UFUNCTION(BlueprintPure, CustomThunk, Category = "PCGEx|Collection",
+		meta = (CustomStructureParam = "OutValue", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Collection Property Value"))
+	static bool TryGetCollectionPropertyValue(
+		const UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		int32& OutValue);
+
+	DECLARE_FUNCTION(execTryGetCollectionPropertyValue);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "PCGEx|Collection",
+		meta = (CustomStructureParam = "NewValue", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Collection Property Default"))
+	static bool TrySetCollectionPropertyDefault(
+		UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		const int32& NewValue);
+
+	DECLARE_FUNCTION(execTrySetCollectionPropertyDefault);
+
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection",
+		meta = (DeterminesOutputType = "ExpectedClass", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Collection Property Object"))
+	static UObject* TryGetCollectionPropertyObject(
+		const UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		UPARAM(meta = (AllowAbstract = "true")) TSubclassOf<UObject> ExpectedClass,
+		bool& bSuccess);
+
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection",
+		meta = (BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Collection Property Object"))
+	static bool TrySetCollectionPropertyObject(
+		UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		UObject* NewObject);
+
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection",
+		meta = (DeterminesOutputType = "ExpectedClass", BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Get Collection Property Class"))
+	static TSubclassOf<UObject> TryGetCollectionPropertyClass(
+		const UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		UPARAM(meta = (AllowAbstract = "true")) TSubclassOf<UObject> ExpectedClass,
+		bool& bSuccess);
+
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection",
+		meta = (BlueprintInternalUseOnly = "true",
+			DisplayName = "Try Set Collection Property Class"))
+	static bool TrySetCollectionPropertyClass(
+		UPCGExAssetCollection* Collection,
 		FName PropertyName,
 		UClass* NewClass);
 
@@ -306,6 +429,55 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection")
 	static bool SetEntryPropertyOverrideEnabled(UPCGExAssetCollection* Collection, int32 EntryIndex, FName PropertyName, bool bEnabled);
+
+	// Category override rows -- user-facing helpers around the category tier.
+
+	/** True if the category's row has an ENABLED override for the named property. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static bool HasCategoryPropertyOverride(const UPCGExAssetCollection* Collection, FName Category, FName PropertyName);
+
+	/**
+	 * Enable or disable a category's override slot for the named property without touching its
+	 * value. Enabling mints the category's row when absent (editor only); disabling a category
+	 * that has no row is a no-op that reports success. Returns false when the category is None,
+	 * the schema property doesn't exist, or the row is missing outside the editor.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection")
+	static bool SetCategoryPropertyOverrideEnabled(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bEnabled);
+
+	/** True if the category has a row with at least one enabled override. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static bool HasCategoryOverrides(const UPCGExAssetCollection* Collection, FName Category);
+
+	/** Categories that own an override row with at least one enabled slot. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static TArray<FName> GetOverriddenCategories(const UPCGExAssetCollection* Collection);
+
+	/** Categories referenced by at least one entry, excluding None. Editor-only; empty in cooked targets. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static TArray<FName> GetUsedCategories(const UPCGExAssetCollection* Collection);
+
+	/** Drop the category's override row outright, enabled slots included. Editor-only; returns true when a row was removed. */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection")
+	static bool RemoveCategoryOverrides(UPCGExAssetCollection* Collection, FName Category);
+
+	/** Drop every override row whose category no entry references. Editor-only; returns the number of rows removed. */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Collection")
+	static int32 CleanupUnusedCategoryOverrides(UPCGExAssetCollection* Collection);
+
+	// Collection schema -- user-facing helpers around the collection tier.
+
+	/** True if the collection's schema declares the property, locally or through an imported schema asset. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static bool HasCollectionProperty(const UPCGExAssetCollection* Collection, FName PropertyName);
+
+	/** True if the property comes from an imported schema asset rather than the collection's local schema. */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static bool IsCollectionPropertyImported(const UPCGExAssetCollection* Collection, FName PropertyName);
+
+	/** Every property name the collection's schema resolves to (locals first, then imports; first occurrence wins). */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")
+	static TArray<FName> GetCollectionPropertyNames(const UPCGExAssetCollection* Collection);
 
 	/** The entry's staged asset path (computed by the last staging rebuild). */
 	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection")

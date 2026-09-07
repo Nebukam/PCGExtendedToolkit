@@ -3,6 +3,7 @@
 
 #include "PCGExCollectionsEditor.h"
 
+#include "AssemblyRoot/PCGExAssemblyRootEditorActions.h"
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
 #include "Editor.h"
@@ -113,6 +114,9 @@ void FPCGExCollectionsEditorModule::StartupModule()
 	// IPCGExExternalPackageProducer, its dirty generated packages save alongside it.
 	OnPackageSavedHandle = UPackage::PackageSavedWithContextEvent.AddRaw(this, &FPCGExCollectionsEditorModule::OnPackageSaved);
 
+	AssemblyRootHost = MakeUnique<FPCGExAssemblyRootEditorHost>();
+	AssemblyRootHost->Startup();
+
 	// Defer subscription until the AssetRegistry's initial scan completes -- it fires
 	// OnAssetUpdatedOnDisk for every asset it discovers at startup, when referenced data
 	// isn't yet ready. Acting then would clobber saved staging.
@@ -139,6 +143,12 @@ void FPCGExCollectionsEditorModule::OnFilesLoaded()
 
 void FPCGExCollectionsEditorModule::ShutdownModule()
 {
+	if (AssemblyRootHost)
+	{
+		AssemblyRootHost->Shutdown();
+		AssemblyRootHost.Reset();
+	}
+
 	FPCGExInlineWidgetRegistry::UnregisterAllModes(FPCGExProperty_CollectionEntry::StaticStruct()->GetFName());
 
 	if (FAssetRegistryModule* AssetRegistryModule = FModuleManager::GetModulePtr<FAssetRegistryModule>("AssetRegistry"))
@@ -497,6 +507,21 @@ void FPCGExCollectionsEditorModule::RegisterMenuExtensions()
 					{
 						PCGExCollectionsEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
 					}
+				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
+	}
+
+	// Right-click on a stock assembly root, or on its content: the same quick actions as the viewport bar.
+	if (UToolMenu* ActorContextMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.ActorContextMenu"))
+	{
+		ActorContextMenu->AddDynamicSection(
+			"PCGExAssemblyRoot", FNewToolMenuDelegate::CreateLambda(
+				[](UToolMenu* ToolMenu)
+				{
+					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
+					{
+						return;
+					}
+					PCGExAssemblyRootEditor::ExtendActorContextMenu(ToolMenu);
 				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
 	}
 }
