@@ -82,13 +82,33 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Slot;
 	}
 
-	// Enable the freshly-written override and dirty the owning collection. Override writes
+	// Shared tail of every override-slot write (entry and category tiers): undo snapshot before the
+	// marshal, then enable + dirty only when the value or the enabled state actually changed -- a hook
+	// that rewrites an identical value on a no-op rebuild must not churn the package. Override writes
 	// don't feed the weight-sorted pick cache, so no InvalidateCache here.
-	void CommitOverrideWrite(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* Slot)
+	bool WriteOverrideSlot(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* Slot, TFunctionRef<bool(FPCGExProperty*)> Write)
 	{
+		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
+		if (!Prop)
+		{
+			return false;
+		}
+
+		Collection->Modify(false);
+		const FInstancedStruct Before = Slot->Value;
+		if (!Write(Prop))
+		{
+			return false;
+		}
+
+		if (Slot->bEnabled && Slot->Value == Before)
+		{
+			return true;
+		}
+
 		Slot->bEnabled = true;
-		Collection->Modify();
 		(void)Collection->MarkPackageDirty();
+		return true;
 	}
 
 	bool WriteFrom(
@@ -103,25 +123,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 			return false;
 		}
 
-		FPCGExPropertyOverrideEntry* Slot = ResolveWritableOverride(Collection, EntryIndex, PropertyName);
-		if (!Slot)
-		{
-			return false;
-		}
-
-		FPCGExProperty* Prop = Slot->GetPropertyMutable();
-		if (!Prop)
-		{
-			return false;
-		}
-
-		if (!PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem))
-		{
-			return false;
-		}
-
-		CommitOverrideWrite(Collection, Slot);
-		return true;
+		return WriteOverrideSlot(
+			Collection, ResolveWritableOverride(Collection, EntryIndex, PropertyName),
+			[InProp, InMem](FPCGExProperty* Prop) { return PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem); });
 	}
 
 	// Soft-path lookups for the well-typed Object/Class accessors; same rationale as the
@@ -166,25 +170,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		EPCGMetadataTypes PathType,
 		const void* InPath)
 	{
-		FPCGExPropertyOverrideEntry* Slot = ResolveWritableOverride(Collection, EntryIndex, PropertyName);
-		if (!Slot)
-		{
-			return false;
-		}
-
-		FPCGExProperty* Prop = Slot->GetPropertyMutable();
-		if (!Prop)
-		{
-			return false;
-		}
-
-		if (!Prop->TryReadValue(PathType, InPath))
-		{
-			return false;
-		}
-
-		CommitOverrideWrite(Collection, Slot);
-		return true;
+		return WriteOverrideSlot(
+			Collection, ResolveWritableOverride(Collection, EntryIndex, PropertyName),
+			[PathType, InPath](FPCGExProperty* Prop) { return Prop->TryReadValue(PathType, InPath); });
 	}
 
 	// Soft-path resolution shared by the Object/Class accessors of every tier: resolve, load on a
@@ -255,11 +243,11 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Prop ? Prop->TryWriteValue(PathType, OutPath) : false;
 	}
 
-	// Writable slot for (category, property). The row is minted on demand in the editor, after the
-	// undo snapshot; outside it a missing row is a hard miss. The schema check runs first so a bad
-	// name never mints a row. A slot missing from an existing row is the same authoring error the
-	// entry tier reports (row not re-synced to the schema).
-	FPCGExPropertyOverrideEntry* ResolveWritableCategoryOverride(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bMintRow)
+	// Writable slot for (category, property). With bMintRow the row is minted on demand in the editor,
+	// after the undo snapshot; without it a missing row returns null silently and sets bOutNeedsRow so
+	// the caller can mint once it holds a known-good value. Outside the editor a missing row is a hard
+	// miss. The schema check runs first so a bad name never mints a row.
+	FPCGExPropertyOverrideEntry* ResolveWritableCategoryOverride(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bMintRow, bool* bOutNeedsRow = nullptr)
 	{
 		if (!Collection)
 		{
@@ -291,6 +279,10 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		{
 			if (!bMintRow)
 			{
+				if (bOutNeedsRow)
+				{
+					*bOutNeedsRow = true;
+				}
 				return nullptr;
 			}
 #if WITH_EDITOR
@@ -320,11 +312,45 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Slot;
 	}
 
-	// Category writes don't feed the weight-sorted pick cache, so no InvalidateCache here either.
-	void CommitCategoryOverrideWrite(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* Slot)
+	// Category write: in place when the row exists; otherwise the value is marshalled into a scratch
+	// copy of the schema default FIRST, so a failed conversion mints nothing, and the row is minted only
+	// once the value is known good.
+	bool WriteCategory(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, TFunctionRef<bool(FPCGExProperty*)> Write)
 	{
+		bool bNeedsRow = false;
+		if (FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/false, &bNeedsRow))
+		{
+			return WriteOverrideSlot(Collection, Slot, Write);
+		}
+		if (!bNeedsRow)
+		{
+			return false;
+		}
+
+#if WITH_EDITOR
+		const FInstancedStruct* Prototype = Collection->CollectionProperties.GetPropertyByName(PropertyName);
+		FInstancedStruct Scratch = Prototype ? *Prototype : FInstancedStruct();
+		FPCGExProperty* ScratchProp = Scratch.GetMutablePtr<FPCGExProperty>();
+		if (!ScratchProp || !Write(ScratchProp))
+		{
+			return false;
+		}
+
+		FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
+		if (!Slot)
+		{
+			return false;
+		}
+
+		Slot->Value = MoveTemp(Scratch);
 		Slot->bEnabled = true;
 		(void)Collection->MarkPackageDirty();
+		return true;
+#else
+		// Rows can only be minted in the editor; the resolver reports it.
+		(void)ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
+		return false;
+#endif
 	}
 
 	bool WriteCategoryFrom(
@@ -339,21 +365,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 			return false;
 		}
 
-		FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
-		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
-		if (!Prop)
-		{
-			return false;
-		}
-
-		Collection->Modify();
-		if (!PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem))
-		{
-			return false;
-		}
-
-		CommitCategoryOverrideWrite(Collection, Slot);
-		return true;
+		return WriteCategory(
+			Collection, Category, PropertyName,
+			[InProp, InMem](FPCGExProperty* Prop) { return PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem); });
 	}
 
 	bool WriteCategorySoftPath(
@@ -363,21 +377,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		EPCGMetadataTypes PathType,
 		const void* InPath)
 	{
-		FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
-		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
-		if (!Prop)
-		{
-			return false;
-		}
-
-		Collection->Modify();
-		if (!Prop->TryReadValue(PathType, InPath))
-		{
-			return false;
-		}
-
-		CommitCategoryOverrideWrite(Collection, Slot);
-		return true;
+		return WriteCategory(
+			Collection, Category, PropertyName,
+			[PathType, InPath](FPCGExProperty* Prop) { return Prop->TryReadValue(PathType, InPath); });
 	}
 
 	// --- Collection tier ---
@@ -418,10 +420,11 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 
 	// Writable default for PropertyName: the local schema entry, else the ImportOverrides slot that
 	// stands in for an imported asset's entry (the asset is never written through). ImportSlot is
-	// non-null only on the imported path; the write enables it.
+	// non-null only on the imported path; the write enables it. Holder is the FInstancedStruct the
+	// property lives in, for before/after comparison.
 	struct FWritableCollectionDefault
 	{
-		FPCGExProperty* Property = nullptr;
+		FInstancedStruct* Holder = nullptr;
 		FPCGExPropertyOverrideEntry* ImportSlot = nullptr;
 	};
 
@@ -435,16 +438,22 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 
 		if (FPCGExPropertySchema* Local = Collection->CollectionProperties.FindByNameMutable(PropertyName))
 		{
-			Out.Property = Local->GetPropertyMutable();
+			Out.Holder = &Local->Property;
 		}
-		else if (FPCGExPropertyOverrideEntry* Slot = Collection->CollectionProperties.ImportOverrides.FindEntryMutableByName(PropertyName))
+		// Schema-gated: a stale ImportOverrides slot (imported asset edited before this collection
+		// reconciled) must not be resurrected by a write.
+		else if (Collection->HasProperty(PropertyName))
 		{
-			Out.ImportSlot = Slot;
-			Out.Property = Slot->GetPropertyMutable();
+			if (FPCGExPropertyOverrideEntry* Slot = Collection->CollectionProperties.ImportOverrides.FindEntryMutableByName(PropertyName))
+			{
+				Out.ImportSlot = Slot;
+				Out.Holder = &Slot->Value;
+			}
 		}
 
-		if (!Out.Property)
+		if (!Out.Holder || !Out.Holder->IsValid())
 		{
+			Out.Holder = nullptr;
 			FFrame::KismetExecutionMessage(
 				*FString::Printf(
 					TEXT("Property '%s' is not part of the schema of collection '%s' -- collection default not written."),
@@ -456,14 +465,36 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 
 	// Defaults feed the registry prototypes the cache rebuild re-derives, so invalidate like the
 	// editor's value-edit path does. Entries' disabled slots read through to the default on resolve.
-	void CommitCollectionDefaultWrite(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* ImportSlot)
+	// Value-gated like the override tiers: an identical rewrite commits nothing.
+	bool WriteCollectionDefault(UPCGExAssetCollection* Collection, FName PropertyName, TFunctionRef<bool(FPCGExProperty*)> Write)
 	{
-		if (ImportSlot)
+		const FWritableCollectionDefault Target = ResolveWritableCollectionDefault(Collection, PropertyName);
+		FPCGExProperty* Prop = Target.Holder ? Target.Holder->GetMutablePtr<FPCGExProperty>() : nullptr;
+		if (!Prop)
 		{
-			ImportSlot->bEnabled = true;
+			return false;
+		}
+
+		Collection->Modify(false);
+		const FInstancedStruct Before = *Target.Holder;
+		if (!Write(Prop))
+		{
+			return false;
+		}
+
+		const bool bAlreadyEnabled = !Target.ImportSlot || Target.ImportSlot->bEnabled;
+		if (bAlreadyEnabled && *Target.Holder == Before)
+		{
+			return true;
+		}
+
+		if (Target.ImportSlot)
+		{
+			Target.ImportSlot->bEnabled = true;
 		}
 		(void)Collection->MarkPackageDirty();
 		Collection->InvalidateCache();
+		return true;
 	}
 
 	bool WriteCollectionFrom(
@@ -477,20 +508,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 			return false;
 		}
 
-		const FWritableCollectionDefault Target = ResolveWritableCollectionDefault(Collection, PropertyName);
-		if (!Target.Property)
-		{
-			return false;
-		}
-
-		Collection->Modify();
-		if (!PCGExPropertyPinMarshal::TryReadFromPin(Target.Property, InProp, InMem))
-		{
-			return false;
-		}
-
-		CommitCollectionDefaultWrite(Collection, Target.ImportSlot);
-		return true;
+		return WriteCollectionDefault(
+			Collection, PropertyName,
+			[InProp, InMem](FPCGExProperty* Prop) { return PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem); });
 	}
 
 	bool WriteCollectionSoftPath(
@@ -499,20 +519,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		EPCGMetadataTypes PathType,
 		const void* InPath)
 	{
-		const FWritableCollectionDefault Target = ResolveWritableCollectionDefault(Collection, PropertyName);
-		if (!Target.Property)
-		{
-			return false;
-		}
-
-		Collection->Modify();
-		if (!Target.Property->TryReadValue(PathType, InPath))
-		{
-			return false;
-		}
-
-		CommitCollectionDefaultWrite(Collection, Target.ImportSlot);
-		return true;
+		return WriteCollectionDefault(
+			Collection, PropertyName,
+			[PathType, InPath](FPCGExProperty* Prop) { return Prop->TryReadValue(PathType, InPath); });
 	}
 
 	// Dirty path for plain field setters: weight/category/tags feed the pick cache
@@ -679,6 +688,18 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 			MemberPathMissWarning(Collection, MemberPath);
 			return false;
 		}
+
+		// Identical value: nothing to commit. Bool pairs compare through their own masks (see CopyMemberValue).
+		const FBoolProperty* SrcBool = CastField<FBoolProperty>(InProp);
+		const FBoolProperty* DstBool = CastField<FBoolProperty>(Member.Property);
+		const bool bIdentical = (SrcBool && DstBool)
+			? SrcBool->GetPropertyValue(InMem) == DstBool->GetPropertyValue(Member.Address)
+			: Member.Property->SameType(InProp) && Member.Property->Identical(Member.Address, InMem);
+		if (bIdentical)
+		{
+			return true;
+		}
+
 		if (!CopyMemberValue(InProp, InMem, Member.Property, Member.Address, Collection, MemberPath))
 		{
 			return false;
@@ -749,6 +770,11 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		if (!SoftProp)
 		{
 			return false;
+		}
+
+		if (SoftProp->GetPropertyValue(Member.Address).ToSoftObjectPath() == InPath)
+		{
+			return true;
 		}
 
 		SoftProp->SetPropertyValue(Member.Address, FSoftObjectPtr(InPath));

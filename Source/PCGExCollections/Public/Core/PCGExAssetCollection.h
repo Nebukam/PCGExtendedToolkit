@@ -1239,12 +1239,13 @@ protected:
 	}
 
 	/**
-	 * Tail of every session-owning rebuild path (depth 0 only). With changes: native
-	 * EDITOR_OnPostStagingRebuild first, then the pipelines' OnPostRebuild (so they see post-merge /
-	 * post-compaction state), then the thumbnail bake. Without changes: only the pipelines' OnPostRebuild
-	 * (bHasChanges=false) -- the native work and the bake would dirty the package for nothing -- inside a
-	 * whole-object diff that promotes the session to a changed one if a hook mutated the collection.
-	 * Must stay outside the virtual -- overrides are not required to call Super.
+	 * Tail of every session-owning rebuild path (depth 0 only). bHasChanges is the caller's entry-level
+	 * verdict; hook-only mutations are detected here by diffing against the session baseline taken in
+	 * EDITOR_DispatchPipelinePreRebuild. With changes: native EDITOR_OnPostStagingRebuild first, then the
+	 * pipelines' OnPostRebuild (so they see post-merge / post-compaction state), then the thumbnail bake.
+	 * Without changes: only the pipelines' OnPostRebuild (bHasChanges=false) -- the native work and the
+	 * bake would dirty the package for nothing -- and a post-hook mutation promotes the session after it.
+	 * Ends the pipeline session. Must stay outside the virtual -- overrides are not required to call Super.
 	 */
 	void EDITOR_FinalizeStagingRebuild(bool bHasChanges);
 
@@ -1262,9 +1263,17 @@ protected:
 	/** True when at least one StagingPipelines slot holds a valid pipeline. */
 	bool EDITOR_HasAnyStagingPipeline() const;
 
-	/** Releases every pipeline's session context; tail of the post dispatch, which every session reaches.
-	 *  Guarded like the dispatchers: only the level that began the session ends it. */
+	/** Releases every pipeline's session context and the session baseline; tail of the finalize, which
+	 *  every session reaches. Guarded like the dispatchers: only the level that began the session ends it. */
 	void EDITOR_EndPipelineSession();
+
+	/** True when the collection's serialized state differs from the session baseline; false with no
+	 *  baseline (no pipeline, cooking) or on a level nested inside a hook. One full serialize per call. */
+	bool EDITOR_SessionChangedSinceSnapshot();
+
+	/** The changed-session commit for mutations made by hooks alone: undo/dirty/notify, cache and
+	 *  LastRebuiltUtc -- what the entry-level path does for re-staged entries. */
+	void EDITOR_CommitHookChanges();
 
 	/** Sanitize + re-stage one entry and refresh its fingerprint. Snapshots via Modify(false)
 	 *  (no dirty), leaving the dirty decision to the caller. Diffs via CompareScriptStruct rather
@@ -1515,6 +1524,9 @@ protected:
 	 *  EDITOR_RebuildStagingData) run normally but without re-firing pipeline hooks,
 	 *  preventing infinite recursion. Transient. */
 	bool bEDITOR_PipelineDispatchGuard = false;
+
+	/** Whole-object baseline taken when a pipeline session begins; empty outside a session. */
+	TArray<uint8> EDITOR_SessionPreState;
 #endif
 };
 

@@ -435,38 +435,13 @@ namespace PCGExAssetCollection
 const FInstancedStruct* FPCGExAssetCollectionEntry::ResolvePropertySlot(
 	const UPCGExAssetCollection* OwningCollection, const FName PropertyName, const UScriptStruct* RequiredType) const
 {
-	// FPCGExPropertyOverrides::GetOverride has no IsNone guard while both collection-tier entry
-	// points do; guard once here so a nameless enabled slot can never satisfy a NAME_None query.
+	// Guard once here so a nameless enabled slot can never satisfy a NAME_None query.
 	if (PropertyName.IsNone() || !RequiredType)
 	{
 		return nullptr;
 	}
 
-	auto Accept = [RequiredType](const FInstancedStruct* Slot) -> bool
-	{
-		if (!Slot || !Slot->IsValid())
-		{
-			return false;
-		}
-		const UScriptStruct* Type = Slot->GetScriptStruct();
-		return Type && Type->IsChildOf(RequiredType);
-	};
-
-	// Scans the whole tier rather than stopping at the first name match: a duplicate-named slot of
-	// the wrong type must not shadow a correct one behind it (GetOverride stops at the first).
-	auto FindInTier = [&Accept, PropertyName](const FPCGExPropertyOverrides& Tier) -> const FInstancedStruct*
-	{
-		for (const FPCGExPropertyOverrideEntry& Slot : Tier.Overrides)
-		{
-			if (Slot.bEnabled && Slot.GetPropertyName() == PropertyName && Accept(&Slot.Value))
-			{
-				return &Slot.Value;
-			}
-		}
-		return nullptr;
-	};
-
-	if (const FInstancedStruct* Slot = FindInTier(PropertyOverrides))
+	if (const FInstancedStruct* Slot = PropertyOverrides.FindEnabledSlot(PropertyName, RequiredType))
 	{
 		return Slot;
 	}
@@ -1887,33 +1862,19 @@ const FInstancedStruct* UPCGExAssetCollection::ResolveCategoryPropertySlot(
 		return nullptr;
 	}
 
-	auto Accept = [RequiredType](const FInstancedStruct* Slot) -> bool
-	{
-		if (!Slot || !Slot->IsValid())
-		{
-			return false;
-		}
-		const UScriptStruct* Type = Slot->GetScriptStruct();
-		return Type && Type->IsChildOf(RequiredType);
-	};
-
-	// Scans the whole row rather than stopping at the first name match: a duplicate-named slot of
-	// the wrong type must not shadow a correct one behind it (GetOverride stops at the first).
 	if (const FPCGExPropertyOverrides* Layer = FindCategoryOverrides(InCategory))
 	{
-		for (const FPCGExPropertyOverrideEntry& Slot : Layer->Overrides)
+		if (const FInstancedStruct* Slot = Layer->FindEnabledSlot(PropertyName, RequiredType))
 		{
-			if (Slot.bEnabled && Slot.GetPropertyName() == PropertyName && Accept(&Slot.Value))
-			{
-				return &Slot.Value;
-			}
+			return Slot;
 		}
 	}
 
 	// GetPropertyByName, not FindByName: the latter ignores the schema's ImportOverrides.
-	if (const FInstancedStruct* Slot = CollectionProperties.GetPropertyByName(PropertyName); Accept(Slot))
+	const FInstancedStruct* Default = CollectionProperties.GetPropertyByName(PropertyName);
+	if (Default && Default->IsValid() && Default->GetScriptStruct()->IsChildOf(RequiredType))
 	{
-		return Slot;
+		return Default;
 	}
 
 	return nullptr;
@@ -2246,12 +2207,16 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelinePreRebuild()
 		return;
 	}
 
+	// Session baseline for every owner path: hooks can mutate collection-level state the per-entry
+	// diffs can't see, and EDITOR_FinalizeStagingRebuild diffs against this to tell.
+	EDITOR_SnapshotForComparison(EDITOR_SessionPreState);
+
 	// Hooks may mutate entries before some session paths take their own snapshot (the
 	// stale-entry batch only Modifies per entry, inside EDITOR_RebuildEntryStaging) --
 	// snapshot for undo up front. Redundant Modify calls within one transaction are no-ops.
 	//
 	// Modify(false), not (true): dirtying up front churns every pipeline-bearing collection on
-	// every rebuild. EDITOR_RebuildStagingDataInternal diffs whole-object state instead.
+	// every rebuild. The finalize tail diffs whole-object state instead.
 	Modify(false);
 
 	TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
@@ -2263,9 +2228,10 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelinePreRebuild()
 		{
 			continue;
 		}
-		Pipeline->EDITOR_BeginSession();
 		TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
 		TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
+		// After the target stamp: CreateContext overrides may read GetTargetCollection.
+		Pipeline->EDITOR_BeginSession();
 		Pipeline->OnPreRebuild(this);
 	}
 }
@@ -2299,34 +2265,31 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelinePostRebuild(const bool bHasCh
 		return;
 	}
 
+	TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
+	FEditorScriptExecutionGuard ScriptGuard;
+
+	for (UPCGExCollectionStagingPipeline* Pipeline : StagingPipelines)
 	{
-		TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
-		FEditorScriptExecutionGuard ScriptGuard;
-
-		for (UPCGExCollectionStagingPipeline* Pipeline : StagingPipelines)
+		if (!Pipeline)
 		{
-			if (!Pipeline)
-			{
-				continue;
-			}
-			TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
-			TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
-			Pipeline->OnPostRebuild(this, bHasChanges);
+			continue;
 		}
+		TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
+		TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
+		Pipeline->OnPostRebuild(this, bHasChanges);
 	}
-
-	EDITOR_EndPipelineSession();
 }
 
 void UPCGExAssetCollection::EDITOR_EndPipelineSession()
 {
 	// Only the level that began the session may end it: a rebuild nested inside a hook never
-	// dispatched a pre hook, so it must not release the outer session's contexts either.
+	// dispatched a pre hook, so it must not release the outer session's contexts or baseline.
 	if (bEDITOR_PipelineDispatchGuard)
 	{
 		return;
 	}
 
+	EDITOR_SessionPreState.Empty();
 	for (UPCGExCollectionStagingPipeline* Pipeline : StagingPipelines)
 	{
 		if (Pipeline)
@@ -2336,48 +2299,70 @@ void UPCGExAssetCollection::EDITOR_EndPipelineSession()
 	}
 }
 
-void UPCGExAssetCollection::EDITOR_FinalizeStagingRebuild(const bool bHasChanges)
+bool UPCGExAssetCollection::EDITOR_SessionChangedSinceSnapshot()
 {
+	// No baseline (no pipeline, cooking) or a nested level: nothing this level can attribute to hooks.
+	if (bEDITOR_PipelineDispatchGuard || EDITOR_SessionPreState.IsEmpty())
+	{
+		return false;
+	}
+
+	TArray<uint8> Now;
+	EDITOR_SnapshotForComparison(Now);
+	return Now != EDITOR_SessionPreState;
+}
+
+void UPCGExAssetCollection::EDITOR_CommitHookChanges()
+{
+	Modify(true);
+	LastRebuiltUtc = FDateTime::UtcNow();
+	InvalidateCache();
+	(void)MarkPackageDirty();
+	PCGExEditor::NotifyObjectChanged(this);
+}
+
+void UPCGExAssetCollection::EDITOR_FinalizeStagingRebuild(bool bHasChanges)
+{
+	// Suppressed like the batch path: an override that rebuilds this collection must not open a
+	// nested session and release the live pipeline contexts.
+	auto RunNativePost = [this]()
+	{
+		TGuardValue<int32> SuppressGuard(EDITOR_PostStagingRebuildSuppressDepth, EDITOR_PostStagingRebuildSuppressDepth + 1);
+		EDITOR_OnPostStagingRebuild();
+	};
+
+	// Pre/entry hooks may have mutated collection-level state the entry diffs can't see.
+	if (!bHasChanges && EDITOR_SessionChangedSinceSnapshot())
+	{
+		EDITOR_CommitHookChanges();
+		bHasChanges = true;
+	}
+
 	if (bHasChanges)
 	{
 		// Native extension point first (actor component schema merges, shared-collection
 		// compaction), then the pipeline so its OnPostRebuild operates on final state.
-		EDITOR_OnPostStagingRebuild();
+		RunNativePost();
 		EDITOR_DispatchPipelinePostRebuild(true);
 
 		// Content is final here -- persist the mosaic so it survives editor restarts.
 		EDITOR_BakeThumbnailToPackage();
-		return;
 	}
-
-	// Nothing re-staged: the pipelines still get their post hook, but the native post work and the
-	// thumbnail bake are skipped -- they would dirty the package for nothing. Gated on having a
-	// pipeline so the common no-op rebuild pays neither the dispatch nor the snapshots.
-	if (bEDITOR_PipelineDispatchGuard || !EDITOR_HasAnyStagingPipeline())
+	else
 	{
-		return;
+		// Nothing changed: the pipelines still get their post hook, but the native post work and the
+		// thumbnail bake are skipped -- they would dirty the package for nothing -- unless a hook mutates
+		// after all, which promotes the session (native post after the pipeline: the one ordering exception).
+		EDITOR_DispatchPipelinePostRebuild(false);
+		if (EDITOR_SessionChangedSinceSnapshot())
+		{
+			EDITOR_CommitHookChanges();
+			RunNativePost();
+			EDITOR_BakeThumbnailToPackage();
+		}
 	}
 
-	TArray<uint8> PreState;
-	EDITOR_SnapshotForComparison(PreState);
-
-	EDITOR_DispatchPipelinePostRebuild(false);
-
-	TArray<uint8> PostState;
-	EDITOR_SnapshotForComparison(PostState);
-	if (PreState == PostState)
-	{
-		return;
-	}
-
-	// A hook mutated the collection after all: promote to a changed session. The pipeline already had
-	// its say, so the native post work runs after it here -- the one ordering exception.
-	Modify(true);
-	InvalidateCache();
-	(void)MarkPackageDirty();
-	PCGExEditor::NotifyObjectChanged(this);
-	EDITOR_OnPostStagingRebuild();
-	EDITOR_BakeThumbnailToPackage();
+	EDITOR_EndPipelineSession();
 }
 
 void UPCGExAssetCollection::EDITOR_BakeThumbnailToPackage()
@@ -2436,15 +2421,6 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingDataInternal(bool bRecursive)
 {
 	InvalidateCache();
 
-	// Pipeline hooks can mutate collection-level state the per-entry diff can't see. Snapshot and
-	// diff instead of assuming -- gated on having a pipeline, so the common case pays nothing.
-	const bool bDiffWholeObject = EDITOR_HasAnyStagingPipeline();
-	TArray<uint8> PreState;
-	if (bDiffWholeObject)
-	{
-		EDITOR_SnapshotForComparison(PreState);
-	}
-
 	if (EDITOR_PostStagingRebuildSuppressDepth == 0)
 	{
 		EDITOR_DispatchPipelinePreRebuild();
@@ -2462,16 +2438,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingDataInternal(bool bRecursive)
 		NumChanged++;
 	}
 
-	if (NumChanged == 0 && bDiffWholeObject)
-	{
-		TArray<uint8> PostState;
-		EDITOR_SnapshotForComparison(PostState);
-		if (PreState != PostState)
-		{
-			NumChanged = 1;
-		}
-	}
-
+	// Hook-only mutations are caught by the finalize tail's session diff.
 	const bool bHasChanges = NumChanged > 0;
 	if (bHasChanges)
 	{
@@ -2569,8 +2536,9 @@ int32 UPCGExAssetCollection::EDITOR_RebuildStaleEntries()
 		return 0;
 	}
 
-	TArray<int32> StaleIndices;
-	ForEachEntry([&StaleIndices](const FPCGExAssetCollectionEntry* InEntry, int32 i)
+	// Stale identity by EntryId, not raw index: OnPreRebuild may add or remove entries before the batch.
+	TSet<int32> StaleIds;
+	ForEachEntry([&StaleIds](const FPCGExAssetCollectionEntry* InEntry, int32 /*i*/)
 	{
 		if (InEntry->bIsSubCollection)
 		{
@@ -2593,16 +2561,25 @@ int32 UPCGExAssetCollection::EDITOR_RebuildStaleEntries()
 
 		if (Current != InEntry->StagingSourceFingerprint)
 		{
-			StaleIndices.Add(i);
+			StaleIds.Add(InEntry->EntryId);
 		}
 	});
 
-	if (StaleIndices.IsEmpty())
+	if (StaleIds.IsEmpty())
 	{
 		return 0;
 	}
 
 	EDITOR_DispatchPipelinePreRebuild();
+
+	TArray<int32> StaleIndices;
+	ForEachEntry([&StaleIds, &StaleIndices](const FPCGExAssetCollectionEntry* InEntry, int32 i)
+	{
+		if (StaleIds.Contains(InEntry->EntryId))
+		{
+			StaleIndices.Add(i);
+		}
+	});
 
 	int32 NumChanged = 0;
 	{

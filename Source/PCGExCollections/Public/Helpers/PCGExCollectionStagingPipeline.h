@@ -121,7 +121,9 @@ public:
 	 * re-staged (or a hook mutated the collection earlier in the session); the native
 	 * EDITOR_OnPostStagingRebuild extension point (schema merges, compaction) has then already run.
 	 * When false the native post work and the thumbnail bake were skipped; mutating the collection from
-	 * here still dirties it, with the native post work running afterwards.
+	 * here still dirties it, with the native post work running afterwards. Library setters are
+	 * value-gated (rewriting an identical value neither enables nor dirties), so unconditional writes
+	 * here don't churn packages on no-op rebuilds.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Collection|Staging")
 	void OnPostRebuild(UPCGExAssetCollection* Collection, bool bHasChanges);
