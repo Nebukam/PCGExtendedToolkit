@@ -1,0 +1,32 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "K2Node_PCGExPropertyBase.h"
+
+#include "K2Node_SetPCGExCollectionProperty.generated.h"
+
+class FBlueprintActionDatabaseRegistrar;
+
+/** Writes a custom property's collection-level default (local entry or import override) and reads back the resolved value. See UK2Node_PCGExPropertyBase. */
+UCLASS(meta=(DisplayName="Set Collection Property", PCGExNodeLibraryDoc="staging/collections/helpers/collection-staging-pipeline/set-collection-property"))
+class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_SetPCGExCollectionProperty : public UK2Node_PCGExPropertyBase
+{
+	GENERATED_BODY()
+
+public:
+	virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+
+protected:
+	virtual bool IsSetNode() const override
+	{
+		return true;
+	}
+
+	virtual EScope GetScope() const override
+	{
+		return EScope::Collection;
+	}
+};

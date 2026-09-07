@@ -1224,6 +1224,9 @@ public:
 	 */
 	int32 EDITOR_CleanupUnusedCategoryOverrides();
 
+	/** Drop InCategory's row outright, enabled slots included. Returns true if a row was removed. */
+	bool EDITOR_RemoveCategoryOverrides(FName InCategory);
+
 	/** Categories actually referenced by entries, excluding NAME_None. */
 	void EDITOR_CollectUsedCategories(TSet<FName>& OutCategories) const;
 
@@ -1235,11 +1238,12 @@ protected:
 		InvalidateCache();
 	}
 
-	/** Tail of every user-triggered rebuild session (depth 0 only): runs the native
-	 *  EDITOR_OnPostStagingRebuild virtual first, then the staging pipelines' OnPostRebuild,
-	 *  so the pipelines see post-merge/post-compaction state. Must stay outside the virtual --
-	 *  overrides are not required to call Super. */
-	void EDITOR_FinalizeStagingRebuild();
+	/** Tail of every session-owning rebuild path (depth 0 only). bHasChanges is the caller's entry-level
+	 *  verdict; hook-only mutations are caught by diffing against the session baseline. With changes:
+	 *  native EDITOR_OnPostStagingRebuild, then the pipelines' OnPostRebuild, then the thumbnail bake.
+	 *  Without: only OnPostRebuild(false), and a mutation there promotes the session. Ends the pipeline
+	 *  session. Stays outside the virtual -- overrides are not required to call Super. */
+	void EDITOR_FinalizeStagingRebuild(bool bHasChanges);
 
 	/** Render the entry mosaic and cache it into the package thumbnail map so it survives editor
 	 *  restarts -- the pool's live render is session-only and data assets get no engine save-time
@@ -1250,10 +1254,22 @@ protected:
 	 *  none are assigned, when invoked re-entrantly from inside another hook, or while cooking. */
 	void EDITOR_DispatchPipelinePreRebuild();
 	void EDITOR_DispatchPipelineEntry(int32 EntryIndex, bool bIsSubCollection);
-	void EDITOR_DispatchPipelinePostRebuild();
+	void EDITOR_DispatchPipelinePostRebuild(bool bHasChanges);
 
 	/** True when at least one StagingPipelines slot holds a valid pipeline. */
 	bool EDITOR_HasAnyStagingPipeline() const;
+
+	/** Releases every pipeline's session context and the session baseline; tail of the finalize, which
+	 *  every session reaches. Guarded like the dispatchers: only the level that began the session ends it. */
+	void EDITOR_EndPipelineSession();
+
+	/** True when the collection's serialized state differs from the session baseline; false with no
+	 *  baseline (no pipeline, cooking) or on a level nested inside a hook. One full serialize per call. */
+	bool EDITOR_SessionChangedSinceSnapshot();
+
+	/** The changed-session commit for mutations made by hooks alone: undo/dirty/notify, cache and
+	 *  LastRebuiltUtc -- what the entry-level path does for re-staged entries. */
+	void EDITOR_CommitHookChanges();
 
 	/** Sanitize + re-stage one entry and refresh its fingerprint. Snapshots via Modify(false)
 	 *  (no dirty), leaving the dirty decision to the caller. Diffs via CompareScriptStruct rather
@@ -1440,6 +1456,14 @@ public:
 		return nullptr;
 	}
 
+	/** Mutable row for InCategory, or null. Never mints; NAME_None never matches. */
+	FPCGExCategoryOverrides* FindCategoryOverridesRow(FName InCategory);
+
+	/** Collection-side tiers of property resolution: InCategory's enabled slot, then the collection default
+	 *  (ImportOverrides-aware). Entries chain here after their own tier. Only slots deriving from
+	 *  RequiredType are accepted; NAME_None reads defaults only. */
+	const FInstancedStruct* ResolveCategoryPropertySlot(FName InCategory, FName PropertyName, const UScriptStruct* RequiredType) const;
+
 	/** Sync every category row against Schema. Editor-only: outside it SyncToSchema is a wipe. */
 	void SyncCategoryOverridesToSchema(const TArray<FInstancedStruct>& Schema);
 
@@ -1493,6 +1517,9 @@ protected:
 	 *  EDITOR_RebuildStagingData) run normally but without re-firing pipeline hooks,
 	 *  preventing infinite recursion. Transient. */
 	bool bEDITOR_PipelineDispatchGuard = false;
+
+	/** Whole-object baseline taken when a pipeline session begins; empty outside a session. */
+	TArray<uint8> EDITOR_SessionPreState;
 #endif
 };
 

@@ -994,6 +994,23 @@ const FInstancedStruct* FPCGExPropertyOverrides::GetOverride(FName PropertyName)
 	return nullptr;
 }
 
+const FInstancedStruct* FPCGExPropertyOverrides::FindEnabledSlot(const FName PropertyName, const UScriptStruct* RequiredType) const
+{
+	if (!RequiredType)
+	{
+		return nullptr;
+	}
+	for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
+	{
+		if (Entry.bEnabled && Entry.GetPropertyName() == PropertyName && Entry.Value.IsValid()
+			&& Entry.Value.GetScriptStruct()->IsChildOf(RequiredType))
+		{
+			return &Entry.Value;
+		}
+	}
+	return nullptr;
+}
+
 #pragma endregion
 
 #pragma region PCGExProperties soft object path walk
