@@ -284,6 +284,13 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	}
 
 	/**
+	 * First ENABLED slot named PropertyName whose value derives from RequiredType. Scans the whole
+	 * array rather than stopping at the first name match, so a duplicate-named slot of the wrong type
+	 * never shadows a correct one behind it (GetOverride stops at the first). Null RequiredType = miss.
+	 */
+	const FInstancedStruct* FindEnabledSlot(FName PropertyName, const UScriptStruct* RequiredType) const;
+
+	/**
 	 * Get typed property from enabled overrides by name.
 	 * @param PropertyName The property name to search for
 	 * @return Pointer to typed property if found and enabled, nullptr otherwise
@@ -294,17 +301,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 		static_assert(TIsDerivedFrom<T, FPCGExProperty>::Value,
 		              "T must derive from FPCGExProperty");
 
-		for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
-		{
-			if (Entry.bEnabled && Entry.GetPropertyName() == PropertyName)
-			{
-				if (const T* Typed = Entry.Value.GetPtr<T>())
-				{
-					return Typed;
-				}
-			}
-		}
-		return nullptr;
+		const FInstancedStruct* Slot = FindEnabledSlot(PropertyName, T::StaticStruct());
+		return Slot ? Slot->GetPtr<T>() : nullptr;
 	}
 };
 
