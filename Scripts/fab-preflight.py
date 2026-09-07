@@ -1102,6 +1102,37 @@ def check_functionref_dangling(tree):
     return out
 
 
+# UObject/WeakObjectPtrTemplates.h declares TWeakObjectPtr but only forward-declares FWeakObjectPtr,
+# the member every TWeakObjectPtr holds. A file that includes the templates header and declares
+# TWeakObjectPtr members compiles only while some other include happens to bring in
+# UObject/WeakObjectPtr.h; a no-PCH / non-unity build fails with C2079 'uses undefined struct
+# FWeakObjectPtr' (PCGExValencyLinkArc.h on FAB 2026-08; PCGExAssemblyRootEditorHost.h on the
+# MSVC gate 2026-09-07).
+WEAKPTR_TPL_INC_RE = re.compile(r'^\s*#\s*include\s+["<](?:[^">]*/)?UObject/WeakObjectPtrTemplates\.h[">]', re.M)
+WEAKPTR_FULL_INC_RE = re.compile(r'^\s*#\s*include\s+["<](?:[^">]*/)?UObject/WeakObjectPtr\.h[">]', re.M)
+WEAKPTR_USE_RE = re.compile(r'\bTWeakObjectPtr\s*<')
+
+
+@check("weakobjectptr-fwd-only", "error",
+       "A file includes UObject/WeakObjectPtrTemplates.h (declarations only) and uses TWeakObjectPtr, "
+       "while UObject/WeakObjectPtr.h -- which defines FWeakObjectPtr -- is nowhere in its include "
+       "closure. Works on the dev box through PCH / unity / a lucky engine include; a clean build fails "
+       "with C2079. Include UObject/WeakObjectPtr.h instead (it includes the templates header).")
+def check_weakobjectptr_fwd_only(tree):
+    out = []
+    for p in tree.headers + tree.sources:
+        t = tree.stripped(p)
+        m = WEAKPTR_TPL_INC_RE.search(t)
+        if not m or not WEAKPTR_USE_RE.search(t):
+            continue
+        if any(WEAKPTR_FULL_INC_RE.search(tree.stripped(f)) for f in tree.closure(p)):
+            continue
+        out.append(Finding("weakobjectptr-fwd-only", "error", p, t[:m.start()].count("\n") + 1,
+                           "TWeakObjectPtr used with only UObject/WeakObjectPtrTemplates.h in reach",
+                           'replace it with #include "UObject/WeakObjectPtr.h"'))
+    return out
+
+
 # Symbols CoreMinimal.h stopped supplying transitively in 5.8 (C7568 / C2065 on a clean build), with
 # the header that owns them. Owner paths verified against the 5.8 engine tree.
 IWYU_SYMBOLS = [
@@ -1401,6 +1432,14 @@ SELFTEST = {
         "\tV(1);\n"
         "\tW(2);\n"
         "}\n"),
+    # weakobjectptr-fwd-only: templates header alone, member declared.
+    "ModB/Public/PCGExWeakHolder.h": (
+        "#pragma once\n"
+        "#include \"UObject/WeakObjectPtrTemplates.h\"\n"
+        "struct FPCGExWeakHolder\n"
+        "{\n"
+        "\tTWeakObjectPtr<UObject> Target;\n"
+        "};\n"),
     # instanced-in-instancedstruct + deprecated-unconsumed.
     "ModB/Public/PCGExPayload.h": (
         "#pragma once\n"
@@ -1429,6 +1468,8 @@ SELFTEST = {
         "#include \"PCGExBase.h\"\n"
         "#include \"UObject/Package.h\"\n"
         "#include \"Templates/SubclassOf.h\"\n"
+        "#include \"UObject/WeakObjectPtr.h\"\n"
+        "#include \"UObject/WeakObjectPtrTemplates.h\"\n"
         "#include \"PCGExNegative.generated.h\"\n"
         "namespace PCGExNegative\n"
         "{\n"
@@ -1468,6 +1509,7 @@ SELFTEST = {
         "\tint32 NegLegacy_DEPRECATED = 0;\n"
         "\tint32 NegPasteXInput_DEPRECATED = 0;\n"
         "\tint32 Style = 0;\n"
+        "\tTWeakObjectPtr<UObject> NegWeak;\n"
         "\tUPCGExNegativeSettings() : A(1), Lookup(TMap<FName, int32>()), B(2)\n"
         "\t{\n"
         "\t}\n"
@@ -1568,7 +1610,7 @@ SELFTEST_EXPECT = {
     "subclassof-incomplete": 1, "editor-guard-free": 2, "clang-wall": 6, "ctor-reorder": 1,
     "iwyu-symbol": 1, "instanced-in-instancedstruct": 1, "deprecated-unconsumed": 1,
     "value-member-include": 1, "log-category-include": 1, "mac-reserved-global": 3,
-    "functionref-dangling": 2,
+    "functionref-dangling": 2, "weakobjectptr-fwd-only": 1,
 }
 
 
