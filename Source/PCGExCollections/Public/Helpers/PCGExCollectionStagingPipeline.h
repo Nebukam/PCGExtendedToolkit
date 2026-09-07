@@ -4,7 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Templates/SubclassOf.h"
 #include "UObject/Object.h"
+
+#include "PCGExCollectionStagingContext.h"
 
 #include "PCGExCollectionStagingPipeline.generated.h"
 
@@ -25,8 +28,9 @@ class UPCGExAssetCollection;
  *    Project, single-entry restages (grid edits), stale-entry batches and property-edit
  *    triggered rebuilds. Pre/post fire once per session; OnProcessEntry fires once per
  *    restaged entry (Sanitize -> UpdateStaging -> PostUpdateStaging -> OnProcessEntry).
- *  - OnPostRebuild runs AFTER the native EDITOR_OnPostStagingRebuild extension point (actor
- *    component schema merges, shared-collection compaction), so the pipeline gets final say.
+ *  - OnPostRebuild fires every session, even when nothing changed (bHasChanges tells). On a changed
+ *    session it runs AFTER the native EDITOR_OnPostStagingRebuild extension point (actor component
+ *    schema merges, shared-collection compaction), so the pipeline gets final say.
  *  - Subcollections recursed into via the runtime RebuildStagingData do NOT run their own
  *    pipelines; only the collection whose editor rebuild was triggered dispatches hooks.
  *  - Rebuilds triggered from inside a hook run WITHOUT re-firing hooks (no recursion).
@@ -77,6 +81,21 @@ public:
 		return TargetEntryIndex >= 0;
 	}
 
+	/**
+	 * The current session's context object (see ContextClass), typed as AsClass. Null outside a
+	 * session, when ContextClass is unset, or when the context is not an AsClass.
+	 */
+	UFUNCTION(BlueprintPure, Category = "PCGEx|Collection|Staging", meta = (CompactNodeTitle = "Context", HideSelfPin = "true", DeterminesOutputType = "AsClass"))
+	UPCGExCollectionStagingContext* GetContext(TSubclassOf<UPCGExCollectionStagingContext> AsClass) const
+	{
+		return (Context && (!*AsClass || Context->IsA(AsClass))) ? Context.Get() : nullptr;
+	}
+
+	/** Optional per-session scratch object, created before OnPreRebuild and released after OnPostRebuild, so
+	 *  data accumulated across OnProcessEntry reaches OnPostRebuild and never persists. None = no context. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TSubclassOf<UPCGExCollectionStagingContext> ContextClass;
+
 	/** Fired once per rebuild session, before any entry is re-staged. */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Collection|Staging")
 	void OnPreRebuild(UPCGExAssetCollection* Collection);
@@ -94,12 +113,16 @@ public:
 	{
 	}
 
-	/** Fired once per rebuild session, after every entry has been re-staged AND the native
-	 *  EDITOR_OnPostStagingRebuild extension point has run (schema merges, compaction). */
+	/**
+	 * Fired once per rebuild session, changed or not. bHasChanges: an entry was re-staged or a hook mutated
+	 * the collection earlier in the session, and the native EDITOR_OnPostStagingRebuild has already run.
+	 * When false the native post work and thumbnail bake were skipped; mutating from here still dirties and
+	 * runs them afterwards. Library setters are value-gated, so unconditional writes don't churn packages.
+	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Collection|Staging")
-	void OnPostRebuild(UPCGExAssetCollection* Collection);
+	void OnPostRebuild(UPCGExAssetCollection* Collection, bool bHasChanges);
 
-	virtual void OnPostRebuild_Implementation(UPCGExAssetCollection* Collection)
+	virtual void OnPostRebuild_Implementation(UPCGExAssetCollection* Collection, bool bHasChanges)
 	{
 	}
 
@@ -111,4 +134,28 @@ protected:
 	TObjectPtr<UPCGExAssetCollection> TargetCollection;
 
 	int32 TargetEntryIndex = -1;
+
+	/** Session-scoped, see ContextClass. Transient on purpose: never serialized, only meaningful mid-session. */
+	UPROPERTY(Transient)
+	TObjectPtr<UPCGExCollectionStagingContext> Context;
+
+	/** C++ override point for the session context. Default instantiates ContextClass (transient, outered
+	 *  to this pipeline); returning null runs the session without a context. */
+	virtual UPCGExCollectionStagingContext* CreateContext()
+	{
+		return *ContextClass ? NewObject<UPCGExCollectionStagingContext>(this, ContextClass, NAME_None, RF_Transient) : nullptr;
+	}
+
+private:
+	// Session bracket, driven by the owning collection's dispatcher: begin before OnPreRebuild, end after
+	// OnPostRebuild or when the session bails out before finalizing.
+	void EDITOR_BeginSession()
+	{
+		Context = CreateContext();
+	}
+
+	void EDITOR_EndSession()
+	{
+		Context = nullptr;
+	}
 };
