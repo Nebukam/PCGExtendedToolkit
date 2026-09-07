@@ -139,6 +139,48 @@ namespace PCGExMath::OBB
 		return true;
 	}
 
+	bool TriangleOverlap(const FOBB& Box, const FVector& A, const FVector& B, const FVector& C)
+	{
+		// Akenine-Möller triangle/AABB test once the triangle is in the box's frame:
+		// 3 box axes, the triangle normal, then the 9 edge x axis cross products.
+		const FVector& E = Box.Bounds.Extents;
+		const FVector V0 = Box.ToLocal(A);
+		const FVector V1 = Box.ToLocal(B);
+		const FVector V2 = Box.ToLocal(C);
+
+		if (FMath::Max3(V0.X, V1.X, V2.X) < -E.X || FMath::Min3(V0.X, V1.X, V2.X) > E.X) { return false; }
+		if (FMath::Max3(V0.Y, V1.Y, V2.Y) < -E.Y || FMath::Min3(V0.Y, V1.Y, V2.Y) > E.Y) { return false; }
+		if (FMath::Max3(V0.Z, V1.Z, V2.Z) < -E.Z || FMath::Min3(V0.Z, V1.Z, V2.Z) > E.Z) { return false; }
+
+		const FVector F0 = V1 - V0;
+		const FVector F1 = V2 - V1;
+		const FVector F2 = V0 - V2;
+
+		const FVector N = F0 ^ F1;
+		if (FMath::Abs(N | V0) > E.X * FMath::Abs(N.X) + E.Y * FMath::Abs(N.Y) + E.Z * FMath::Abs(N.Z)) { return false; }
+
+		auto Separated = [&](const FVector& Axis) -> bool
+		{
+			const double P0 = Axis | V0;
+			const double P1 = Axis | V1;
+			const double P2 = Axis | V2;
+			const double R = E.X * FMath::Abs(Axis.X) + E.Y * FMath::Abs(Axis.Y) + E.Z * FMath::Abs(Axis.Z);
+			return FMath::Max(-FMath::Max3(P0, P1, P2), FMath::Min3(P0, P1, P2)) > R;
+		};
+
+		const FVector Edges[3] = {F0, F1, F2};
+		for (const FVector& F : Edges)
+		{
+			// Unit axis x F, written out: X^F, Y^F, Z^F
+			if (Separated(FVector(0, -F.Z, F.Y)) || Separated(FVector(F.Z, 0, -F.X)) || Separated(FVector(-F.Y, F.X, 0)))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	float SATPenetrationDepth(const FOBB& A, const FOBB& B)
 	{
 		// Same structure as SATOverlap but tracks minimum overlap across all 15 axes.
