@@ -121,12 +121,9 @@ public:
 		FName PropertyName,
 		UClass* NewClass);
 
-	// Category tier -- the collection's per-category override rows (FPCGExCategoryOverrides).
-	// Same wildcard / Object / Class split as the entry tier; backing for the Get/Set Category
-	// Property K2 nodes. Reads resolve the category's enabled slot first, then the collection
-	// default. Writes mint the row when absent (editor only; cooked targets fail the write with
-	// a Blueprint runtime warning when no row exists), enable the slot and dirty the collection.
-	// NAME_None has no row by design: reads see defaults only, writes fail.
+	// Category tier -- per-category override rows; backing for the Get/Set Category Property K2 nodes.
+	// Reads: the category's enabled slot, then the collection default. Writes mint the row when absent
+	// (editor only; cooked targets warn and fail), enable the slot and dirty. NAME_None has no row.
 
 	UFUNCTION(BlueprintPure, CustomThunk, Category = "PCGEx|Collection",
 		meta = (CustomStructureParam = "OutValue", BlueprintInternalUseOnly = "true",
@@ -188,11 +185,9 @@ public:
 		FName PropertyName,
 		UClass* NewClass);
 
-	// Collection tier -- the schema defaults (CollectionProperties). Reads honor the local ->
-	// ImportOverrides -> imported-asset composition. Writes go to the local schema entry when the
-	// property is declared locally, and to the collection's ImportOverrides slot (enabled by the
-	// write) when it comes from an imported schema asset -- the asset itself is never touched.
-	// Backing for the Get/Set Collection Property K2 nodes.
+	// Collection tier -- the schema defaults; backing for the Get/Set Collection Property K2 nodes. Reads
+	// honor local -> ImportOverrides -> imported asset. Writes go to the local schema entry, or to the
+	// ImportOverrides slot (enabled by the write) for an imported property -- the asset is never touched.
 
 	UFUNCTION(BlueprintPure, CustomThunk, Category = "PCGEx|Collection",
 		meta = (CustomStructureParam = "OutValue", BlueprintInternalUseOnly = "true",

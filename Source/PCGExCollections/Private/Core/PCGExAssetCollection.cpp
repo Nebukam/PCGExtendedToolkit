@@ -2211,12 +2211,9 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelinePreRebuild()
 	// diffs can't see, and EDITOR_FinalizeStagingRebuild diffs against this to tell.
 	EDITOR_SnapshotForComparison(EDITOR_SessionPreState);
 
-	// Hooks may mutate entries before some session paths take their own snapshot (the
-	// stale-entry batch only Modifies per entry, inside EDITOR_RebuildEntryStaging) --
-	// snapshot for undo up front. Redundant Modify calls within one transaction are no-ops.
-	//
-	// Modify(false), not (true): dirtying up front churns every pipeline-bearing collection on
-	// every rebuild. The finalize tail diffs whole-object state instead.
+	// Undo snapshot up front: hooks may mutate entries before the per-entry Modify inside
+	// EDITOR_RebuildEntryStaging. Modify(false): dirtying here would churn every pipeline-bearing
+	// collection on every rebuild; the finalize tail diffs whole-object state instead.
 	Modify(false);
 
 	TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
@@ -2350,9 +2347,8 @@ void UPCGExAssetCollection::EDITOR_FinalizeStagingRebuild(bool bHasChanges)
 	}
 	else
 	{
-		// Nothing changed: the pipelines still get their post hook, but the native post work and the
-		// thumbnail bake are skipped -- they would dirty the package for nothing -- unless a hook mutates
-		// after all, which promotes the session (native post after the pipeline: the one ordering exception).
+		// Nothing changed: pipelines still get their post hook; the native post work and the bake would
+		// dirty the package for nothing. A post-hook mutation promotes the session (native post runs last).
 		EDITOR_DispatchPipelinePostRebuild(false);
 		if (EDITOR_SessionChangedSinceSnapshot())
 		{

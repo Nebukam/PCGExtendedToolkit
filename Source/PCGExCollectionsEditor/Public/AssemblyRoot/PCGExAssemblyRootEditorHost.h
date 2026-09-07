@@ -20,10 +20,9 @@ class UTypedElementSelectionSet;
  *
  * Latch contract (APCGExAssemblyRootActor::SetEditorSubSelectionLatch): the typed selection set fires
  * OnPreChange BEFORE each add/remove, and a plain click clears then selects. Latching every root that is
- * selected, or has selected content, at pre-change lets the follow-up select land on the clicked child
- * instead of bouncing back to the root. OnChanged then settles the latch to "has selected content" and
- * re-pushes the subtree's selection proxies, so highlight always reflects the settled state rather than
- * whatever value the engine read mid-change.
+ * selected or has selected content at pre-change lets the follow-up select land on the clicked child
+ * instead of bouncing back to the root. OnChanged settles the latch to "has selected content" and
+ * re-pushes the subtree's selection proxies, so highlight reflects the settled state, not mid-change.
  */
 class PCGEXCOLLECTIONSEDITOR_API FPCGExAssemblyRootEditorHost final
 {

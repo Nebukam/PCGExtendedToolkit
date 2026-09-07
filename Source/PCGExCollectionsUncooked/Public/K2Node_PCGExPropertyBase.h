@@ -18,25 +18,18 @@ class UK2Node_CallFunction;
 class UToolMenu;
 
 /**
- * Shared machinery for the custom-property access nodes over a UPCGExAssetCollection:
- * Get/Set Entry Property, Get/Set Category Property, Get/Set Collection Property. Leaves only
- * declare their scope (which resolution tier the node addresses) and direction (get vs set);
- * everything else -- pin layout, wildcard typing, Object/Class dispatch, expansion -- lives here.
+ * Shared machinery for the custom-property access nodes over a UPCGExAssetCollection: Get/Set
+ * Entry|Category|Collection Property. Leaves declare only scope and direction; pin layout, wildcard
+ * typing, Object/Class dispatch and expansion live here.
  *
- * Scopes:
- *  - Entry: Collection + EntryIndex. Reads resolve entry override -> category row -> default;
- *    writes target the entry's override slot.
- *  - Category: Collection + Category name. Reads resolve category row -> default; writes target
- *    the category's override row (minted on demand).
- *  - Collection: Collection only. Reads the schema default; writes the local schema entry or the
- *    import override standing in for an imported one.
+ * Scope picks the key pin and the resolution tier: Entry (EntryIndex; override -> category -> default),
+ * Category (Category name; row -> default, row minted on write), Collection (no key; schema default, or
+ * the import override standing in for an imported property).
  *
- * Get nodes are pure with a single wildcard output; Set nodes carry exec pins plus a NewValue /
- * Readback wildcard pair locked to one concrete type. The connected pin's type drives the
- * EPCGMetadataTypes conversion at runtime; any concrete type can also be picked from the wildcard
- * pin's right-click menu. Object/Class pins compile to dedicated well-typed library functions
- * because they don't round-trip through the CustomStructureParam wildcard (see
- * UPCGExCollectionEntryBlueprintLibrary).
+ * Get nodes are pure with one wildcard output; Set nodes carry exec pins plus a NewValue / Readback pair
+ * locked to one type. The connected pin's type drives the EPCGMetadataTypes conversion; any concrete type
+ * can also be picked from the wildcard's right-click menu. Object/Class pins compile to dedicated typed
+ * library functions: they don't round-trip through the CustomStructureParam wildcard.
  */
 UCLASS(Abstract)
 class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_PCGExPropertyBase : public UK2Node
@@ -76,11 +69,8 @@ protected:
 	/** Which resolution tier the node addresses; decides the key pin and the backing functions. */
 	virtual EScope GetScope() const PURE_VIRTUAL(UK2Node_PCGExPropertyBase::GetScope, return EScope::Entry;);
 
-	/**
-	 * Persisted resolved type of the wildcard pin(s). AllocateDefaultPins re-stamps it on graph
-	 * reload so manually-picked types (right-click menu) survive save/reopen even with no
-	 * connections. Wildcard until resolved.
-	 */
+	/** Persisted wildcard type; AllocateDefaultPins re-stamps it on reload so a type picked with no
+	 *  connections survives save/reopen. */
 	UPROPERTY()
 	FEdGraphPinType ResolvedPinType;
 

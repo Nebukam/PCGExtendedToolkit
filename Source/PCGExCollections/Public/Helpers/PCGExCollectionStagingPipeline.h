@@ -91,11 +91,8 @@ public:
 		return (Context && (!*AsClass || Context->IsA(AsClass))) ? Context.Get() : nullptr;
 	}
 
-	/**
-	 * Optional per-session scratch object: a fresh instance is created before OnPreRebuild and released
-	 * after OnPostRebuild, so data accumulated across OnProcessEntry calls is available in OnPostRebuild
-	 * and never persists into the next rebuild or the asset. Subclass to add variables; None = no context.
-	 */
+	/** Optional per-session scratch object, created before OnPreRebuild and released after OnPostRebuild, so
+	 *  data accumulated across OnProcessEntry reaches OnPostRebuild and never persists. None = no context. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSubclassOf<UPCGExCollectionStagingContext> ContextClass;
 
@@ -117,13 +114,10 @@ public:
 	}
 
 	/**
-	 * Fired once per rebuild session, changed or not. bHasChanges is true when at least one entry was
-	 * re-staged (or a hook mutated the collection earlier in the session); the native
-	 * EDITOR_OnPostStagingRebuild extension point (schema merges, compaction) has then already run.
-	 * When false the native post work and the thumbnail bake were skipped; mutating the collection from
-	 * here still dirties it, with the native post work running afterwards. Library setters are
-	 * value-gated (rewriting an identical value neither enables nor dirties), so unconditional writes
-	 * here don't churn packages on no-op rebuilds.
+	 * Fired once per rebuild session, changed or not. bHasChanges: an entry was re-staged or a hook mutated
+	 * the collection earlier in the session, and the native EDITOR_OnPostStagingRebuild has already run.
+	 * When false the native post work and thumbnail bake were skipped; mutating from here still dirties and
+	 * runs them afterwards. Library setters are value-gated, so unconditional writes don't churn packages.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Collection|Staging")
 	void OnPostRebuild(UPCGExAssetCollection* Collection, bool bHasChanges);

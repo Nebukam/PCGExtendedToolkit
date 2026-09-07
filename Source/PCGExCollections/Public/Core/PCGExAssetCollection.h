@@ -1238,15 +1238,11 @@ protected:
 		InvalidateCache();
 	}
 
-	/**
-	 * Tail of every session-owning rebuild path (depth 0 only). bHasChanges is the caller's entry-level
-	 * verdict; hook-only mutations are detected here by diffing against the session baseline taken in
-	 * EDITOR_DispatchPipelinePreRebuild. With changes: native EDITOR_OnPostStagingRebuild first, then the
-	 * pipelines' OnPostRebuild (so they see post-merge / post-compaction state), then the thumbnail bake.
-	 * Without changes: only the pipelines' OnPostRebuild (bHasChanges=false) -- the native work and the
-	 * bake would dirty the package for nothing -- and a post-hook mutation promotes the session after it.
-	 * Ends the pipeline session. Must stay outside the virtual -- overrides are not required to call Super.
-	 */
+	/** Tail of every session-owning rebuild path (depth 0 only). bHasChanges is the caller's entry-level
+	 *  verdict; hook-only mutations are caught by diffing against the session baseline. With changes:
+	 *  native EDITOR_OnPostStagingRebuild, then the pipelines' OnPostRebuild, then the thumbnail bake.
+	 *  Without: only OnPostRebuild(false), and a mutation there promotes the session. Ends the pipeline
+	 *  session. Stays outside the virtual -- overrides are not required to call Super. */
 	void EDITOR_FinalizeStagingRebuild(bool bHasChanges);
 
 	/** Render the entry mosaic and cache it into the package thumbnail map so it survives editor
@@ -1463,12 +1459,9 @@ public:
 	/** Mutable row for InCategory, or null. Never mints; NAME_None never matches. */
 	FPCGExCategoryOverrides* FindCategoryOverridesRow(FName InCategory);
 
-	/**
-	 * Collection-side tiers of property resolution: InCategory's enabled slot, then the collection
-	 * default (ImportOverrides-aware). FPCGExAssetCollectionEntry::ResolvePropertySlot chains here after
-	 * its own tier. Only slots whose type derives from RequiredType are accepted; NAME_None reads
-	 * defaults only.
-	 */
+	/** Collection-side tiers of property resolution: InCategory's enabled slot, then the collection default
+	 *  (ImportOverrides-aware). Entries chain here after their own tier. Only slots deriving from
+	 *  RequiredType are accepted; NAME_None reads defaults only. */
 	const FInstancedStruct* ResolveCategoryPropertySlot(FName InCategory, FName PropertyName, const UScriptStruct* RequiredType) const;
 
 	/** Sync every category row against Schema. Editor-only: outside it SyncToSchema is a wipe. */

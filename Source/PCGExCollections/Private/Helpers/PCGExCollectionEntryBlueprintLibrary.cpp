@@ -82,10 +82,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Slot;
 	}
 
-	// Shared tail of every override-slot write (entry and category tiers): undo snapshot before the
-	// marshal, then enable + dirty only when the value or the enabled state actually changed -- a hook
-	// that rewrites an identical value on a no-op rebuild must not churn the package. Override writes
-	// don't feed the weight-sorted pick cache, so no InvalidateCache here.
+	// Shared tail of every override-slot write: undo snapshot before the marshal, then enable + dirty only
+	// when the value or enabled state changed, so a hook rewriting an identical value on a no-op rebuild
+	// doesn't churn the package. Override writes don't feed the weight-sorted pick cache: no InvalidateCache.
 	bool WriteOverrideSlot(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* Slot, TFunctionRef<bool(FPCGExProperty*)> Write)
 	{
 		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
@@ -243,10 +242,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Prop ? Prop->TryWriteValue(PathType, OutPath) : false;
 	}
 
-	// Writable slot for (category, property). With bMintRow the row is minted on demand in the editor,
-	// after the undo snapshot; without it a missing row returns null silently and sets bOutNeedsRow so
-	// the caller can mint once it holds a known-good value. Outside the editor a missing row is a hard
-	// miss. The schema check runs first so a bad name never mints a row.
+	// Writable slot for (category, property). bMintRow mints a missing row (editor only, after the undo
+	// snapshot); otherwise a missing row returns null and sets bOutNeedsRow so the caller can mint once it
+	// holds a known-good value. The schema check runs first so a bad name never mints a row.
 	FPCGExPropertyOverrideEntry* ResolveWritableCategoryOverride(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bMintRow, bool* bOutNeedsRow = nullptr)
 	{
 		if (!Collection)
@@ -418,10 +416,9 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return Prop ? Prop->TryWriteValue(PathType, OutPath) : false;
 	}
 
-	// Writable default for PropertyName: the local schema entry, else the ImportOverrides slot that
-	// stands in for an imported asset's entry (the asset is never written through). ImportSlot is
-	// non-null only on the imported path; the write enables it. Holder is the FInstancedStruct the
-	// property lives in, for before/after comparison.
+	// Writable default for PropertyName: the local schema entry, else the ImportOverrides slot standing in
+	// for an imported asset's entry (the asset is never written through). ImportSlot is set only on the
+	// imported path and enabled by the write; Holder is the property's FInstancedStruct, for before/after.
 	struct FWritableCollectionDefault
 	{
 		FInstancedStruct* Holder = nullptr;

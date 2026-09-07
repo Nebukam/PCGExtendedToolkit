@@ -322,10 +322,9 @@ void UK2Node_PCGExPropertyBase::ExpandNode(FKismetCompilerContext& CompilerConte
 		return;
 	}
 
-	// Object/Class pins are dispatched to dedicated well-typed library functions. The generic
-	// CustomStructureParam wildcard path is reserved for struct/primitive types where the BP
-	// compiler's frame marshalling is known to behave; Object/Class pins would otherwise be
-	// stuffed into an `int32&` slot and corrupt the property's soft-path payload.
+	// Object/Class pins go to dedicated typed library functions: the CustomStructureParam wildcard path
+	// would stuff them into an `int32&` slot and corrupt the property's soft-path payload. Struct and
+	// primitive types stay on the wildcard path, where the BP compiler's frame marshalling behaves.
 	const FName Category = ValuePin->PinType.PinCategory;
 	const bool bIsObjectLike =
 		Category == UEdGraphSchema_K2::PC_Object ||
@@ -352,10 +351,9 @@ void UK2Node_PCGExPropertyBase::ExpandNode(FKismetCompilerContext& CompilerConte
 
 	const FName KeyPinName = GetKeyPinName(Scope);
 
-	// Get call (pure). On Set nodes it provides the readback: pure nodes evaluate on demand when
-	// their output is consumed downstream -- after the Set's exec has fired -- so the readback
-	// reflects post-write state. Single-wildcard calls only: multi-wildcard CustomStructureParam
-	// doesn't reliably construct non-trivially-copyable output buffers.
+	// Get call (pure). On Set nodes it is the readback: pure nodes evaluate when their output is consumed,
+	// after the Set's exec fired, so it reflects post-write state. Single-wildcard calls only: multi-wildcard
+	// CustomStructureParam doesn't reliably construct non-trivially-copyable output buffers.
 	UK2Node_CallFunction* GetCall = SpawnLibraryCall(CompilerContext, SourceGraph, /*bSet=*/false, Flavor);
 	UEdGraphPin* GetCallCollection = GetCall->FindPinChecked(CollectionPinName);
 	UEdGraphPin* GetCallKey = KeyPinName.IsNone() ? nullptr : GetCall->FindPinChecked(KeyPinName);
