@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AssemblyRoot/PCGExAssemblyRootEditorHost.h" // complete type: TUniquePtr member needs it wherever the module is destroyed
 #include "PCGExEditorModuleInterface.h"
 #include "UObject/ObjectSaveContext.h"
 #include "UObject/SoftObjectPath.h"
@@ -30,6 +31,9 @@ private:
 	FDelegateHandle OnPackageSavedHandle;
 	FDelegateHandle OnAnySchemaAssetChangedHandle;
 	bool bThumbnailRendererRegistered = false;
+
+	/** Select-as-unit latch tracker + viewport action bar for the stock assembly root. */
+	TUniquePtr<FPCGExAssemblyRootEditorHost> AssemblyRootHost;
 
 	// Coordinated external-package save (IPCGExExternalPackageProducer): packages queued by
 	// OnPackageSaved, flushed once next tick (saving is illegal inside the save callback).

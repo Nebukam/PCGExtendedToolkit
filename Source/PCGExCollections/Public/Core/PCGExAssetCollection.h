@@ -1224,6 +1224,9 @@ public:
 	 */
 	int32 EDITOR_CleanupUnusedCategoryOverrides();
 
+	/** Drop InCategory's row outright, enabled slots included. Returns true if a row was removed. */
+	bool EDITOR_RemoveCategoryOverrides(FName InCategory);
+
 	/** Categories actually referenced by entries, excluding NAME_None. */
 	void EDITOR_CollectUsedCategories(TSet<FName>& OutCategories) const;
 
@@ -1235,11 +1238,15 @@ protected:
 		InvalidateCache();
 	}
 
-	/** Tail of every user-triggered rebuild session (depth 0 only): runs the native
-	 *  EDITOR_OnPostStagingRebuild virtual first, then the staging pipelines' OnPostRebuild,
-	 *  so the pipelines see post-merge/post-compaction state. Must stay outside the virtual --
-	 *  overrides are not required to call Super. */
-	void EDITOR_FinalizeStagingRebuild();
+	/**
+	 * Tail of every session-owning rebuild path (depth 0 only). With changes: native
+	 * EDITOR_OnPostStagingRebuild first, then the pipelines' OnPostRebuild (so they see post-merge /
+	 * post-compaction state), then the thumbnail bake. Without changes: only the pipelines' OnPostRebuild
+	 * (bHasChanges=false) -- the native work and the bake would dirty the package for nothing -- inside a
+	 * whole-object diff that promotes the session to a changed one if a hook mutated the collection.
+	 * Must stay outside the virtual -- overrides are not required to call Super.
+	 */
+	void EDITOR_FinalizeStagingRebuild(bool bHasChanges);
 
 	/** Render the entry mosaic and cache it into the package thumbnail map so it survives editor
 	 *  restarts -- the pool's live render is session-only and data assets get no engine save-time
@@ -1250,10 +1257,14 @@ protected:
 	 *  none are assigned, when invoked re-entrantly from inside another hook, or while cooking. */
 	void EDITOR_DispatchPipelinePreRebuild();
 	void EDITOR_DispatchPipelineEntry(int32 EntryIndex, bool bIsSubCollection);
-	void EDITOR_DispatchPipelinePostRebuild();
+	void EDITOR_DispatchPipelinePostRebuild(bool bHasChanges);
 
 	/** True when at least one StagingPipelines slot holds a valid pipeline. */
 	bool EDITOR_HasAnyStagingPipeline() const;
+
+	/** Releases every pipeline's session context; tail of the post dispatch, which every session reaches.
+	 *  Guarded like the dispatchers: only the level that began the session ends it. */
+	void EDITOR_EndPipelineSession();
 
 	/** Sanitize + re-stage one entry and refresh its fingerprint. Snapshots via Modify(false)
 	 *  (no dirty), leaving the dirty decision to the caller. Diffs via CompareScriptStruct rather
@@ -1439,6 +1450,17 @@ public:
 		}
 		return nullptr;
 	}
+
+	/** Mutable row for InCategory, or null. Never mints; NAME_None never matches. */
+	FPCGExCategoryOverrides* FindCategoryOverridesRow(FName InCategory);
+
+	/**
+	 * Collection-side tiers of property resolution: InCategory's enabled slot, then the collection
+	 * default (ImportOverrides-aware). FPCGExAssetCollectionEntry::ResolvePropertySlot chains here after
+	 * its own tier. Only slots whose type derives from RequiredType are accepted; NAME_None reads
+	 * defaults only.
+	 */
+	const FInstancedStruct* ResolveCategoryPropertySlot(FName InCategory, FName PropertyName, const UScriptStruct* RequiredType) const;
 
 	/** Sync every category row against Schema. Editor-only: outside it SyncToSchema is a wipe. */
 	void SyncCategoryOverridesToSchema(const TArray<FInstancedStruct>& Schema);

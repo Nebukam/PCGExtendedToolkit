@@ -187,6 +187,334 @@ namespace PCGExCollectionEntryBlueprintLibrary_Private
 		return true;
 	}
 
+	// Soft-path resolution shared by the Object/Class accessors of every tier: resolve, load on a
+	// miss, and reject anything outside ExpectedClass (None accepts everything).
+	UObject* ResolveObjectFromPath(const FSoftObjectPath& SoftPath, const TSubclassOf<UObject>& ExpectedClass)
+	{
+		UObject* Resolved = SoftPath.ResolveObject();
+		if (!Resolved)
+		{
+			Resolved = SoftPath.TryLoad();
+		}
+		if (!Resolved || (*ExpectedClass && !Resolved->IsA(ExpectedClass)))
+		{
+			return nullptr;
+		}
+		return Resolved;
+	}
+
+	UClass* ResolveClassFromPath(const FSoftClassPath& SoftPath, const TSubclassOf<UObject>& ExpectedClass)
+	{
+		UClass* Resolved = Cast<UClass>(SoftPath.ResolveObject());
+		if (!Resolved)
+		{
+			Resolved = SoftPath.TryLoadClass<UObject>();
+		}
+		if (!Resolved || (*ExpectedClass && !Resolved->IsChildOf(ExpectedClass)))
+		{
+			return nullptr;
+		}
+		return Resolved;
+	}
+
+	// --- Category tier ---
+
+	const FPCGExProperty* ResolveCategoryProperty(const UPCGExAssetCollection* Collection, FName Category, FName PropertyName)
+	{
+		if (!Collection)
+		{
+			return nullptr;
+		}
+		const FInstancedStruct* Source = Collection->ResolveCategoryPropertySlot(Category, PropertyName, FPCGExProperty::StaticStruct());
+		return Source ? Source->GetPtr<FPCGExProperty>() : nullptr;
+	}
+
+	bool ReadCategoryInto(
+		const UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		const FProperty* OutProp,
+		void* OutMem)
+	{
+		if (!OutProp || !OutMem)
+		{
+			return false;
+		}
+		const FPCGExProperty* Prop = ResolveCategoryProperty(Collection, Category, PropertyName);
+		return Prop ? PCGExPropertyPinMarshal::TryWriteToPin(Prop, OutProp, OutMem) : false;
+	}
+
+	bool ReadCategorySoftPath(
+		const UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		EPCGMetadataTypes PathType,
+		void* OutPath)
+	{
+		const FPCGExProperty* Prop = ResolveCategoryProperty(Collection, Category, PropertyName);
+		return Prop ? Prop->TryWriteValue(PathType, OutPath) : false;
+	}
+
+	// Writable slot for (category, property). The row is minted on demand in the editor, after the
+	// undo snapshot; outside it a missing row is a hard miss. The schema check runs first so a bad
+	// name never mints a row. A slot missing from an existing row is the same authoring error the
+	// entry tier reports (row not re-synced to the schema).
+	FPCGExPropertyOverrideEntry* ResolveWritableCategoryOverride(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bMintRow)
+	{
+		if (!Collection)
+		{
+			return nullptr;
+		}
+
+		if (Category.IsNone())
+		{
+			FFrame::KismetExecutionMessage(
+				*FString::Printf(
+					TEXT("Category 'None' has no override row on collection '%s' -- category override not written."),
+					*GetNameSafe(Collection)),
+				ELogVerbosity::Warning);
+			return nullptr;
+		}
+
+		if (!Collection->HasProperty(PropertyName))
+		{
+			FFrame::KismetExecutionMessage(
+				*FString::Printf(
+					TEXT("Property '%s' is not part of the schema of collection '%s' -- category override not written."),
+					*PropertyName.ToString(), *GetNameSafe(Collection)),
+				ELogVerbosity::Warning);
+			return nullptr;
+		}
+
+		FPCGExCategoryOverrides* Row = Collection->FindCategoryOverridesRow(Category);
+		if (!Row)
+		{
+			if (!bMintRow)
+			{
+				return nullptr;
+			}
+#if WITH_EDITOR
+			Collection->Modify();
+			Row = Collection->EDITOR_FindOrAddCategoryOverrides(Category);
+#else
+			FFrame::KismetExecutionMessage(
+				*FString::Printf(
+					TEXT("Collection '%s' has no override row for category '%s' and rows can only be minted in the editor -- category override not written."),
+					*GetNameSafe(Collection), *Category.ToString()),
+				ELogVerbosity::Warning);
+			return nullptr;
+#endif
+		}
+
+		FPCGExPropertyOverrideEntry* Slot = Row ? Row->PropertyOverrides.FindEntryMutableByName(PropertyName) : nullptr;
+		if (!Slot)
+		{
+			FFrame::KismetExecutionMessage(
+				*FString::Printf(
+					TEXT("Category '%s' on collection '%s' has no override slot for property '%s' (row out of sync with the schema) -- category override not written."),
+					*Category.ToString(), *GetNameSafe(Collection), *PropertyName.ToString()),
+				ELogVerbosity::Warning);
+			return nullptr;
+		}
+
+		return Slot;
+	}
+
+	// Category writes don't feed the weight-sorted pick cache, so no InvalidateCache here either.
+	void CommitCategoryOverrideWrite(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* Slot)
+	{
+		Slot->bEnabled = true;
+		(void)Collection->MarkPackageDirty();
+	}
+
+	bool WriteCategoryFrom(
+		UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		const FProperty* InProp,
+		const void* InMem)
+	{
+		if (!InProp || !InMem)
+		{
+			return false;
+		}
+
+		FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
+		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
+		if (!Prop)
+		{
+			return false;
+		}
+
+		Collection->Modify();
+		if (!PCGExPropertyPinMarshal::TryReadFromPin(Prop, InProp, InMem))
+		{
+			return false;
+		}
+
+		CommitCategoryOverrideWrite(Collection, Slot);
+		return true;
+	}
+
+	bool WriteCategorySoftPath(
+		UPCGExAssetCollection* Collection,
+		FName Category,
+		FName PropertyName,
+		EPCGMetadataTypes PathType,
+		const void* InPath)
+	{
+		FPCGExPropertyOverrideEntry* Slot = ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
+		FPCGExProperty* Prop = Slot ? Slot->GetPropertyMutable() : nullptr;
+		if (!Prop)
+		{
+			return false;
+		}
+
+		Collection->Modify();
+		if (!Prop->TryReadValue(PathType, InPath))
+		{
+			return false;
+		}
+
+		CommitCategoryOverrideWrite(Collection, Slot);
+		return true;
+	}
+
+	// --- Collection tier ---
+
+	const FPCGExProperty* ResolveCollectionProperty(const UPCGExAssetCollection* Collection, FName PropertyName)
+	{
+		if (!Collection)
+		{
+			return nullptr;
+		}
+		const FInstancedStruct* Source = Collection->CollectionProperties.GetPropertyByName(PropertyName);
+		return Source ? Source->GetPtr<FPCGExProperty>() : nullptr;
+	}
+
+	bool ReadCollectionInto(
+		const UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		const FProperty* OutProp,
+		void* OutMem)
+	{
+		if (!OutProp || !OutMem)
+		{
+			return false;
+		}
+		const FPCGExProperty* Prop = ResolveCollectionProperty(Collection, PropertyName);
+		return Prop ? PCGExPropertyPinMarshal::TryWriteToPin(Prop, OutProp, OutMem) : false;
+	}
+
+	bool ReadCollectionSoftPath(
+		const UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		EPCGMetadataTypes PathType,
+		void* OutPath)
+	{
+		const FPCGExProperty* Prop = ResolveCollectionProperty(Collection, PropertyName);
+		return Prop ? Prop->TryWriteValue(PathType, OutPath) : false;
+	}
+
+	// Writable default for PropertyName: the local schema entry, else the ImportOverrides slot that
+	// stands in for an imported asset's entry (the asset is never written through). ImportSlot is
+	// non-null only on the imported path; the write enables it.
+	struct FWritableCollectionDefault
+	{
+		FPCGExProperty* Property = nullptr;
+		FPCGExPropertyOverrideEntry* ImportSlot = nullptr;
+	};
+
+	FWritableCollectionDefault ResolveWritableCollectionDefault(UPCGExAssetCollection* Collection, FName PropertyName)
+	{
+		FWritableCollectionDefault Out;
+		if (!Collection)
+		{
+			return Out;
+		}
+
+		if (FPCGExPropertySchema* Local = Collection->CollectionProperties.FindByNameMutable(PropertyName))
+		{
+			Out.Property = Local->GetPropertyMutable();
+		}
+		else if (FPCGExPropertyOverrideEntry* Slot = Collection->CollectionProperties.ImportOverrides.FindEntryMutableByName(PropertyName))
+		{
+			Out.ImportSlot = Slot;
+			Out.Property = Slot->GetPropertyMutable();
+		}
+
+		if (!Out.Property)
+		{
+			FFrame::KismetExecutionMessage(
+				*FString::Printf(
+					TEXT("Property '%s' is not part of the schema of collection '%s' -- collection default not written."),
+					*PropertyName.ToString(), *GetNameSafe(Collection)),
+				ELogVerbosity::Warning);
+		}
+		return Out;
+	}
+
+	// Defaults feed the registry prototypes the cache rebuild re-derives, so invalidate like the
+	// editor's value-edit path does. Entries' disabled slots read through to the default on resolve.
+	void CommitCollectionDefaultWrite(UPCGExAssetCollection* Collection, FPCGExPropertyOverrideEntry* ImportSlot)
+	{
+		if (ImportSlot)
+		{
+			ImportSlot->bEnabled = true;
+		}
+		(void)Collection->MarkPackageDirty();
+		Collection->InvalidateCache();
+	}
+
+	bool WriteCollectionFrom(
+		UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		const FProperty* InProp,
+		const void* InMem)
+	{
+		if (!InProp || !InMem)
+		{
+			return false;
+		}
+
+		const FWritableCollectionDefault Target = ResolveWritableCollectionDefault(Collection, PropertyName);
+		if (!Target.Property)
+		{
+			return false;
+		}
+
+		Collection->Modify();
+		if (!PCGExPropertyPinMarshal::TryReadFromPin(Target.Property, InProp, InMem))
+		{
+			return false;
+		}
+
+		CommitCollectionDefaultWrite(Collection, Target.ImportSlot);
+		return true;
+	}
+
+	bool WriteCollectionSoftPath(
+		UPCGExAssetCollection* Collection,
+		FName PropertyName,
+		EPCGMetadataTypes PathType,
+		const void* InPath)
+	{
+		const FWritableCollectionDefault Target = ResolveWritableCollectionDefault(Collection, PropertyName);
+		if (!Target.Property)
+		{
+			return false;
+		}
+
+		Collection->Modify();
+		if (!Target.Property->TryReadValue(PathType, InPath))
+		{
+			return false;
+		}
+
+		CommitCollectionDefaultWrite(Collection, Target.ImportSlot);
+		return true;
+	}
+
 	// Dirty path for plain field setters: weight/category/tags feed the pick cache
 	// (weights, categories) or tag queries, so invalidate alongside the undo snapshot.
 	void CommitEntryFieldWrite(UPCGExAssetCollection* Collection)
@@ -507,21 +835,8 @@ UObject* UPCGExCollectionEntryBlueprintLibrary::TryGetEntryPropertyObject(
 		return nullptr;
 	}
 
-	UObject* Resolved = SoftPath.ResolveObject();
-	if (!Resolved)
-	{
-		Resolved = SoftPath.TryLoad();
-	}
-	if (!Resolved)
-	{
-		return nullptr;
-	}
-	if (*ExpectedClass && !Resolved->IsA(ExpectedClass))
-	{
-		return nullptr;
-	}
-
-	bSuccess = true;
+	UObject* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveObjectFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
 	return Resolved;
 }
 
@@ -552,21 +867,8 @@ TSubclassOf<UObject> UPCGExCollectionEntryBlueprintLibrary::TryGetEntryPropertyC
 		return nullptr;
 	}
 
-	UClass* Resolved = Cast<UClass>(SoftPath.ResolveObject());
-	if (!Resolved)
-	{
-		Resolved = SoftPath.TryLoadClass<UObject>();
-	}
-	if (!Resolved)
-	{
-		return nullptr;
-	}
-	if (*ExpectedClass && !Resolved->IsChildOf(ExpectedClass))
-	{
-		return nullptr;
-	}
-
-	bSuccess = true;
+	UClass* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveClassFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
 	return Resolved;
 }
 
@@ -580,6 +882,254 @@ bool UPCGExCollectionEntryBlueprintLibrary::TrySetEntryPropertyClass(
 	return PCGExCollectionEntryBlueprintLibrary_Private::WriteEntrySoftPath(
 		Collection, EntryIndex, PropertyName, EPCGMetadataTypes::SoftClassPath, &SoftPath);
 }
+
+#pragma region Category tier
+
+bool UPCGExCollectionEntryBlueprintLibrary::TryGetCategoryPropertyValue(
+	const UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	int32& OutValue)
+{
+	checkNoEntry();
+	return false;
+}
+
+DEFINE_FUNCTION(UPCGExCollectionEntryBlueprintLibrary::execTryGetCategoryPropertyValue)
+{
+	P_GET_OBJECT(UPCGExAssetCollection, Collection);
+	P_GET_PROPERTY(FNameProperty, Category);
+	P_GET_PROPERTY(FNameProperty, PropertyName);
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(nullptr);
+	const FProperty* OutProp = Stack.MostRecentProperty;
+	void* OutMem = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	P_NATIVE_BEGIN;
+		*static_cast<bool*>(RESULT_PARAM) = PCGExCollectionEntryBlueprintLibrary_Private::ReadCategoryInto(
+			Collection, Category, PropertyName, OutProp, OutMem);
+	P_NATIVE_END;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCategoryPropertyOverride(
+	UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	const int32& NewValue)
+{
+	checkNoEntry();
+	return false;
+}
+
+DEFINE_FUNCTION(UPCGExCollectionEntryBlueprintLibrary::execTrySetCategoryPropertyOverride)
+{
+	P_GET_OBJECT(UPCGExAssetCollection, Collection);
+	P_GET_PROPERTY(FNameProperty, Category);
+	P_GET_PROPERTY(FNameProperty, PropertyName);
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(nullptr);
+	const FProperty* InProp = Stack.MostRecentProperty;
+	const void* InMem = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	P_NATIVE_BEGIN;
+		*static_cast<bool*>(RESULT_PARAM) = PCGExCollectionEntryBlueprintLibrary_Private::WriteCategoryFrom(
+			Collection, Category, PropertyName, InProp, InMem);
+	P_NATIVE_END;
+}
+
+UObject* UPCGExCollectionEntryBlueprintLibrary::TryGetCategoryPropertyObject(
+	const UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	TSubclassOf<UObject> ExpectedClass,
+	bool& bSuccess)
+{
+	bSuccess = false;
+
+	FSoftObjectPath SoftPath;
+	if (!PCGExCollectionEntryBlueprintLibrary_Private::ReadCategorySoftPath(
+		Collection, Category, PropertyName, EPCGMetadataTypes::SoftObjectPath, &SoftPath))
+	{
+		return nullptr;
+	}
+
+	UObject* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveObjectFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
+	return Resolved;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCategoryPropertyObject(
+	UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	UObject* NewObject)
+{
+	const FSoftObjectPath SoftPath(NewObject);
+	return PCGExCollectionEntryBlueprintLibrary_Private::WriteCategorySoftPath(
+		Collection, Category, PropertyName, EPCGMetadataTypes::SoftObjectPath, &SoftPath);
+}
+
+TSubclassOf<UObject> UPCGExCollectionEntryBlueprintLibrary::TryGetCategoryPropertyClass(
+	const UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	TSubclassOf<UObject> ExpectedClass,
+	bool& bSuccess)
+{
+	bSuccess = false;
+
+	FSoftClassPath SoftPath;
+	if (!PCGExCollectionEntryBlueprintLibrary_Private::ReadCategorySoftPath(
+		Collection, Category, PropertyName, EPCGMetadataTypes::SoftClassPath, &SoftPath))
+	{
+		return nullptr;
+	}
+
+	UClass* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveClassFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
+	return Resolved;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCategoryPropertyClass(
+	UPCGExAssetCollection* Collection,
+	FName Category,
+	FName PropertyName,
+	UClass* NewClass)
+{
+	const FSoftClassPath SoftPath(NewClass);
+	return PCGExCollectionEntryBlueprintLibrary_Private::WriteCategorySoftPath(
+		Collection, Category, PropertyName, EPCGMetadataTypes::SoftClassPath, &SoftPath);
+}
+
+#pragma endregion
+
+#pragma region Collection tier
+
+bool UPCGExCollectionEntryBlueprintLibrary::TryGetCollectionPropertyValue(
+	const UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	int32& OutValue)
+{
+	checkNoEntry();
+	return false;
+}
+
+DEFINE_FUNCTION(UPCGExCollectionEntryBlueprintLibrary::execTryGetCollectionPropertyValue)
+{
+	P_GET_OBJECT(UPCGExAssetCollection, Collection);
+	P_GET_PROPERTY(FNameProperty, PropertyName);
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(nullptr);
+	const FProperty* OutProp = Stack.MostRecentProperty;
+	void* OutMem = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	P_NATIVE_BEGIN;
+		*static_cast<bool*>(RESULT_PARAM) = PCGExCollectionEntryBlueprintLibrary_Private::ReadCollectionInto(
+			Collection, PropertyName, OutProp, OutMem);
+	P_NATIVE_END;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCollectionPropertyDefault(
+	UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	const int32& NewValue)
+{
+	checkNoEntry();
+	return false;
+}
+
+DEFINE_FUNCTION(UPCGExCollectionEntryBlueprintLibrary::execTrySetCollectionPropertyDefault)
+{
+	P_GET_OBJECT(UPCGExAssetCollection, Collection);
+	P_GET_PROPERTY(FNameProperty, PropertyName);
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FProperty>(nullptr);
+	const FProperty* InProp = Stack.MostRecentProperty;
+	const void* InMem = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	P_NATIVE_BEGIN;
+		*static_cast<bool*>(RESULT_PARAM) = PCGExCollectionEntryBlueprintLibrary_Private::WriteCollectionFrom(
+			Collection, PropertyName, InProp, InMem);
+	P_NATIVE_END;
+}
+
+UObject* UPCGExCollectionEntryBlueprintLibrary::TryGetCollectionPropertyObject(
+	const UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	TSubclassOf<UObject> ExpectedClass,
+	bool& bSuccess)
+{
+	bSuccess = false;
+
+	FSoftObjectPath SoftPath;
+	if (!PCGExCollectionEntryBlueprintLibrary_Private::ReadCollectionSoftPath(
+		Collection, PropertyName, EPCGMetadataTypes::SoftObjectPath, &SoftPath))
+	{
+		return nullptr;
+	}
+
+	UObject* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveObjectFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
+	return Resolved;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCollectionPropertyObject(
+	UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	UObject* NewObject)
+{
+	const FSoftObjectPath SoftPath(NewObject);
+	return PCGExCollectionEntryBlueprintLibrary_Private::WriteCollectionSoftPath(
+		Collection, PropertyName, EPCGMetadataTypes::SoftObjectPath, &SoftPath);
+}
+
+TSubclassOf<UObject> UPCGExCollectionEntryBlueprintLibrary::TryGetCollectionPropertyClass(
+	const UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	TSubclassOf<UObject> ExpectedClass,
+	bool& bSuccess)
+{
+	bSuccess = false;
+
+	FSoftClassPath SoftPath;
+	if (!PCGExCollectionEntryBlueprintLibrary_Private::ReadCollectionSoftPath(
+		Collection, PropertyName, EPCGMetadataTypes::SoftClassPath, &SoftPath))
+	{
+		return nullptr;
+	}
+
+	UClass* Resolved = PCGExCollectionEntryBlueprintLibrary_Private::ResolveClassFromPath(SoftPath, ExpectedClass);
+	bSuccess = Resolved != nullptr;
+	return Resolved;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::TrySetCollectionPropertyClass(
+	UPCGExAssetCollection* Collection,
+	FName PropertyName,
+	UClass* NewClass)
+{
+	const FSoftClassPath SoftPath(NewClass);
+	return PCGExCollectionEntryBlueprintLibrary_Private::WriteCollectionSoftPath(
+		Collection, PropertyName, EPCGMetadataTypes::SoftClassPath, &SoftPath);
+}
+
+#pragma endregion
 
 int32 UPCGExCollectionEntryBlueprintLibrary::GetNumEntries(const UPCGExAssetCollection* Collection)
 {
@@ -706,6 +1256,158 @@ bool UPCGExCollectionEntryBlueprintLibrary::SetEntryPropertyOverrideEnabled(UPCG
 	Collection->Modify();
 	(void)Collection->MarkPackageDirty();
 	return true;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::HasCategoryPropertyOverride(const UPCGExAssetCollection* Collection, FName Category, FName PropertyName)
+{
+	const FPCGExPropertyOverrides* Layer = Collection ? Collection->FindCategoryOverrides(Category) : nullptr;
+	return Layer ? Layer->HasOverride(PropertyName) : false;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::SetCategoryPropertyOverrideEnabled(UPCGExAssetCollection* Collection, FName Category, FName PropertyName, bool bEnabled)
+{
+	if (!Collection || Category.IsNone() || !Collection->HasProperty(PropertyName))
+	{
+		return false;
+	}
+
+	// No row means every slot is already disabled -- nothing to mint for a disable.
+	if (!bEnabled && !Collection->FindCategoryOverridesRow(Category))
+	{
+		return true;
+	}
+
+	FPCGExPropertyOverrideEntry* Slot = PCGExCollectionEntryBlueprintLibrary_Private::ResolveWritableCategoryOverride(Collection, Category, PropertyName, /*bMintRow=*/true);
+	if (!Slot)
+	{
+		return false;
+	}
+
+	if (Slot->bEnabled == bEnabled)
+	{
+		return true;
+	}
+
+	Collection->Modify();
+	Slot->bEnabled = bEnabled;
+	(void)Collection->MarkPackageDirty();
+	return true;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::HasCategoryOverrides(const UPCGExAssetCollection* Collection, FName Category)
+{
+	const FPCGExPropertyOverrides* Layer = Collection ? Collection->FindCategoryOverrides(Category) : nullptr;
+	return Layer ? Layer->GetEnabledCount() > 0 : false;
+}
+
+TArray<FName> UPCGExCollectionEntryBlueprintLibrary::GetOverriddenCategories(const UPCGExAssetCollection* Collection)
+{
+	TArray<FName> Out;
+	if (!Collection)
+	{
+		return Out;
+	}
+	for (const FPCGExCategoryOverrides& Row : Collection->CategoryOverrides)
+	{
+		if (!Row.Category.IsNone() && Row.HasAnyEnabled())
+		{
+			Out.Add(Row.Category);
+		}
+	}
+	return Out;
+}
+
+TArray<FName> UPCGExCollectionEntryBlueprintLibrary::GetUsedCategories(const UPCGExAssetCollection* Collection)
+{
+	TArray<FName> Out;
+#if WITH_EDITOR
+	if (Collection)
+	{
+		TSet<FName> Used;
+		Collection->EDITOR_CollectUsedCategories(Used);
+		Out = Used.Array();
+	}
+#endif
+	return Out;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::RemoveCategoryOverrides(UPCGExAssetCollection* Collection, FName Category)
+{
+#if WITH_EDITOR
+	if (!Collection || !Collection->FindCategoryOverridesRow(Category))
+	{
+		return false;
+	}
+
+	Collection->Modify();
+	const bool bRemoved = Collection->EDITOR_RemoveCategoryOverrides(Category);
+	if (bRemoved)
+	{
+		(void)Collection->MarkPackageDirty();
+	}
+	return bRemoved;
+#else
+	return false;
+#endif
+}
+
+int32 UPCGExCollectionEntryBlueprintLibrary::CleanupUnusedCategoryOverrides(UPCGExAssetCollection* Collection)
+{
+#if WITH_EDITOR
+	if (!Collection)
+	{
+		return 0;
+	}
+
+	// Modify(false): the snapshot must precede the removal, but dirtying is conditional on it.
+	Collection->Modify(false);
+	const int32 NumRemoved = Collection->EDITOR_CleanupUnusedCategoryOverrides();
+	if (NumRemoved > 0)
+	{
+		(void)Collection->MarkPackageDirty();
+	}
+	return NumRemoved;
+#else
+	return 0;
+#endif
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::HasCollectionProperty(const UPCGExAssetCollection* Collection, FName PropertyName)
+{
+	return Collection ? Collection->HasProperty(PropertyName) : false;
+}
+
+bool UPCGExCollectionEntryBlueprintLibrary::IsCollectionPropertyImported(const UPCGExAssetCollection* Collection, FName PropertyName)
+{
+	if (!Collection || PropertyName.IsNone())
+	{
+		return false;
+	}
+	for (const FPCGExPropertySchema& Schema : Collection->CollectionProperties.Schemas)
+	{
+		if (Schema.Name == PropertyName)
+		{
+			return false;
+		}
+	}
+	return Collection->CollectionProperties.FindByName(PropertyName) != nullptr;
+}
+
+TArray<FName> UPCGExCollectionEntryBlueprintLibrary::GetCollectionPropertyNames(const UPCGExAssetCollection* Collection)
+{
+	TArray<FName> Out;
+	if (!Collection)
+	{
+		return Out;
+	}
+	for (const FInstancedStruct& Slot : Collection->CollectionProperties.BuildSchema())
+	{
+		if (const FPCGExProperty* Prop = Slot.GetPtr<FPCGExProperty>(); Prop && !Prop->PropertyName.IsNone())
+		{
+			Out.Add(Prop->PropertyName);
+		}
+	}
+	return Out;
 }
 
 FSoftObjectPath UPCGExCollectionEntryBlueprintLibrary::GetEntryStagingPath(const UPCGExAssetCollection* Collection, int32 EntryIndex)

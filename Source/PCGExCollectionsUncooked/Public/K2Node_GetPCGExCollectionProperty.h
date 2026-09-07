@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "K2Node_PCGExPropertyBase.h"
 
-#include "K2Node_GetPCGExEntryProperty.generated.h"
+#include "K2Node_GetPCGExCollectionProperty.generated.h"
 
 class FBlueprintActionDatabaseRegistrar;
 
-/** Reads an entry's resolved custom property by raw index (pure). See UK2Node_PCGExPropertyBase. */
-UCLASS(meta=(DisplayName="Get Entry Property", PCGExNodeLibraryDoc="staging/collections/helpers/collection-staging-pipeline/get-entry-property"))
-class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_GetPCGExEntryProperty : public UK2Node_PCGExPropertyBase
+/** Reads a custom property's collection-level default (pure). See UK2Node_PCGExPropertyBase. */
+UCLASS(meta=(DisplayName="Get Collection Property", PCGExNodeLibraryDoc="staging/collections/helpers/collection-staging-pipeline/get-collection-property"))
+class PCGEXCOLLECTIONSUNCOOKED_API UK2Node_GetPCGExCollectionProperty : public UK2Node_PCGExPropertyBase
 {
 	GENERATED_BODY()
 
@@ -27,6 +27,6 @@ protected:
 
 	virtual EScope GetScope() const override
 	{
-		return EScope::Entry;
+		return EScope::Collection;
 	}
 };

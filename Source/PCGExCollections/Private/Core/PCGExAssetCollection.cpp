@@ -471,26 +471,7 @@ const FInstancedStruct* FPCGExAssetCollectionEntry::ResolvePropertySlot(
 		return Slot;
 	}
 
-	if (!OwningCollection)
-	{
-		return nullptr;
-	}
-
-	if (const FPCGExPropertyOverrides* Layer = OwningCollection->FindCategoryOverrides(Category))
-	{
-		if (const FInstancedStruct* Slot = FindInTier(*Layer))
-		{
-			return Slot;
-		}
-	}
-
-	// GetPropertyByName, not FindByName: the latter ignores the schema's ImportOverrides.
-	if (const FInstancedStruct* Slot = OwningCollection->CollectionProperties.GetPropertyByName(PropertyName); Accept(Slot))
-	{
-		return Slot;
-	}
-
-	return nullptr;
+	return OwningCollection ? OwningCollection->ResolveCategoryPropertySlot(Category, PropertyName, RequiredType) : nullptr;
 }
 
 const FPCGExProperty* FPCGExAssetCollectionEntry::GetResolvedPropertyBase(const UPCGExAssetCollection* OwningCollection, FName PropertyName) const
@@ -1888,6 +1869,56 @@ bool UPCGExAssetCollection::SyncPropertySchemaAndRemapEntries()
 	return bRemapped;
 }
 
+FPCGExCategoryOverrides* UPCGExAssetCollection::FindCategoryOverridesRow(const FName InCategory)
+{
+	if (InCategory.IsNone())
+	{
+		return nullptr;
+	}
+	return CategoryOverrides.FindByPredicate(
+		[InCategory](const FPCGExCategoryOverrides& Row) { return Row.Category == InCategory; });
+}
+
+const FInstancedStruct* UPCGExAssetCollection::ResolveCategoryPropertySlot(
+	const FName InCategory, const FName PropertyName, const UScriptStruct* RequiredType) const
+{
+	if (PropertyName.IsNone() || !RequiredType)
+	{
+		return nullptr;
+	}
+
+	auto Accept = [RequiredType](const FInstancedStruct* Slot) -> bool
+	{
+		if (!Slot || !Slot->IsValid())
+		{
+			return false;
+		}
+		const UScriptStruct* Type = Slot->GetScriptStruct();
+		return Type && Type->IsChildOf(RequiredType);
+	};
+
+	// Scans the whole row rather than stopping at the first name match: a duplicate-named slot of
+	// the wrong type must not shadow a correct one behind it (GetOverride stops at the first).
+	if (const FPCGExPropertyOverrides* Layer = FindCategoryOverrides(InCategory))
+	{
+		for (const FPCGExPropertyOverrideEntry& Slot : Layer->Overrides)
+		{
+			if (Slot.bEnabled && Slot.GetPropertyName() == PropertyName && Accept(&Slot.Value))
+			{
+				return &Slot.Value;
+			}
+		}
+	}
+
+	// GetPropertyByName, not FindByName: the latter ignores the schema's ImportOverrides.
+	if (const FInstancedStruct* Slot = CollectionProperties.GetPropertyByName(PropertyName); Accept(Slot))
+	{
+		return Slot;
+	}
+
+	return nullptr;
+}
+
 void UPCGExAssetCollection::SyncCategoryOverridesToSchema(const TArray<FInstancedStruct>& Schema)
 {
 #if WITH_EDITOR
@@ -2055,12 +2086,7 @@ void UPCGExAssetCollection::EDITOR_CollectUsedCategories(TSet<FName>& OutCategor
 
 FPCGExCategoryOverrides* UPCGExAssetCollection::EDITOR_FindCategoryOverridesRow(const FName InCategory)
 {
-	if (InCategory.IsNone())
-	{
-		return nullptr;
-	}
-	return CategoryOverrides.FindByPredicate(
-		[InCategory](const FPCGExCategoryOverrides& Row) { return Row.Category == InCategory; });
+	return FindCategoryOverridesRow(InCategory);
 }
 
 FPCGExCategoryOverrides* UPCGExAssetCollection::EDITOR_FindOrAddCategoryOverrides(const FName InCategory)
@@ -2166,6 +2192,18 @@ int32 UPCGExAssetCollection::EDITOR_CleanupUnusedCategoryOverrides()
 	});
 }
 
+bool UPCGExAssetCollection::EDITOR_RemoveCategoryOverrides(const FName InCategory)
+{
+	if (InCategory.IsNone())
+	{
+		return false;
+	}
+	return CategoryOverrides.RemoveAll([InCategory](const FPCGExCategoryOverrides& Row)
+	{
+		return Row.Category == InCategory;
+	}) > 0;
+}
+
 bool UPCGExAssetCollection::EDITOR_HasAnyStagingPipeline() const
 {
 	for (const TObjectPtr<UPCGExCollectionStagingPipeline>& Pipeline : StagingPipelines)
@@ -2225,6 +2263,7 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelinePreRebuild()
 		{
 			continue;
 		}
+		Pipeline->EDITOR_BeginSession();
 		TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
 		TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
 		Pipeline->OnPreRebuild(this);
@@ -2253,36 +2292,91 @@ void UPCGExAssetCollection::EDITOR_DispatchPipelineEntry(int32 EntryIndex, bool 
 	}
 }
 
-void UPCGExAssetCollection::EDITOR_DispatchPipelinePostRebuild()
+void UPCGExAssetCollection::EDITOR_DispatchPipelinePostRebuild(const bool bHasChanges)
 {
 	if (bEDITOR_PipelineDispatchGuard || IsRunningCookCommandlet() || !EDITOR_HasAnyStagingPipeline())
 	{
 		return;
 	}
 
-	TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
-	FEditorScriptExecutionGuard ScriptGuard;
+	{
+		TGuardValue<bool> DispatchGuard(bEDITOR_PipelineDispatchGuard, true);
+		FEditorScriptExecutionGuard ScriptGuard;
+
+		for (UPCGExCollectionStagingPipeline* Pipeline : StagingPipelines)
+		{
+			if (!Pipeline)
+			{
+				continue;
+			}
+			TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
+			TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
+			Pipeline->OnPostRebuild(this, bHasChanges);
+		}
+	}
+
+	EDITOR_EndPipelineSession();
+}
+
+void UPCGExAssetCollection::EDITOR_EndPipelineSession()
+{
+	// Only the level that began the session may end it: a rebuild nested inside a hook never
+	// dispatched a pre hook, so it must not release the outer session's contexts either.
+	if (bEDITOR_PipelineDispatchGuard)
+	{
+		return;
+	}
 
 	for (UPCGExCollectionStagingPipeline* Pipeline : StagingPipelines)
 	{
-		if (!Pipeline)
+		if (Pipeline)
 		{
-			continue;
+			Pipeline->EDITOR_EndSession();
 		}
-		TGuardValue<TObjectPtr<UPCGExAssetCollection>> TargetCollectionGuard(Pipeline->TargetCollection, this);
-		TGuardValue<int32> TargetIndexGuard(Pipeline->TargetEntryIndex, INDEX_NONE);
-		Pipeline->OnPostRebuild(this);
 	}
 }
 
-void UPCGExAssetCollection::EDITOR_FinalizeStagingRebuild()
+void UPCGExAssetCollection::EDITOR_FinalizeStagingRebuild(const bool bHasChanges)
 {
-	// Native extension point first (actor component schema merges, shared-collection
-	// compaction), then the pipeline so its OnPostRebuild operates on final state.
-	EDITOR_OnPostStagingRebuild();
-	EDITOR_DispatchPipelinePostRebuild();
+	if (bHasChanges)
+	{
+		// Native extension point first (actor component schema merges, shared-collection
+		// compaction), then the pipeline so its OnPostRebuild operates on final state.
+		EDITOR_OnPostStagingRebuild();
+		EDITOR_DispatchPipelinePostRebuild(true);
 
-	// Content is final here -- persist the mosaic so it survives editor restarts.
+		// Content is final here -- persist the mosaic so it survives editor restarts.
+		EDITOR_BakeThumbnailToPackage();
+		return;
+	}
+
+	// Nothing re-staged: the pipelines still get their post hook, but the native post work and the
+	// thumbnail bake are skipped -- they would dirty the package for nothing. Gated on having a
+	// pipeline so the common no-op rebuild pays neither the dispatch nor the snapshots.
+	if (bEDITOR_PipelineDispatchGuard || !EDITOR_HasAnyStagingPipeline())
+	{
+		return;
+	}
+
+	TArray<uint8> PreState;
+	EDITOR_SnapshotForComparison(PreState);
+
+	EDITOR_DispatchPipelinePostRebuild(false);
+
+	TArray<uint8> PostState;
+	EDITOR_SnapshotForComparison(PostState);
+	if (PreState == PostState)
+	{
+		return;
+	}
+
+	// A hook mutated the collection after all: promote to a changed session. The pipeline already had
+	// its say, so the native post work runs after it here -- the one ordering exception.
+	Modify(true);
+	InvalidateCache();
+	(void)MarkPackageDirty();
+	PCGExEditor::NotifyObjectChanged(this);
+	EDITOR_OnPostStagingRebuild();
 	EDITOR_BakeThumbnailToPackage();
 }
 
@@ -2378,18 +2472,18 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingDataInternal(bool bRecursive)
 		}
 	}
 
-	if (NumChanged == 0)
+	const bool bHasChanges = NumChanged > 0;
+	if (bHasChanges)
 	{
-		return;
+		Modify(true);
+		LastRebuiltUtc = FDateTime::UtcNow();
+		(void)MarkPackageDirty();
+		PCGExEditor::NotifyObjectChanged(this);
 	}
 
-	Modify(true);
-	LastRebuiltUtc = FDateTime::UtcNow();
-	(void)MarkPackageDirty();
-	PCGExEditor::NotifyObjectChanged(this);
 	if (EDITOR_PostStagingRebuildSuppressDepth == 0)
 	{
-		EDITOR_FinalizeStagingRebuild();
+		EDITOR_FinalizeStagingRebuild(bHasChanges);
 	}
 }
 
@@ -2523,13 +2617,8 @@ int32 UPCGExAssetCollection::EDITOR_RebuildStaleEntries()
 		}
 	}
 
-	// Skip the finalize tail: it bakes a thumbnail and would dirty the package for nothing.
-	if (NumChanged == 0)
-	{
-		return 0;
-	}
-
-	EDITOR_FinalizeStagingRebuild();
+	// The tail skips the native post work and the thumbnail bake itself when nothing changed.
+	EDITOR_FinalizeStagingRebuild(NumChanged > 0);
 	return NumChanged;
 }
 
@@ -2630,10 +2719,10 @@ bool UPCGExAssetCollection::EDITOR_RebuildEntryStaging(int32 EntryIndex)
 		InvalidateCache();
 		(void)MarkPackageDirty();
 		PCGExEditor::NotifyObjectChanged(this);
-		if (EDITOR_PostStagingRebuildSuppressDepth == 0)
-		{
-			EDITOR_FinalizeStagingRebuild();
-		}
+	}
+	if (EDITOR_PostStagingRebuildSuppressDepth == 0)
+	{
+		EDITOR_FinalizeStagingRebuild(bChanged);
 	}
 	return bChanged;
 }
