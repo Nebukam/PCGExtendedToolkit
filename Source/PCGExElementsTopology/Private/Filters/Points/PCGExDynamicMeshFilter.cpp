@@ -131,10 +131,16 @@ PCGExFactories::EPreparationResult UPCGExDynamicMeshFilterFactory::Prepare(FPCGE
 			Entry.BVH.FWNTree = MakeShared<UE::Geometry::TFastWindingTree<UE::Geometry::FDynamicMesh3>>(Entry.BVH.Spatial.Get(), true);
 			Entry.WorldBounds = static_cast<FBox>(Entry.BVH.Spatial->GetBoundingBox());
 
-			for (const int32 VertexID : Mesh.VertexIndicesItr())
+			// Probe with the first valid vertex. The index space may have holes, so walk until one
+			// is valid -- a range-for that breaks on its first element is -Wunreachable-code-loop-increment
+			// under Clang -Werror.
+			for (int32 VertexID = 0; VertexID < Mesh.MaxVertexID(); ++VertexID)
 			{
-				Entry.ProbeVertex = Mesh.GetVertex(VertexID);
-				break;
+				if (Mesh.IsVertex(VertexID))
+				{
+					Entry.ProbeVertex = Mesh.GetVertex(VertexID);
+					break;
+				}
 			}
 		});
 	};

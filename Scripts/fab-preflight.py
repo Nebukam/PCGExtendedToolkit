@@ -1102,6 +1102,33 @@ def check_functionref_dangling(tree):
     return out
 
 
+# A loop whose body unconditionally breaks or returns runs at most once. Clang's
+# -Wunreachable-code-loop-increment is on under UBT's -Wall and an error with -Werror; MSVC has no
+# equivalent (PCGExDynamicMeshFilter.cpp, 5.8 Clang gate 2026-09-07). Matches a for-loop whose body
+# is a flat statement list (no nested braces) ending in break/return with no conditional in it.
+LOOP_ONCE_RE = re.compile(
+    r'\bfor\s*\((?:[^()]|\([^()]*\))*\)\s*\{(?P<body>[^{}]*?)\b(?:break|return\b[^;]*);\s*\}')
+LOOP_ONCE_COND_RE = re.compile(r'\b(?:if|switch|while|for|continue|goto)\b|\?')
+
+
+@check("clang-loop-once", "error",
+       "A for-loop whose body always ends in break/return with nothing conditional before it: the "
+       "increment can never execute, so Clang reports -Wunreachable-code-loop-increment (error under "
+       "-Werror). MSVC is silent. Take the first element without a loop, or make the exit conditional.")
+def check_clang_loop_once(tree):
+    out = []
+    for p in tree.headers + tree.sources:
+        t = tree.stripped(p)
+        for m in LOOP_ONCE_RE.finditer(t):
+            if LOOP_ONCE_COND_RE.search(m.group('body')):
+                continue
+            out.append(Finding("clang-loop-once", "error", p, t[:m.start()].count("\n") + 1,
+                               "loop body unconditionally breaks/returns, so it runs at most once "
+                               "(-Wunreachable-code-loop-increment)",
+                               "take the first element without a loop, or make the exit conditional"))
+    return out
+
+
 # UObject/WeakObjectPtrTemplates.h declares TWeakObjectPtr but only forward-declares FWeakObjectPtr,
 # the member every TWeakObjectPtr holds. A file that includes the templates header and declares
 # TWeakObjectPtr members compiles only while some other include happens to bring in
@@ -1432,6 +1459,17 @@ SELFTEST = {
         "\tV(1);\n"
         "\tW(2);\n"
         "}\n"),
+    # clang-loop-once: a range-for that returns on its first element.
+    "ModB/Private/PCGExLoopOnce.cpp": (
+        "#include \"PCGExBase.h\"\n"
+        "int PCGExFirstOf(const TArray<int>& In)\n"
+        "{\n"
+        "\tfor (const int V : In)\n"
+        "\t{\n"
+        "\t\treturn V;\n"
+        "\t}\n"
+        "\treturn 0;\n"
+        "}\n"),
     # weakobjectptr-fwd-only: templates header alone, member declared.
     "ModB/Public/PCGExWeakHolder.h": (
         "#pragma once\n"
@@ -1575,6 +1613,8 @@ SELFTEST = {
         "\t\tauto NegFn = [](int) {};\n"
         "\t\tTFunctionRef<void(int)> NegRef = NegFn;\n"
         "\t\tNegRef(Style::Pad());\n"
+        "\t\tfor (int i = 0; i < 3; ++i) { if (i == 1) break; }\n"
+        "\t\tfor (UObject* O : Out) { if (!O) continue; NegRef(1); break; }\n"
         "\t}\n"
         "\tFAutoConsoleCommand Cmd(TEXT(\"pcgex.Neg\"), TEXT(\"help\"), FConsoleCommandDelegate());\n"
         "}\n"
@@ -1610,7 +1650,7 @@ SELFTEST_EXPECT = {
     "subclassof-incomplete": 1, "editor-guard-free": 2, "clang-wall": 6, "ctor-reorder": 1,
     "iwyu-symbol": 1, "instanced-in-instancedstruct": 1, "deprecated-unconsumed": 1,
     "value-member-include": 1, "log-category-include": 1, "mac-reserved-global": 3,
-    "functionref-dangling": 2, "weakobjectptr-fwd-only": 1,
+    "functionref-dangling": 2, "weakobjectptr-fwd-only": 1, "clang-loop-once": 1,
 }
 
 
