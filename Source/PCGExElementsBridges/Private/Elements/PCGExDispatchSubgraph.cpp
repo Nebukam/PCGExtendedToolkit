@@ -4,6 +4,7 @@
 #include "Elements/PCGExDispatchSubgraph.h"
 
 #include "PCGCommon.h"
+#include "PCGModule.h"
 #include "PCGExCoreSettingsCache.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"

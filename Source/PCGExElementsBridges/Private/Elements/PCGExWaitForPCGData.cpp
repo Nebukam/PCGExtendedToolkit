@@ -8,6 +8,7 @@
 
 #include "PCGExSubSystem.h"
 #include "PCGGraph.h"
+#include "PCGModule.h"
 #include "PCGSubsystem.h"
 #include "Async/Async.h"
 #include "Data/PCGExAttributeBroadcaster.h"
