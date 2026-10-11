@@ -281,7 +281,7 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
 				UScriptStruct* InnerStruct = const_cast<UScriptStruct*>(Instance->GetScriptStruct());
 				if (InnerStruct)
 				{
-					bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
+					bShouldInline = FPCGExInlineWidgetRegistry::IsInlineValue(InnerStruct, EPCGExInlineWidgetMode::Compact);
 				}
 			}
 		}
@@ -547,7 +547,7 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 		return;
 	}
 
-	const bool bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
+	const bool bShouldInline = FPCGExInlineWidgetRegistry::IsInlineValue(InnerStruct, EPCGExInlineWidgetMode::Compact);
 
 	// The row's choices are read through the entry's own Value handle: it follows the entry across a reallocation,
 	// which the scope below (an alias of today's memory) does not.

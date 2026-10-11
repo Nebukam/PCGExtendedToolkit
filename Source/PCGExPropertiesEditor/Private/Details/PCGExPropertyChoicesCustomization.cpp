@@ -625,7 +625,7 @@ namespace PCGExPropertyChoicesCustomization
 					}
 				}
 
-				bInlineCarrier = CarrierType->HasMetaData(TEXT("PCGExInlineValue"));
+				bInlineCarrier = FPCGExInlineWidgetRegistry::IsInlineValue(CarrierType, EPCGExInlineWidgetMode::Compact);
 				if (CarrierValueHandle.IsValid())
 				{
 					if (bInlineCarrier)

@@ -87,7 +87,7 @@ void FPCGExPropertyCompiledCustomization::CustomizeChildren(
 		const FPCGExMakeInlineWidgetFn* Factory = FPCGExInlineWidgetRegistry::Find(OuterStructName, EPCGExInlineWidgetMode::Edit);
 
 		// One row: the editor, with the arrow in the same cell. The same layout a consumer row of this type gets.
-		if (Factory || OuterStruct->HasMetaData(TEXT("PCGExInlineValue")))
+		if (Factory || FPCGExInlineWidgetRegistry::IsInlineValue(OuterStruct, EPCGExInlineWidgetMode::Edit))
 		{
 			// Widths are fixed when the row is built, like AddCompactValueRow's.
 			const bool bWide = Factory != nullptr || State->Get().bLocked;
