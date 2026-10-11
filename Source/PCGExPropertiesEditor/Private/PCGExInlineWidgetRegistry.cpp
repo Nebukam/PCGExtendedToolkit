@@ -3,6 +3,7 @@
 
 #include "PCGExInlineWidgetRegistry.h"
 
+#include "Brushes/SlateRoundedBoxBrush.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
@@ -15,6 +16,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/SNullWidget.h"
+#include "Widgets/SOverlay.h"
 #include "Widgets/SPCGExPropertyChoicePicker.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -254,6 +256,18 @@ bool FPCGExInlineWidgetRegistry::IsBoundToChoice(const FConstStructView Host)
 	return Chosen != INDEX_NONE && PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]);
 }
 
+FText FPCGExInlineWidgetRegistry::GetBoundChoiceLabel(const FConstStructView Host)
+{
+	const FPCGExProperty* Property = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
+	const int32 Chosen = Property ? PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId) : INDEX_NONE;
+	if (Chosen == INDEX_NONE || !PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]))
+	{
+		return FText::GetEmpty();
+	}
+	const FName Label = Property->Choices.Items[Chosen].Label;
+	return Label.IsNone() ? NSLOCTEXT("FPCGExInlineWidgetRegistry", "UnnamedChoiceBadge", "(unnamed)") : FText::FromName(Label);
+}
+
 bool FPCGExInlineWidgetRegistry::HasChoices(const FConstStructView Host, bool* bOutLocked)
 {
 	const UScriptStruct* Struct = Host.GetScriptStruct();
@@ -296,17 +310,45 @@ TSharedRef<SWidget> FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
 		return FLinearColor(1.0f, 1.0f, 1.0f, IsBoundToChoice(Host) ? 0.7f : 1.0f);
 	});
 
+	// The bound choice's label rides the value as a small pill (same recipe as Valency's "ANY" connector pill):
+	// labels carry meaning the number alone does not. Hit-test invisible, so the editor under it stays clickable.
+	static const FSlateRoundedBoxBrush BadgeBrush(FLinearColor::White, 4.0f);
+	const TSharedRef<SWidget> Badge = SNew(SBorder)
+		.BorderImage(&BadgeBrush)
+		.BorderBackgroundColor(FSlateColor(FLinearColor(0.08f, 0.08f, 0.08f)))
+		.Padding(FMargin(4, 0))
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		.Visibility_Lambda([Host]() { return IsBoundToChoice(Host) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+		[
+			SNew(STextBlock)
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 6))
+			.ColorAndOpacity(FSlateColor(FLinearColor(0.55f, 0.55f, 0.55f)))
+			.Text_Lambda([Host]() { return GetBoundChoiceLabel(Host); })
+		];
+
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.FillWidth(1.0f)
 		.VAlign(VAlign_Center)
 		[
-			SNew(SBorder)
-			.BorderImage(FAppStyle::GetBrush("NoBorder"))
-			.Padding(0)
-			.ColorAndOpacity(BoundTint)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
 			[
-				ValueWidget
+				SNew(SBorder)
+				.BorderImage(FAppStyle::GetBrush("NoBorder"))
+				.Padding(0)
+				.ColorAndOpacity(BoundTint)
+				[
+					ValueWidget
+				]
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Center)
+			.Padding(FMargin(0, 0, 6, 0))
+			[
+				Badge
 			]
 		]
 		+ SHorizontalBox::Slot()

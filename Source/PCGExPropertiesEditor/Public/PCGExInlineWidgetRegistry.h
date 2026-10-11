@@ -125,6 +125,9 @@ public:
 	/** True when Host's value is bound to one of its choices (a live pick), as opposed to a custom value. */
 	static bool IsBoundToChoice(FConstStructView Host);
 
+	/** The bound choice's label, empty for a custom value. */
+	static FText GetBoundChoiceLabel(FConstStructView Host);
+
 	/**
 	 * Give an inline value widget its choices: locked, the picker stands in for it; unlocked, a quick-pick arrow is
 	 * appended; no choices, ValueWidget comes back untouched. Also hooks NotifyHandle so a free edit forgets the pick.
