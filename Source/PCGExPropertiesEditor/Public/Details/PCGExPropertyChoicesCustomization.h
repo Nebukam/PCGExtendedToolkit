@@ -11,7 +11,37 @@ class FInstancedStructProvider;
 class IPropertyUtilities;
 struct FPCGExPropertyChoices;
 struct FPCGExPropertyChoicesPatch;
+struct FPCGExPropertySchemaCollection;
 struct FPropertyChangedEvent;
+
+/**
+ * What the choices customizations cannot walk to from a scratch copy: the property the choices belong to and, for a
+ * patch, where it sits. The popover editor registers one per scratch struct for its lifetime.
+ */
+struct FPCGExChoicesEditContext
+{
+	/** The property instance the choices answer to (an import row's Value for a patch). */
+	FStructView Host;
+	/** Patch only: the collection whose import rows the patch lives in. */
+	FPCGExPropertySchemaCollection* Collection = nullptr;
+	/** Patch only: the import entry's property name. */
+	FName EntryName = NAME_None;
+	/** Patch only: the real patch, the one the resolve chain points at (the scratch copy is not). */
+	const FPCGExPropertyChoicesPatch* RealPatch = nullptr;
+};
+
+/** RAII registration of a FPCGExChoicesEditContext under the address of the struct being edited. */
+class PCGEXPROPERTIESEDITOR_API FPCGExChoicesEditScope
+{
+public:
+	FPCGExChoicesEditScope(const void* InKey, const FPCGExChoicesEditContext& InContext);
+	~FPCGExChoicesEditScope();
+
+	static const FPCGExChoicesEditContext* Find(const void* Key);
+
+private:
+	const void* Key = nullptr;
+};
 
 /**
  * FPCGExPropertyChoices in schema-edit mode. Header strip: [Locked] [N choices] [Add Current Value]; children: one

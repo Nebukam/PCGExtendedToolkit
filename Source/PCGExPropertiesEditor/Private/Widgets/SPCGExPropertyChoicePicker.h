@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Framework/SlateDelegates.h"
 #include "StructUtils/StructView.h"
 #include "Styling/SlateColor.h"
 #include "Widgets/SCompoundWidget.h"
@@ -17,7 +18,8 @@ struct FPCGExProperty;
  * struct-on-scope) and is re-read every paint, so a sync never leaves the widget stale. Locked: the button shows the
  * current choice, or "Custom" with the value's preview, and stands in for the value editor. Unlocked: a bare arrow
  * beside it. A pick goes through NotifyHandle's pre/post-change bracket, so the host's dirty and refresh hooks fire
- * exactly as for a typed edit.
+ * exactly as for a typed edit. With OnGetEditContent bound the menu leads with "Edit Choices...", which opens that
+ * content as a popover under the button: the one place every choice interaction starts from.
  */
 class SPCGExPropertyChoicePicker : public SCompoundWidget
 {
@@ -28,6 +30,7 @@ public:
 		}
 
 		SLATE_ARGUMENT(bool, Locked)
+		SLATE_EVENT(FOnGetContent, OnGetEditContent)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, FStructView InHost, const TSharedRef<IPropertyHandle>& InNotifyHandle);
@@ -45,9 +48,12 @@ private:
 	FText GetSelectionToolTip() const;
 	TSharedRef<SWidget> BuildMenu();
 	void PickChoice(FGuid ChoiceId);
+	/** Closes the menu, then pushes the edit content as a popover anchored under the button. */
+	void OpenEditor();
 
 	FStructView Host;
 	TSharedPtr<IPropertyHandle> NotifyHandle;
 	bool bLocked = false;
+	FOnGetContent OnGetEditContent;
 	TSharedPtr<SComboButton> ComboButton;
 };

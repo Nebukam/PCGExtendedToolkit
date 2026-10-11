@@ -4,8 +4,10 @@
 #include "Widgets/SPCGExPropertyChoicePicker.h"
 
 #include "DetailLayoutBuilder.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Framework/Commands/UIAction.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Textures/SlateIcon.h"
 #include "PCGExProperty.h"
 #include "PropertyHandle.h"
 #include "ScopedTransaction.h"
@@ -36,6 +38,7 @@ void SPCGExPropertyChoicePicker::Construct(const FArguments& InArgs, const FStru
 	Host = InHost;
 	NotifyHandle = InNotifyHandle;
 	bLocked = InArgs._Locked;
+	OnGetEditContent = InArgs._OnGetEditContent;
 
 	TSharedRef<SWidget> ButtonContent = SNullWidget::NullWidget;
 	if (bLocked)
@@ -149,11 +152,29 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 	FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection*/ true, nullptr);
 
 	const FPCGExProperty* Property = GetHost();
-	if (!Property || Property->Choices.Items.IsEmpty())
+	const bool bHasChoices = Property && !Property->Choices.Items.IsEmpty();
+
+	if (OnGetEditContent.IsBound())
 	{
-		MenuBuilder.AddWidget(
-			SNew(STextBlock).Text(LOCTEXT("NoChoices", "No choices")).Font(IDetailLayoutBuilder::GetDetailFont()),
-			FText::GetEmpty());
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("EditChoices", "Edit Choices..."),
+			LOCTEXT("EditChoicesToolTip", "Author this property's choices: the list, the lock, and what an import inherits."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"),
+			FUIAction(FExecuteAction::CreateSP(this, &SPCGExPropertyChoicePicker::OpenEditor)));
+		if (bHasChoices)
+		{
+			MenuBuilder.AddSeparator();
+		}
+	}
+
+	if (!bHasChoices)
+	{
+		if (!OnGetEditContent.IsBound())
+		{
+			MenuBuilder.AddWidget(
+				SNew(STextBlock).Text(LOCTEXT("NoChoices", "No choices")).Font(IDetailLayoutBuilder::GetDetailFont()),
+				FText::GetEmpty());
+		}
 		return MenuBuilder.MakeWidget();
 	}
 
@@ -201,6 +222,27 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 	}
 
 	return MenuBuilder.MakeWidget();
+}
+
+void SPCGExPropertyChoicePicker::OpenEditor()
+{
+	if (!OnGetEditContent.IsBound())
+	{
+		return;
+	}
+	// Pushed after the menu is gone, as a popover of the button itself: a child of the menu would die with it.
+	if (ComboButton.IsValid())
+	{
+		ComboButton->SetIsOpen(false);
+	}
+	const FGeometry& Geometry = GetCachedGeometry();
+	const FVector2D Location = Geometry.GetAbsolutePosition() + FVector2D(0.0f, Geometry.GetAbsoluteSize().Y);
+	FSlateApplication::Get().PushMenu(
+		AsShared(),
+		FWidgetPath(),
+		OnGetEditContent.Execute(),
+		Location,
+		FPopupTransitionEffect(FPopupTransitionEffect::ContextMenu));
 }
 
 void SPCGExPropertyChoicePicker::PickChoice(const FGuid ChoiceId)

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Framework/SlateDelegates.h"
 #include "Misc/Attribute.h"
 #include "StructUtils/StructView.h"
 #include "Templates/Function.h"
@@ -87,7 +88,8 @@ public:
 		TSharedRef<FStructOnScope> Scope,
 		UScriptStruct* InnerStruct,
 		TSharedRef<SWidget> NameContent,
-		TAttribute<bool> IsEnabled = TAttribute<bool>(true));
+		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
+		FOnGetContent EditChoices = FOnGetContent());
 
 	/**
 	 * Adds all non-metadata properties of InnerStruct as child rows, skipping the internal fields
@@ -108,11 +110,14 @@ public:
 		TSharedRef<FStructOnScope> Scope,
 		UScriptStruct* InnerStruct,
 		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
-		const TWeakObjectPtr<UObject>& WeakOwner = nullptr);
+		const TWeakObjectPtr<UObject>& WeakOwner = nullptr,
+		FOnGetContent EditChoices = FOnGetContent());
 
 	// --- Choices ---
 	// Host views alias the property struct instance a row edits (its struct-on-scope memory, or the raw data behind
 	// a real handle). Every affordance re-reads it per paint; none caches a pointer into Choices.Items.
+	// EditChoices, when bound, builds the popover that authors the choices (or an import's patch): the arrow then shows
+	// even without choices and its menu leads with "Edit Choices...". Unbound = a consumer row: arrow only with choices.
 
 	/** True when Host carries choices; bOutLocked tells whether its editors are restricted to them. */
 	static bool HasChoices(FConstStructView Host, bool* bOutLocked = nullptr);
@@ -127,17 +132,20 @@ public:
 	static TSharedRef<SWidget> WrapValueWidgetWithChoices(
 		TSharedRef<SWidget> ValueWidget,
 		FStructView Host,
-		const TSharedRef<IPropertyHandle>& NotifyHandle);
+		const TSharedRef<IPropertyHandle>& NotifyHandle,
+		FOnGetContent EditChoices = FOnGetContent());
 
 	/**
 	 * A standalone "Choices" row (locked: the current choice; unlocked: a quick pick) for layouts whose value spans
-	 * several rows. No-op without choices. Does not hook the free-edit unbind: the caller hooks its own value rows.
+	 * several rows. No-op without choices unless EditChoices is bound. Does not hook the free-edit unbind: the caller
+	 * hooks its own value rows.
 	 */
 	static void AddChoicesRow(
 		IDetailChildrenBuilder& ChildBuilder,
 		FStructView Host,
 		const TSharedRef<IPropertyHandle>& NotifyHandle,
-		TAttribute<bool> IsEnabled = TAttribute<bool>(true));
+		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
+		FOnGetContent EditChoices = FOnGetContent());
 
 	/** After a committed edit through Handle (own or a child), forget Host's pick unless the value still equals it. */
 	static void HookUnbindOnFreeEdit(const TSharedRef<IPropertyHandle>& Handle, FStructView Host);

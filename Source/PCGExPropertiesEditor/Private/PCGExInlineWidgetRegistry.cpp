@@ -91,7 +91,8 @@ IDetailPropertyRow* FPCGExInlineWidgetRegistry::AddCompactValueRow(
 	TSharedRef<FStructOnScope> Scope,
 	UScriptStruct* InnerStruct,
 	TSharedRef<SWidget> NameContent,
-	TAttribute<bool> IsEnabled)
+	TAttribute<bool> IsEnabled,
+	FOnGetContent EditChoices)
 {
 	const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value"));
 	if (!ValueProperty)
@@ -112,9 +113,9 @@ IDetailPropertyRow* FPCGExInlineWidgetRegistry::AddCompactValueRow(
 			: ValuePropertyHandle->CreatePropertyValueWidget();
 
 		const FStructView Host(InnerStruct, Scope->GetStructMemory());
-		if (HasChoices(Host, &bLocked))
+		if (HasChoices(Host, &bLocked) || EditChoices.IsBound())
 		{
-			ValueWidget = WrapValueWidgetWithChoices(ValueWidget, Host, ValuePropertyHandle.ToSharedRef());
+			ValueWidget = WrapValueWidgetWithChoices(ValueWidget, Host, ValuePropertyHandle.ToSharedRef(), EditChoices);
 		}
 	}
 
@@ -141,7 +142,8 @@ void FPCGExInlineWidgetRegistry::AddComplexValueRows(
 	TSharedRef<FStructOnScope> Scope,
 	UScriptStruct* InnerStruct,
 	TAttribute<bool> IsEnabled,
-	const TWeakObjectPtr<UObject>& WeakOwner)
+	const TWeakObjectPtr<UObject>& WeakOwner,
+	FOnGetContent EditChoices)
 {
 	// Types with a registered Compact factory but WITHOUT the PCGExInlineValue meta get their
 	// Value rendered through the factory as a FULL-WIDTH row (e.g. the Float Curve editor,
@@ -210,7 +212,9 @@ void FPCGExInlineWidgetRegistry::AddComplexValueRows(
 						SNew(SBox)
 						.IsEnabled(IsEnabled)
 						[
-							SNew(SPCGExPropertyChoicePicker, Host, ValueHandle.ToSharedRef()).Locked(true)
+							SNew(SPCGExPropertyChoicePicker, Host, ValueHandle.ToSharedRef())
+							.Locked(true)
+							.OnGetEditContent(EditChoices)
 						]
 					];
 				continue;
@@ -230,10 +234,10 @@ void FPCGExInlineWidgetRegistry::AddComplexValueRows(
 			];
 		}
 
-		// Unlocked: the value keeps its editor; a quick pick sits right under it.
-		if (bHasChoices)
+		// Unlocked: the value keeps its editor; a quick pick (or the authoring entry) sits right under it.
+		if (bHasChoices || EditChoices.IsBound())
 		{
-			AddChoicesRow(ChildBuilder, Host, ValueHandle.ToSharedRef(), IsEnabled);
+			AddChoicesRow(ChildBuilder, Host, ValueHandle.ToSharedRef(), IsEnabled, EditChoices);
 		}
 	}
 }
@@ -265,18 +269,23 @@ bool FPCGExInlineWidgetRegistry::HasChoices(const FConstStructView Host, bool* b
 TSharedRef<SWidget> FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
 	TSharedRef<SWidget> ValueWidget,
 	const FStructView Host,
-	const TSharedRef<IPropertyHandle>& NotifyHandle)
+	const TSharedRef<IPropertyHandle>& NotifyHandle,
+	FOnGetContent EditChoices)
 {
 	bool bLocked = false;
-	if (!HasChoices(Host, &bLocked))
+	const bool bHasChoices = HasChoices(Host, &bLocked);
+	if (!bHasChoices && !EditChoices.IsBound())
 	{
 		return ValueWidget;
 	}
 
-	HookUnbindOnFreeEdit(NotifyHandle, Host);
+	if (bHasChoices)
+	{
+		HookUnbindOnFreeEdit(NotifyHandle, Host);
+	}
 	if (bLocked)
 	{
-		return SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(true);
+		return SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(true).OnGetEditContent(EditChoices);
 	}
 
 	// A bound value follows its choice and detaches on edit: dimmed, still editable. Custom stays full.
@@ -305,7 +314,7 @@ TSharedRef<SWidget> FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
 		.VAlign(VAlign_Center)
 		.Padding(4, 0, 0, 0)
 		[
-			SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(false)
+			SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(false).OnGetEditContent(EditChoices)
 		];
 }
 
@@ -313,10 +322,11 @@ void FPCGExInlineWidgetRegistry::AddChoicesRow(
 	IDetailChildrenBuilder& ChildBuilder,
 	const FStructView Host,
 	const TSharedRef<IPropertyHandle>& NotifyHandle,
-	TAttribute<bool> IsEnabled)
+	TAttribute<bool> IsEnabled,
+	FOnGetContent EditChoices)
 {
 	bool bLocked = false;
-	if (!HasChoices(Host, &bLocked))
+	if (!HasChoices(Host, &bLocked) && !EditChoices.IsBound())
 	{
 		return;
 	}
@@ -335,7 +345,7 @@ void FPCGExInlineWidgetRegistry::AddChoicesRow(
 			SNew(SBox)
 			.IsEnabled(IsEnabled)
 			[
-				SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(bLocked)
+				SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(bLocked).OnGetEditContent(EditChoices)
 			]
 		];
 }

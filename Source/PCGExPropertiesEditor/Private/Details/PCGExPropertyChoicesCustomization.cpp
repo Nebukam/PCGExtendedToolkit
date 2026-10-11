@@ -46,6 +46,36 @@ namespace PCGExPropertyChoicesCustomization
 		return Type && Type->IsChildOf(FPCGExProperty::StaticStruct()) ? FStructView(Instance) : FStructView();
 	}
 
+	TMap<const void*, FPCGExChoicesEditContext>& GetEditContexts()
+	{
+		static TMap<const void*, FPCGExChoicesEditContext> Contexts;
+		return Contexts;
+	}
+
+	// The edit context of the choices (or patch) struct Handle is, or sits under: a scratch copy in the popover has no
+	// ancestors to walk, so the popover registers its context under the copy's address.
+	const FPCGExChoicesEditContext* FindEditContext(const TSharedRef<IPropertyHandle>& Handle)
+	{
+		TArray<void*> RawData;
+		Handle->AccessRawData(RawData);
+		if (RawData.Num() == 1 && RawData[0])
+		{
+			if (const FPCGExChoicesEditContext* Own = FPCGExChoicesEditScope::Find(RawData[0]))
+			{
+				return Own;
+			}
+		}
+		if (const void* Choices = ResolveAncestorRaw<void>(Handle, FPCGExPropertyChoices::StaticStruct()))
+		{
+			return FPCGExChoicesEditScope::Find(Choices);
+		}
+		if (const void* Patch = ResolveAncestorRaw<void>(Handle, FPCGExPropertyChoicesPatch::StaticStruct()))
+		{
+			return FPCGExChoicesEditScope::Find(Patch);
+		}
+		return nullptr;
+	}
+
 	// The property struct instance Handle sits in: the nearest ancestor that is a property-derived struct row, the
 	// FInstancedStruct holding one (a struct row made from a provider may expose no FProperty), or an override entry,
 	// whose Value is the host of its patch's items. Single-object edits only.
@@ -83,9 +113,37 @@ namespace PCGExPropertyChoicesCustomization
 			}
 			return ViewOf(*static_cast<FInstancedStruct*>(RawData[0]));
 		}
-		return FStructView();
+
+		const FPCGExChoicesEditContext* Context = FindEditContext(Handle);
+		return Context ? Context->Host : FStructView();
 	}
 }
+
+#pragma region FPCGExChoicesEditScope
+
+FPCGExChoicesEditScope::FPCGExChoicesEditScope(const void* InKey, const FPCGExChoicesEditContext& InContext)
+	: Key(InKey)
+{
+	if (Key)
+	{
+		PCGExPropertyChoicesCustomization::GetEditContexts().Add(Key, InContext);
+	}
+}
+
+FPCGExChoicesEditScope::~FPCGExChoicesEditScope()
+{
+	if (Key)
+	{
+		PCGExPropertyChoicesCustomization::GetEditContexts().Remove(Key);
+	}
+}
+
+const FPCGExChoicesEditContext* FPCGExChoicesEditScope::Find(const void* InKey)
+{
+	return InKey ? PCGExPropertyChoicesCustomization::GetEditContexts().Find(InKey) : nullptr;
+}
+
+#pragma endregion
 
 #pragma region FPCGExPropertyChoicesCustomization
 
@@ -584,9 +642,15 @@ FPCGExPropertyChoicesPatch* FPCGExPropertyChoicesPatchCustomization::GetPatch() 
 FStructView FPCGExPropertyChoicesPatchCustomization::GetHost() const
 {
 	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	FPCGExPropertyOverrideEntry* Entry = PatchHandle.IsValid()
-		? PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct())
-		: nullptr;
+	if (!PatchHandle.IsValid())
+	{
+		return FStructView();
+	}
+	if (const FPCGExChoicesEditContext* Context = PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
+	{
+		return Context->Host;
+	}
+	FPCGExPropertyOverrideEntry* Entry = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct());
 	return Entry ? PCGExPropertyChoicesCustomization::ViewOf(Entry->Value) : FStructView();
 }
 
@@ -598,21 +662,35 @@ void FPCGExPropertyChoicesPatchCustomization::GetInheritedChoices(FPCGExProperty
 	{
 		return;
 	}
-	const FPCGExPropertyOverrideEntry* Entry = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct());
-	const FPCGExPropertySchemaCollection* Collection = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct());
-	if (!Entry || !Collection)
+
+	// In the popover the patch is a scratch copy: the context says where the real one lives.
+	const FPCGExPropertySchemaCollection* Collection = nullptr;
+	FName EntryName = NAME_None;
+	const FPCGExPropertyChoicesPatch* RealPatch = nullptr;
+	if (const FPCGExChoicesEditContext* Context = PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
+	{
+		Collection = Context->Collection;
+		EntryName = Context->EntryName;
+		RealPatch = Context->RealPatch;
+	}
+	else if (const FPCGExPropertyOverrideEntry* Entry = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct()))
+	{
+		Collection = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct());
+		EntryName = Entry->GetPropertyName();
+		RealPatch = &Entry->ChoicesPatch;
+	}
+	if (!Collection)
 	{
 		return;
 	}
 
-	const FName EntryName = Entry->GetPropertyName();
 	TArray<FPCGExPropertyResolved> Resolved;
 	Collection->Resolve(Resolved);
 	for (const FPCGExPropertyResolved& Candidate : Resolved)
 	{
 		if (Candidate.OwningAsset && Candidate.Source && Candidate.Source->Name == EntryName)
 		{
-			Candidate.GetEffectiveChoices(Out, &Entry->ChoicesPatch);
+			Candidate.GetEffectiveChoices(Out, RealPatch);
 			return;
 		}
 	}
@@ -735,11 +813,14 @@ void FPCGExPropertyChoicesPatchCustomization::OnPatchChanged(const FPropertyChan
 void FPCGExPropertyChoicesPatchCustomization::SyncImportRowsInPlace()
 {
 	// The host's own post-edit path re-syncs its consumer rows; this collection's import rows are only reconciled by
-	// the schema customization on shape changes, so their mirror is refreshed here, in place (no reshape).
+	// the schema customization on shape changes, so their mirror is refreshed here, in place (no reshape). In the
+	// popover the edited patch is a scratch copy: the editor syncs after it commits, not before.
 	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	FPCGExPropertySchemaCollection* Collection = PatchHandle.IsValid()
-		? PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct())
-		: nullptr;
+	if (!PatchHandle.IsValid() || PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
+	{
+		return;
+	}
+	FPCGExPropertySchemaCollection* Collection = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct());
 	if (!Collection)
 	{
 		return;

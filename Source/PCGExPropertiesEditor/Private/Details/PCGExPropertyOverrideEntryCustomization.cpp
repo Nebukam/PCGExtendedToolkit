@@ -21,6 +21,7 @@
 #include "Details/PCGExEditorCustomizationUtils.h"
 #include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Details/PCGExPropertyLabelRow.h"
+#include "Widgets/SPCGExPropertyChoicesEditor.h"
 #include "Details/PCGExPropertyLabelRow.h"
 #include "GameFramework/Actor.h"
 #include "StructUtils/UserDefinedStruct.h"
@@ -47,6 +48,23 @@ namespace PCGExPropertyOverrideEntryCustomization
 		const TSharedPtr<IPropertyHandle> OverridesHandle = ArrayHandle.IsValid() ? ArrayHandle->GetParentHandle() : nullptr;
 		return OverridesHandle.IsValid() && OverridesHandle->GetProperty()
 			&& OverridesHandle->GetProperty()->GetFName() == GET_MEMBER_NAME_CHECKED(FPCGExPropertySchemaCollection, ImportOverrides);
+	}
+
+	/** The schema collection an import entry belongs to, through the handle chain; null for a consumer row or a multi-object edit. */
+	FPCGExPropertySchemaCollection* FindOwningCollection(const TSharedRef<IPropertyHandle>& EntryHandle)
+	{
+		for (TSharedPtr<IPropertyHandle> Parent = EntryHandle->GetParentHandle(); Parent.IsValid(); Parent = Parent->GetParentHandle())
+		{
+			const FStructProperty* StructProperty = CastField<FStructProperty>(Parent->GetProperty());
+			if (!StructProperty || StructProperty->Struct != FPCGExPropertySchemaCollection::StaticStruct())
+			{
+				continue;
+			}
+			TArray<void*> RawData;
+			Parent->AccessRawData(RawData);
+			return RawData.Num() == 1 && RawData[0] ? static_cast<FPCGExPropertySchemaCollection*>(RawData[0]) : nullptr;
+		}
+		return nullptr;
 	}
 }
 
@@ -576,6 +594,31 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 
 	const bool bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
 
+	// An import entry authors this importer's rewrite of the inherited choices through the arrow's popover; a locked
+	// schema (values-only host) never does. Consumer rows (a Tuple's, an entry's) get no entry: the arrow stays a pick.
+	FOnGetContent EditChoices;
+	if (PCGExPropertyOverrideEntryCustomization::IsImportEntry(PropertyHandle)
+		&& !FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(PropertyHandle))
+	{
+		TArray<void*> EntryRaw;
+		PropertyHandle->AccessRawData(EntryRaw);
+		FPCGExPropertyOverrideEntry* Entry = EntryRaw.Num() == 1 && EntryRaw[0] ? static_cast<FPCGExPropertyOverrideEntry*>(EntryRaw[0]) : nullptr;
+		const TSharedPtr<IPropertyHandle> PatchHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyOverrideEntry, ChoicesPatch));
+		FPCGExPropertySchemaCollection* Collection = PCGExPropertyOverrideEntryCustomization::FindOwningCollection(PropertyHandle);
+		if (Entry && PatchHandle.IsValid() && Collection)
+		{
+			FPCGExChoicesEditContext Context;
+			Context.Host = FStructView(*Instance);
+			Context.Collection = Collection;
+			Context.EntryName = Entry->GetPropertyName();
+			Context.RealPatch = &Entry->ChoicesPatch;
+			EditChoices = FOnGetContent::CreateLambda([PatchHandle, Context]() -> TSharedRef<SWidget>
+			{
+				return SNew(SPCGExPropertyChoicesEditor).RealHandle(PatchHandle).Context(Context).bPatch(true);
+			});
+		}
+	}
+
 	// Hold the inner scope on the customization so it is guaranteed to outlive every
 	// widget / lambda that will reference it below. The detail panel tears down the
 	// Slate subtree before releasing its customization instances, so this member
@@ -632,7 +675,7 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 			];
 
 		IDetailPropertyRow* InnerRow = FPCGExInlineWidgetRegistry::AddCompactValueRow(
-			ChildBuilder, InnerScope.ToSharedRef(), InnerStruct, NameContent, IsEnabledAttr);
+			ChildBuilder, InnerScope.ToSharedRef(), InnerStruct, NameContent, IsEnabledAttr, EditChoices);
 		if (InnerRow)
 		{
 			// Reset arrow walks the BP class chain -- only for BP-inherited owners. Instance-created
@@ -654,10 +697,10 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 		const FStructView Host(InnerStruct, StructMemory);
 		bool bLocked = false;
 		const bool bHasChoices = FPCGExInlineWidgetRegistry::HasChoices(Host, &bLocked);
-		if (bHasChoices)
+		if (bHasChoices || EditChoices.IsBound())
 		{
 			// Picks notify through the entry's own Value handle: the nested field rows are external nodes.
-			FPCGExInlineWidgetRegistry::AddChoicesRow(ChildBuilder, Host, ValueHandlePtr.ToSharedRef(), IsEnabledAttr);
+			FPCGExInlineWidgetRegistry::AddChoicesRow(ChildBuilder, Host, ValueHandlePtr.ToSharedRef(), IsEnabledAttr, EditChoices);
 		}
 
 		FPCGExProperty_Struct* StructProp = reinterpret_cast<FPCGExProperty_Struct*>(StructMemory);
@@ -699,16 +742,6 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	else
 	{
 		FPCGExInlineWidgetRegistry::AddComplexValueRows(
-			ChildBuilder, InnerScope.ToSharedRef(), InnerStruct, IsEnabledAttr, WeakOwner);
-	}
-
-	// An import entry carries this importer's rewrite of the inherited choices; a locked schema never authors it.
-	if (PCGExPropertyOverrideEntryCustomization::IsImportEntry(PropertyHandle)
-		&& !FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(PropertyHandle))
-	{
-		if (const TSharedPtr<IPropertyHandle> PatchHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyOverrideEntry, ChoicesPatch)))
-		{
-			ChildBuilder.AddProperty(PatchHandle.ToSharedRef());
-		}
+			ChildBuilder, InnerScope.ToSharedRef(), InnerStruct, IsEnabledAttr, WeakOwner, EditChoices);
 	}
 }
