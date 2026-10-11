@@ -21,10 +21,15 @@ namespace PCGExBuiltInInlineWidgets
 		FPCGExInlineWidgetRegistry::RegisterAllModes(FPCGExProperty_Vector2::StaticStruct()->GetFName(), &PCGExInlineNumericWidgets::MakeVector2Widget);
 		FPCGExInlineWidgetRegistry::RegisterAllModes(FPCGExProperty_Rotator::StaticStruct()->GetFName(), &PCGExInlineNumericWidgets::MakeRotatorWidget);
 
-		// Enum: compact-mode only. The schema-edit (Edit) path falls through to the default
-		// AddProperty(ValueHandle), which routes to FPCGExEnumSelectorCustomization -- that
-		// renders the full editor (class picker + value picker). The compact mode used in
-		// override / readonly-schema contexts hides the class picker.
+		// Enum: Edit adds the class picker; Compact (override / readonly-schema rows) pins the class.
+		// A struct value needs a factory per mode to keep its one-row layout (see IsInlineValue).
+		FPCGExInlineWidgetRegistry::Register(
+			FPCGExProperty_Enum::StaticStruct()->GetFName(),
+			EPCGExInlineWidgetMode::Edit,
+			[](const TSharedRef<IPropertyHandle>& ValueHandle) -> TSharedRef<SWidget>
+			{
+				return PCGExEnumSelectorWidget::Make(ValueHandle, /*bAllowClassPicker=*/true);
+			});
 		FPCGExInlineWidgetRegistry::Register(
 			FPCGExProperty_Enum::StaticStruct()->GetFName(),
 			EPCGExInlineWidgetMode::Compact,
@@ -58,7 +63,7 @@ namespace PCGExBuiltInInlineWidgets
 			FPCGExProperty_Int64::StaticStruct()->GetFName(),
 			&PCGExPropertyInlineWidgets::MakeClampedInt64Widget);
 
-		// Float curve: compact-mode only, mirroring Enum. The schema-edit (Edit) path falls
+		// Float curve: compact-mode only. The schema-edit (Edit) path falls
 		// through to the default AddProperty route, which renders through
 		// FPCGExPropertyFloatCurveCustomization. FPCGExProperty_FloatCurve is deliberately NOT
 		// PCGExInlineValue, so override/readonly rows route through AddComplexValueRows, which

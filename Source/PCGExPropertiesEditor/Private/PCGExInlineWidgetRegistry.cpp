@@ -12,6 +12,7 @@
 #include "Details/PCGExEditorCustomizationUtils.h"
 #include "Styling/AppStyle.h"
 #include "UObject/StructOnScope.h"
+#include "UObject/UnrealType.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/SNullWidget.h"
@@ -81,6 +82,21 @@ void FPCGExInlineWidgetRegistry::UnregisterAllModes(FName StructName)
 const FPCGExMakeInlineWidgetFn* FPCGExInlineWidgetRegistry::Find(FName StructName, EPCGExInlineWidgetMode Mode)
 {
 	return PCGExInlineWidgetRegistry_Private::GetMap().Find({StructName, Mode});
+}
+
+bool FPCGExInlineWidgetRegistry::IsInlineValue(const UScriptStruct* PropertyStruct, EPCGExInlineWidgetMode Mode)
+{
+	if (!PropertyStruct || !PropertyStruct->HasMetaData(TEXT("PCGExInlineValue")))
+	{
+		return false;
+	}
+	if (Find(PropertyStruct->GetFName(), Mode))
+	{
+		return true;
+	}
+	// IPropertyHandle::CreatePropertyValueWidget() never runs a struct's type customization and draws nothing for it.
+	const FProperty* ValueProperty = PCGExProperties::FindValueProperty(PropertyStruct);
+	return ValueProperty && !ValueProperty->IsA<FStructProperty>();
 }
 
 void FPCGExInlineWidgetRegistry::Clear()

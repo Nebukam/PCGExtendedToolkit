@@ -178,7 +178,7 @@ void FPCGExPropertySchemaCustomization::CustomizeChildren(
 		}
 
 		// Check if this type should be inlined (simple type)
-		const bool bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
+		const bool bShouldInline = FPCGExInlineWidgetRegistry::IsInlineValue(InnerStruct, EPCGExInlineWidgetMode::Compact);
 
 		// Create FStructOnScope for the inner struct (FPCGExPropertyCompiled_*)
 		TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);

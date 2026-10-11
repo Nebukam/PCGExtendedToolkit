@@ -525,7 +525,7 @@ bool FPCGExPropertySchemaCollectionCustomization::TryRenderFlatInline(
 	}
 
 	UScriptStruct* InnerStruct = const_cast<UScriptStruct*>(Schema->Property.GetScriptStruct());
-	if (!InnerStruct || !InnerStruct->HasMetaData(TEXT("PCGExInlineValue")))
+	if (!FPCGExInlineWidgetRegistry::IsInlineValue(InnerStruct, EPCGExInlineWidgetMode::Compact))
 	{
 		return false;
 	}

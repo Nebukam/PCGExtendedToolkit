@@ -72,6 +72,13 @@ public:
 
 	static const FPCGExMakeInlineWidgetFn* Find(FName StructName, EPCGExInlineWidgetMode Mode);
 
+	/**
+	 * Whether PropertyStruct's Value fits one value cell in Mode: the type is tagged PCGExInlineValue and has either
+	 * a factory for Mode or a non-struct Value. Every layout decides inline vs expandable through this, never the
+	 * raw meta: a struct Value with no factory has no one-cell editor.
+	 */
+	static bool IsInlineValue(const UScriptStruct* PropertyStruct, EPCGExInlineWidgetMode Mode);
+
 	static void Clear();
 
 	/**
