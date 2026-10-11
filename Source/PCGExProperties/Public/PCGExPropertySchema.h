@@ -681,6 +681,15 @@ private:
  *   Resolve() / BuildSchema() / FindByName() all walk locals first, then imports
  *   depth-first, deduping by Name with first-wins semantics: locals beat imports,
  *   earlier imports beat later ones.
+ *
+ * IMPORT OVERRIDES:
+ *
+ *   ImportOverrides is EditAnywhere so GetChildHandle can reach its children:
+ *   FPCGExPropertySchemaCollectionCustomization renders every row, so it never shows as a
+ *   top-level array editor. ReconcileImportOverrides keeps it parallel with the imports-only
+ *   schema (through FPCGExPropertyOverrides::SyncToSchema). Per-instance delta serialization
+ *   layers it: asset default -> template (collection on CDO) -> instance (collection on actor
+ *   instance), each entry's bEnabled deciding whether its layer answers.
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
@@ -700,19 +709,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	TArray<TObjectPtr<UPCGExPropertySchemaAsset>> ImportedSchemas;
 
 	/**
-	 * Per-entry value overrides for imported entries.
-	 *
-	 * EditAnywhere is required so the detail panel's GetChildHandle can reach this property's
-	 * children -- the registered FPCGExPropertySchemaCollectionCustomization takes over rendering
-	 * entirely (CustomizeChildren controls every visible row), so this never appears as a
-	 * top-level array editor in the inspector. The array is kept parallel with the imports-only
-	 * schema via ReconcileImportOverrides (which delegates to FPCGExPropertyOverrides::SyncToSchema).
-	 *
-	 * UE per-instance UPROPERTY delta serialization handles three-layer composition:
-	 * asset default -> template (collection on CDO) -> instance (collection on actor instance).
-	 * Each layer overrides the previous via bEnabled toggles on individual entries.
-	 *
-	 * Locals do not appear here -- they are edited in-place on Schemas.
+	 * Per-property value overrides for imported properties, each with its own enable toggle.
+	 * Locals are edited in place on Schemas.
 	 */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExPropertyOverrides ImportOverrides;
