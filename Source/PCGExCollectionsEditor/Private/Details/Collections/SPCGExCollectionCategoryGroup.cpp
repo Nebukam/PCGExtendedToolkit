@@ -5,6 +5,7 @@
 
 #include "Details/Collections/FPCGExCollectionTileDragDropOp.h"
 #include "DragAndDrop/AssetDragDropOp.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Images/SImage.h"
@@ -46,7 +47,7 @@ void SPCGExCollectionCategoryGroup::Construct(const FArguments& InArgs)
 			{
 				if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
 				{
-					const FName NewName = FName(*NewText.ToString());
+					const FName NewName = PCGExTypeOps::MakeNameChecked(NewText.ToString());
 					if (NewName != CategoryName && !NewName.IsNone())
 					{
 						OnCategoryRenamed.ExecuteIfBound(CategoryName, NewName);

@@ -10,6 +10,7 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "Types/PCGExTypeOpsString.h"
 
 namespace PCGExMetaHelpers
 {
@@ -433,7 +434,7 @@ namespace PCGExMetaHelpers
 			{
 				return FName(InSelector.GetName().ToString());
 			}
-			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+			return PCGExTypeOps::MakeNameChecked(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
 		}
 		if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
 		{

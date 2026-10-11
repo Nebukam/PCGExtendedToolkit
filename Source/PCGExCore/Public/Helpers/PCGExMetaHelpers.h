@@ -202,6 +202,12 @@ namespace PCGExMetaHelpers
 		return TryGetMutableAttribute<T>(InData->MutableMetadata(), Identifier);
 	}
 
+	/** True for the types with an FPCGMetadataAttribute<T> specialization (Float..SoftClassPath); false for Count and Unknown. */
+	constexpr static bool IsLegacyScalarType(const EPCGMetadataTypes Type)
+	{
+		return static_cast<uint8>(Type) < static_cast<uint8>(EPCGMetadataTypes::Count);
+	}
+
 	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
 		switch (Property)

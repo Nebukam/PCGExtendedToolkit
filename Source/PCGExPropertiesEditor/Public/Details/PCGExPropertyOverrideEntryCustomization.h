@@ -73,7 +73,7 @@ private:
 	int32 CachedOverrideIndex = INDEX_NONE;
 
 	// Asset-default resolved once at CustomizeHeader (imports tree is stable for the detail
-	// session). Invalid = "no asset default exists" -- TryGetResetSource relies on the distinction.
+	// session). Invalid = "no asset default exists" -- FindResetSource relies on the distinction.
 	FInstancedStruct CachedAssetDefaultValue;
 
 	// Defensive-only: a type-mismatch reset reallocates and would invalidate InnerScope's alias.

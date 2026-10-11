@@ -57,6 +57,7 @@ public class PCGExPropertiesEditor : ModuleRules
 				"KismetCompiler",
 				"Kismet",
 				"ToolMenus",
+				"StructUtilsEditor", // FInstancedStructProvider -> a choice carrier's fields as child rows
 				"Projects",          // IPluginManager -> plugin Resources dir for the Slate style
 				"DetailCustomizations", // OnExtendActorDetails -> property-collection values in the actor's details
 				"ToolWidgets",       // SWarningOrErrorBox

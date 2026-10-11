@@ -47,7 +47,7 @@ struct PCGEXCOLLECTIONS_API FPCGExCollectionEntryRef
  *
  * Collection is structural: the schema pins it, overrides pick the entry (SyncStructuralFromSchema).
  */
-USTRUCT(BlueprintType, meta=(PCGExInlineValue), DisplayName="Collection Entry")
+USTRUCT(BlueprintType, meta=(PCGExInlineValue, PCGExStructuralValue), DisplayName="Collection Entry")
 struct PCGEXCOLLECTIONS_API FPCGExProperty_CollectionEntry : public FPCGExProperty
 {
 	GENERATED_BODY()
@@ -89,6 +89,12 @@ public:
 	virtual EPCGMetadataTypes GetOutputType() const override
 	{
 		return EPCGMetadataTypes::Integer64;
+	}
+
+	/** The int64 it outputs is a pick hash derived from Value: it says nothing another type could take as a value. */
+	virtual bool SupportsValueConversion() const override
+	{
+		return false;
 	}
 
 	virtual FName GetTypeName() const override

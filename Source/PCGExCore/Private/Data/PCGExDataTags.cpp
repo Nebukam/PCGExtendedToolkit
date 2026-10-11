@@ -3,6 +3,8 @@
 
 #include "Data/PCGExDataTags.h"
 
+#include "Types/PCGExTypeOpsString.h"
+
 namespace PCGExData
 {
 	int32 FTags::Num() const
@@ -151,23 +153,33 @@ namespace PCGExData
 		TArray<FName> Flattened;
 		Flattened.Reserve(Num());
 
+		// Left out: a tag too long to be a name, and one that spells None.
+		auto AddName = [&Flattened](const FString& InTag)
+		{
+			const FName TagName = PCGExTypeOps::MakeNameChecked(InTag);
+			if (!TagName.IsNone())
+			{
+				Flattened.Add(TagName);
+			}
+		};
+
 		for (const FString& Key : RawTags)
 		{
-			Flattened.Add(FName(Key));
+			AddName(Key);
 		}
 
 		if (bIncludeValue)
 		{
 			for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags)
 			{
-				Flattened.Add(FName(Pair.Value->Flatten(Pair.Key)));
+				AddName(Pair.Value->Flatten(Pair.Key));
 			}
 		}
 		else
 		{
 			for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags)
 			{
-				Flattened.Add(FName(Pair.Key));
+				AddName(Pair.Key);
 			}
 		}
 

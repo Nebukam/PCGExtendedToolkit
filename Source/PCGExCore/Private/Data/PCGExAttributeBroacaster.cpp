@@ -17,6 +17,13 @@
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Types/PCGExTypeOpsImpl.h"
 
+namespace PCGExAttributeBroadcaster
+{
+	// What IPCGAttributeAccessor builds out of a string attribute's text: a name by broadcast, a path by construction.
+	template <typename T>
+	constexpr bool bBuiltFromText = std::is_same_v<T, FName> || std::is_base_of_v<FSoftObjectPath, T>;
+}
+
 namespace PCGExData
 {
 #pragma region Attribute utils
@@ -115,6 +122,7 @@ namespace PCGExData
 
 		SourceClassName = InData ? InData->GetClass()->GetFName() : NAME_None;
 		bReadable = true;
+		bCheckedText = false;
 
 		if (ProcessingInfos.bIsDataDomain)
 		{
@@ -131,9 +139,60 @@ namespace PCGExData
 		{
 			InternalAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, ProcessingInfos.Selector);
 			ProcessingInfos.bIsValid = InternalAccessor.IsValid();
+
+			if constexpr (PCGExAttributeBroadcaster::bBuiltFromText<T>)
+			{
+				bCheckedText = InternalAccessor && InternalAccessor->GetUnderlyingType() == static_cast<int16>(EPCGMetadataTypes::String);
+			}
 		}
 
 		return ProcessingInfos.bIsValid;
+	}
+
+	template <typename T>
+	bool TAttributeBroadcaster<T>::ReadRange(const TArrayView<T> Dest, const int32 Start) const
+	{
+		if constexpr (PCGExAttributeBroadcaster::bBuiltFromText<T>)
+		{
+			if (bCheckedText)
+			{
+				TArray<FString> Text;
+				Text.SetNum(Dest.Num());
+				if (!InternalAccessor->GetRange<FString>(Text, Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+				{
+					return false;
+				}
+
+				for (int32 i = 0; i < Dest.Num(); ++i)
+				{
+					Dest[i] = PCGExTypeOps::FTypeOps<FString>::ConvertTo<T>(Text[i]);
+				}
+				return true;
+			}
+		}
+
+		return InternalAccessor->GetRange<T>(Dest, Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
+	}
+
+	template <typename T>
+	bool TAttributeBroadcaster<T>::ReadSingle(T& OutValue, const int32 Index) const
+	{
+		if constexpr (PCGExAttributeBroadcaster::bBuiltFromText<T>)
+		{
+			if (bCheckedText)
+			{
+				FString Text;
+				if (!InternalAccessor->Get<FString>(Text, Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+				{
+					return false;
+				}
+
+				OutValue = PCGExTypeOps::FTypeOps<FString>::ConvertTo<T>(Text);
+				return true;
+			}
+		}
+
+		return InternalAccessor->Get<T>(OutValue, Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
 	}
 
 	template <typename T>
@@ -145,7 +204,7 @@ namespace PCGExData
 		}
 
 		T Probe = T{};
-		if (!InternalAccessor->Get<T>(Probe, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+		if (!ReadSingle(Probe, 0))
 		{
 			bReadable = false;
 			ReportReadFailure();
@@ -295,7 +354,7 @@ namespace PCGExData
 		else
 		{
 			TArrayView<T> DumpView = MakeArrayView(Dump.GetData() + Scope.Start, Scope.Count);
-			if (!bReadable || !InternalAccessor->GetRange<T>(DumpView, Scope.Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+			if (!bReadable || !ReadRange(DumpView, Scope.Start))
 			{
 				// Dump may be uninitialized memory: a read that wrote nothing must still define every value.
 				for (T& Value : DumpView) { Value = T{}; }
@@ -322,7 +381,7 @@ namespace PCGExData
 			return;
 		}
 
-		if (!bReadable || !InternalAccessor->GetRange<T>(Dest, Scope.Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+		if (!bReadable || !ReadRange(Dest, Scope.Start))
 		{
 			for (T& Value : Dest) { Value = T{}; }
 			ReportReadFailure();
@@ -362,7 +421,7 @@ namespace PCGExData
 		}
 		else
 		{
-			if (!bReadable || !InternalAccessor->GetRange<T>(Dump, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+			if (!bReadable || !ReadRange(Dump, 0))
 			{
 				for (T& Value : Dump) { Value = T{}; }
 				ReportReadFailure();
@@ -446,7 +505,7 @@ namespace PCGExData
 		}
 
 		T OutValue = Fallback;
-		if (!InternalAccessor->Get<T>(OutValue, Element.Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+		if (!ReadSingle(OutValue, Element.Index))
 		{
 			OutValue = Fallback;
 			ReportReadFailure();
@@ -472,7 +531,7 @@ namespace PCGExData
 			return false;
 		}
 
-		if (!InternalAccessor->Get<T>(OutValue, Element.Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+		if (!ReadSingle(OutValue, Element.Index))
 		{
 			ReportReadFailure();
 			return false;

@@ -9,6 +9,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataForward.h"
+#include "Types/PCGExTypeOpsString.h"
 
 void FPCGExForwardDetails::Filter(TArray<PCGExData::FAttributeIdentity>& Identities) const
 {
@@ -149,9 +150,10 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 {
 	if (bAddIndexTag)
 	{
-		if (PCGExMetaHelpers::IsWritableAttributeName(FName(IndexTagPrefix)))
+		const FName IndexTagName = PCGExTypeOps::MakeNameChecked(IndexTagPrefix);
+		if (PCGExMetaHelpers::IsWritableAttributeName(IndexTagName))
 		{
-			const FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(FName(IndexTagPrefix), PCGMetadataDomainID::Data);
+			const FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(IndexTagName, PCGMetadataDomainID::Data);
 			InMetadata->DeleteAttribute(Identifier);
 			InMetadata->FindOrCreateAttribute<int32>(Identifier, TagSource.Index);
 		}

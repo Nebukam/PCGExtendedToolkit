@@ -15,10 +15,11 @@
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
 #include "Factories/PCGExFactories.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
-#define PCGEX_FACTORY_NAME_PRIORITY FName( Priority != 0 ? FString::Printf(TEXT("[%d] "), Priority) + (bCleanupConsumableAttributes ? FString(TEXT("🆑 ")) : FString(TEXT(""))) + GetDisplayName() : GetDisplayName())
+#define PCGEX_FACTORY_NAME_PRIORITY PCGExTypeOps::MakeNameChecked( Priority != 0 ? FString::Printf(TEXT("[%d] "), Priority) + (bCleanupConsumableAttributes ? FString(TEXT("🆑 ")) : FString(TEXT(""))) + GetDisplayName() : GetDisplayName())
 #if PCGEX_ENGINE_VERSION > 506
 #define PCGEX_FACTORY_TYPE_ID(_TYPE) virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const{ return _TYPE::AsId(); }
 #else

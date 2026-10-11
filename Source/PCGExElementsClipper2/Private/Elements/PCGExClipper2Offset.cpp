@@ -9,6 +9,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2OffsetElement"
 #define PCGEX_NAMESPACE Clipper2Offset
@@ -163,7 +164,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 				{
 					for (const TSharedPtr<PCGExData::FPointIO>& Output : OutputPaths)
 					{
-						PCGExData::Helpers::SetDataValue<int32>(Output->GetOut(), Settings->IterationAttributeName, Iteration);
+						PCGExData::Helpers::SetDataValue<int32>(Output->GetOut(), PCGExTypeOps::MakeNameChecked(Settings->IterationAttributeName), Iteration);
 					}
 				}
 			}

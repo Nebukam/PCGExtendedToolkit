@@ -10,6 +10,7 @@
 #include "Core/PCGExMT.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Helpers/PCGExStreamingHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE SpawnDynamicMesh
@@ -109,7 +110,11 @@ bool FPCGExSpawnDynamicMeshElement::AdvanceWork(FPCGExContext* InContext, const 
 
 		for (const FString& Tag : Input.Tags)
 		{
-			DynamicMeshComponent->ComponentTags.AddUnique(*Tag);
+			const FName TagName = PCGExTypeOps::MakeNameChecked(Tag);
+			if (!TagName.IsNone())
+			{
+				DynamicMeshComponent->ComponentTags.AddUnique(TagName);
+			}
 		}
 
 		Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());

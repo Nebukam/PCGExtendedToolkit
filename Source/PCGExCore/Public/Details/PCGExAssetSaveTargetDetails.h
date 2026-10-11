@@ -36,8 +36,8 @@ struct PCGEXCORE_API FPCGExAssetSaveTargetDetails
  *  editor-guard-free check only parses namespace scope. */
 namespace PCGExAssetSave
 {
-	/** AssetPath / AssetName. False + OutError on an invalid or unmounted path. No mount healing by design:
-	 *  a destination is reported, never redirected. */
+	/** AssetPath / AssetName. False + OutError on an invalid, over-long or unmounted path. No mount healing by
+	 *  design: a destination is reported, never redirected. */
 	PCGEXCORE_API bool ResolveTarget(const FPCGExAssetSaveTargetDetails& InTarget, FString& OutPackagePath, FString& OutAssetName, FText& OutError);
 
 	/** This session may write source content: editor, not preview / PIE / RuntimeGen / cook, not a

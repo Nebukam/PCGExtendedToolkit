@@ -12,6 +12,7 @@
 #include "PCGExAssetGrammar.h"
 #include "PCGExCategoryOverrides.h"
 #include "PCGExCollectionGlobals.h"
+#include "PCGExPropertyRowHost.h"
 #include "PCGExPropertySchema.h"
 #include "PCGExSchemaMerging.h"
 #include "Core/PCGExContext.h"
@@ -774,7 +775,7 @@ namespace PCGExAssetCollection
  * All return FPCGExEntryAccessResult with entry + host collection.
  */
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection")
-class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset, public IPCGExCookDependencyProvider, public IPCGExExternalPackageProducer
+class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset, public IPCGExCookDependencyProvider, public IPCGExExternalPackageProducer, public IPCGExPropertyRowHost
 {
 	mutable FRWLock CacheLock;
 
@@ -995,6 +996,15 @@ public:
 	 * compatibility arbiter for cross-collection transfers. No Modify/dirty/staging: caller owns them.
 	 */
 	virtual FPCGExAssetCollectionEntry* AddEntryOfType(const UScriptStruct* EntryStruct = nullptr);
+
+#if WITH_EDITOR
+	//~Begin IPCGExPropertyRowHost: collection-level import rows, entry rows and category rows against CollectionProperties.
+	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor) override;
+	virtual void EDITOR_NotifyRowsChanged() override;
+	virtual void EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset) override;
+	//~End IPCGExPropertyRowHost
+#endif
 
 	/** ForEach iteration (const) */
 	using FForEachConstEntryFunc = TFunctionRef<void(const FPCGExAssetCollectionEntry*, int32)>;
@@ -1369,6 +1379,9 @@ public:
 #if WITH_EDITORONLY_DATA
 	bool bSuppressStagingRebuild = false;
 
+	/** Set by EDITOR_NotifyRowsChanged around its PostEditChangeProperty call: row values changed, nothing structural. */
+	bool bEDITOR_RowValuesOnlyEdit = false;
+
 	/** When a full rebuild last changed something. Diagnostics only -- staleness is per entry via
 	 *  StagingSourceFingerprint. Not written on no-op rebuilds, which would churn every file. */
 	UPROPERTY()
@@ -1503,6 +1516,10 @@ public:
 
 	/** Sync every category row against Schema. Editor-only: outside it SyncToSchema is a wipe. */
 	void SyncCategoryOverridesToSchema(const TArray<FInstancedStruct>& Schema);
+
+	/** Every row container besides the schema's own import layer: each entry's, then each category's. */
+	void ForEachPropertyRows(TFunctionRef<void(const FPCGExPropertyOverrides& Rows)> Visitor) const;
+	void ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows)> Visitor);
 
 	/**
 	 * Read-only registry of available properties (built from CollectionProperties).

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExInputShorthandsDetails.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "PCGExMatchSharedTag.generated.h"
 
 class UPCGSettings;
@@ -116,7 +117,7 @@ public:
 #if WITH_EDITOR
 	virtual void PCGExApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	virtual void PCGExApplyDeprecation(UPCGNode* InOutNode) override;
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchSharedTag, "Match : Shared Tag", "Match data that share common tags", FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchSharedTag, "Match : Shared Tag", "Match data that share common tags", PCGExTypeOps::MakeNameChecked(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

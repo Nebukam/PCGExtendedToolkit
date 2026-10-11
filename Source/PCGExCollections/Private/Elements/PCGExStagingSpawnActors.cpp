@@ -22,6 +22,7 @@
 #include "Helpers/PCGExManagedResourceHelpers.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "Helpers/PCGHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExStagingSpawnActorsElement"
 #define PCGEX_NAMESPACE StagingSpawnActors
@@ -658,7 +659,11 @@ namespace PCGExStagingSpawnActors
 			{
 				for (const FString& Part : PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(TagStr))
 				{
-					SpawnedActor->Tags.AddUnique(FName(*Part));
+					const FName InstanceTag = PCGExTypeOps::MakeNameChecked(Part);
+					if (!InstanceTag.IsNone())
+					{
+						SpawnedActor->Tags.AddUnique(InstanceTag);
+					}
 				}
 			}
 		}

@@ -17,6 +17,7 @@
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/PCGMetadata.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDataUniquesElement"
 #define PCGEX_NAMESPACE DataUniques
@@ -219,7 +220,7 @@ bool FPCGExDataUniquesElement::Boot(FPCGExContext* InContext) const
 
 	for (const FString& Token : PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedKeyAttributes))
 	{
-		KeyNames.Add(FName(*Token));
+		KeyNames.Add(PCGExTypeOps::MakeNameChecked(Token));
 	}
 
 	TSet<FName> SeenKeys;
