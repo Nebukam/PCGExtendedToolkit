@@ -243,7 +243,7 @@ TArray<FName> UPCGExPackActorDataLibrary::GetNameArrayFromCommaSeparatedList(con
 
 	TArray<FName> Result;
 	Result.Reserve(Strings.Num());
-	for (const FString& Entry : Strings) { Result.Add(FName(*Entry)); }
+	for (const FString& Entry : Strings) { Result.Add(PCGExTypeOps::MakeNameChecked(Entry)); }
 
 	return Result;
 }

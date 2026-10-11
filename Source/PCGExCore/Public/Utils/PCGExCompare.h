@@ -109,8 +109,8 @@ namespace PCGExCompare
 	/**
 	 * True for the equality string comparisons (StrictlyEqual / StrictlyNotEqual), which can be evaluated
 	 * directly on FName (cheaper than Stricmp). Matches FString case-insensitive equality for typical
-	 * values, but NOT for pathological inputs: FName truncates beyond NAME_SIZE, and FName("None")/("")
-	 * both fold to NAME_None. Used to decide whether to read operands as FName instead of FString.
+	 * values, but NOT for pathological inputs: text of NAME_SIZE characters or more, "None" and "" all read
+	 * as NAME_None. Used to decide whether to read operands as FName instead of FString.
 	 */
 	FORCEINLINE static bool IsStringEqualityComparison(const EPCGExStringComparison Method)
 	{

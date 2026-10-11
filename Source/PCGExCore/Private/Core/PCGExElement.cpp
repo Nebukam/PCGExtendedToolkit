@@ -11,6 +11,7 @@
 #include "Helpers/PCGAsync.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGSettingsHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -173,7 +174,7 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 		for (const TArray<FString> Names = PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
 		     const FString& Name : Names)
 		{
-			Context->AddProtectedAttributeName(FName(Name));
+			Context->AddProtectedAttributeName(PCGExTypeOps::MakeNameChecked(Name));
 		}
 
 		for (const FName& Name : Settings->ProtectedAttributes)

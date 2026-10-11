@@ -8,6 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "PCGExMatching/Public/Helpers/PCGExMatchingHelpers.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"
 
@@ -104,7 +105,7 @@ bool PCGExPointFilter::FStringCompareNearestFilter::InitNearest(FPCGExContext* I
 		const TSharedPtr<PCGExDetails::TSettingValue<FName>> NameValue = PCGExDetails::MakeSettingValue<FName>(
 			TypedFilterFactory->Config.OperandBValue.Input,
 			TypedFilterFactory->Config.OperandBValue.Attribute,
-			FName(TypedFilterFactory->Config.OperandBValue.Constant));
+			PCGExTypeOps::MakeNameChecked(TypedFilterFactory->Config.OperandBValue.Constant));
 		NameValue->bRegisterConsumable = TypedFilterFactory->Config.OperandBValue.bCleanupAttribute;
 		NameValue->bQuiet = PCGEX_QUIET_HANDLING;
 		if (!InitSettingValue(OperandBName, NameValue, PointDataFacade, false))
