@@ -13,6 +13,7 @@
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGExActorHelpers.h"
 #include "Helpers/PCGExStreamingHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPackActorDataElement"
@@ -125,7 +126,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 			const TArray<FString>& Values = *Buffer->GetInValues().Get();
 			for (const FString& V : Values)
 			{
-				RequiredAssetsPaths.Add(FSoftObjectPath(V));
+				RequiredAssetsPaths.Add(PCGExTypeOps::MakePathChecked(V));
 			}
 		}
 	}

@@ -125,7 +125,15 @@ namespace PCGExData
 		// False once a read through InternalAccessor has failed: every read then serves T{} without touching it.
 		bool bReadable = true;
 
+		// T is a name or a soft path and the attribute holds strings. IPCGAttributeAccessor would build T from that
+		// text unchecked (FName asserts at NAME_SIZE characters), so those reads take the checked String conversions.
+		bool bCheckedText = false;
+
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
+
+		// The element-domain reads every fetch goes through. False when InternalAccessor refuses the read.
+		bool ReadRange(TArrayView<T> Dest, int32 Start) const;
+		bool ReadSingle(T& OutValue, int32 Index) const;
 
 		// One-element read, run once keys and accessor are both set. GetRange fails the same way for one element
 		// as for a scope (keys the accessor can't use, or no conversion to T), so this settles bReadable up front.
