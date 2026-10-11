@@ -607,7 +607,7 @@ namespace PCGExPropertyChoicesSync
 		{
 			return false;
 		}
-		// Only a path makes a path: FSoftObjectPath ensures on any text that is not a full object path.
+		// Only a path makes a path: FSoftObjectPath silently turns any text it cannot parse into a null path.
 		const bool bFromPath = FromType == EPCGMetadataTypes::SoftObjectPath || FromType == EPCGMetadataTypes::SoftClassPath;
 		const bool bToPath = ToType == EPCGMetadataTypes::SoftObjectPath || ToType == EPCGMetadataTypes::SoftClassPath;
 		return bFromPath || !bToPath;
@@ -1645,6 +1645,35 @@ bool FPCGExPropertySchemaCollection::SyncImportOverridesInPlace(const TConstArra
 }
 
 #if WITH_EDITOR
+bool FPCGExPropertySchemaCollection::SyncRowsAtLoad(const TStridedView<FPCGExPropertyOverrides> Rows) const
+{
+	TArray<FPCGExPropertyResolved> Resolved;
+	Resolve(Resolved);
+
+	// A rebuild drops the values of whatever stopped resolving, and at load that can be an asset that failed to load.
+	PCGExPropertySchemaResolve::FVisitedAssets Visited;
+	const bool bMayRebuild = !PCGExPropertySchemaResolve::HasMissingImport(*this, Visited);
+
+	FPCGExResolvedChoicesCache ChoicesCache;
+	TOptional<TArray<FInstancedStruct>> Schema;
+	bool bChanged = false;
+	for (FPCGExPropertyOverrides& Row : Rows)
+	{
+		// Rows still in step are never rebuilt: a load must not dirty what did not drift.
+		if (!bMayRebuild || PCGExPropertyOverridesSync::IsParallel(Row.Overrides, Resolved))
+		{
+			bChanged |= Row.SyncInPlace(Resolved, &ChoicesCache);
+			continue;
+		}
+		if (!Schema.IsSet())
+		{
+			Schema = BuildSchema();
+		}
+		bChanged |= Row.SyncToSchema(Schema.GetValue());
+	}
+	return bChanged;
+}
+
 bool FPCGExPropertySchemaCollection::ImportsAssetTransitive(const UPCGExPropertySchemaAsset* Asset) const
 {
 	if (!Asset)
@@ -1804,9 +1833,10 @@ void FPCGExPropertySchemaCollection::SyncFromArchetype(const FPCGExPropertySchem
 // (editor-only) as the stable key for matching.
 //
 // The algorithm:
-// 1. Save old overrides and index them by HeaderId
+// 1. Save old overrides and find the property each one stands for
+//    (PCGExPropertyOverridesSync::FindPropertyIndex); a property takes at most one of them
 // 2. For each schema property:
-//    a. Try to find an existing override with matching HeaderId
+//    a. Take the existing override that stands for it, if any
 //    b. If found AND same type: keep value + bEnabled, update PropertyName
 //    c. If found but type changed: use schema default value, keep bEnabled
 //    d. If not found (new property): use schema default, set bEnabled=false
@@ -1834,6 +1864,18 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 			{
 				bStructureMatches = false;
 				break;
+			}
+			// A HeaderId under another name is a rename in place, unless that id ties the row to a property
+			// elsewhere: two properties sharing it traded places, and each row follows its own.
+			if (Overrides[i].PropertyName != SchemaProp->PropertyName)
+			{
+				PCGExPropertyOverridesSync::ERowTie Tie = PCGExPropertyOverridesSync::ERowTie::None;
+				const int32 StandsFor = PCGExPropertyOverridesSync::FindPropertyIndex<FInstancedStruct>(Overrides, i, Schema, &Tie);
+				if (StandsFor != i && Tie == PCGExPropertyOverridesSync::ERowTie::HeaderId)
+				{
+					bStructureMatches = false;
+					break;
+				}
 			}
 		}
 		if (bStructureMatches)
@@ -1865,22 +1907,19 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 	}
 #endif
 
-	// Match existing entries to the new schema by OUTER identity (HeaderId primary, PropertyName
-	// fallback). Outer identity lives on FPCGExPropertyOverrideEntry directly, not inside Value's
-	// FInstancedStruct, so it survives UE's broken per-property delta propagation.
+	// Match existing entries to the new schema by OUTER identity, under the rule every row sync shares
+	// (PCGExPropertyOverridesSync::FindPropertyIndex). Outer identity lives on FPCGExPropertyOverrideEntry
+	// directly, not inside Value's FInstancedStruct, so it survives UE's broken per-property delta propagation.
 	TArray<FPCGExPropertyOverrideEntry> OldOverrides = MoveTemp(Overrides);
 
 #if WITH_EDITOR
-	// One-shot inner→outer migration for legacy data, then build identity maps in the same
-	// pass. Idempotent: skips entries that already carry outer identity. The CDO is the trigger
+	// One-shot inner→outer migration for legacy data, before rows are matched on that identity.
+	// Idempotent: skips entries that already carry outer identity. The CDO is the trigger
 	// -- once any reconcile fires for a CDO, its entries acquire outer identity here, and UE
 	// per-property delta propagates the outer scalars (FName, int32) to instances correctly
 	// on the next CDO edit.
-	TMap<int32, int32> IndexByHeaderId;
-	TMap<FName, int32> IndexByName;
-	for (int32 i = 0; i < OldOverrides.Num(); ++i)
+	for (FPCGExPropertyOverrideEntry& Entry : OldOverrides)
 	{
-		FPCGExPropertyOverrideEntry& Entry = OldOverrides[i];
 		if (Entry.HeaderId == 0 || Entry.PropertyName.IsNone())
 		{
 			if (const FPCGExProperty* Prop = Entry.Value.GetPtr<FPCGExProperty>())
@@ -1895,15 +1934,23 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 				}
 			}
 		}
-		// First-wins on both maps so legacy collided overrides resolve correctly through the
-		// Name fallback below; identical to last-wins when identities are unique.
-		if (Entry.HeaderId != 0 && !IndexByHeaderId.Contains(Entry.HeaderId))
+	}
+
+	// Each old row goes to the property it stands for, and to no other. A HeaderId tie outranks a name tie
+	// whatever the row order; of two rows tied alike, the first keeps the property.
+	using PCGExPropertyOverridesSync::ERowTie;
+	TArray<int32, TInlineAllocator<32>> OldRowOf;
+	TArray<ERowTie, TInlineAllocator<32>> TieOf;
+	OldRowOf.Init(INDEX_NONE, Schema.Num());
+	TieOf.Init(ERowTie::None, Schema.Num());
+	for (int32 i = 0; i < OldOverrides.Num(); ++i)
+	{
+		ERowTie Tie = ERowTie::None;
+		const int32 PropertyIndex = PCGExPropertyOverridesSync::FindPropertyIndex<FInstancedStruct>(OldOverrides, i, Schema, &Tie);
+		if (PropertyIndex != INDEX_NONE && Tie > TieOf[PropertyIndex])
 		{
-			IndexByHeaderId.Add(Entry.HeaderId, i);
-		}
-		if (!Entry.PropertyName.IsNone() && !IndexByName.Contains(Entry.PropertyName))
-		{
-			IndexByName.Add(Entry.PropertyName, i);
+			OldRowOf[PropertyIndex] = i;
+			TieOf[PropertyIndex] = Tie;
 		}
 	}
 #endif
@@ -1930,19 +1977,9 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 		FPCGExPropertyOverrideEntry* Existing = nullptr;
 
 #if WITH_EDITOR
-		if (SchemaData->HeaderId != 0)
+		if (OldRowOf[SchemaIndex] != INDEX_NONE)
 		{
-			if (const int32* Found = IndexByHeaderId.Find(SchemaData->HeaderId))
-			{
-				Existing = &OldOverrides[*Found];
-			}
-		}
-		if (!Existing && !SchemaData->PropertyName.IsNone())
-		{
-			if (const int32* Found = IndexByName.Find(SchemaData->PropertyName))
-			{
-				Existing = &OldOverrides[*Found];
-			}
+			Existing = &OldOverrides[OldRowOf[SchemaIndex]];
 		}
 
 		// Last-resort parallel-index fallback. The Overrides array is structurally parallel to
@@ -2007,86 +2044,26 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 
 namespace PCGExPropertyOverridesSync
 {
-	/** A schema's HeaderId; 0 where that editor-only identity is compiled out. */
-	int32 HeaderIdOf(const FPCGExPropertySchema& Schema)
-	{
-#if WITH_EDITORONLY_DATA
-		return Schema.HeaderId;
-#else
-		return 0;
-#endif
-	}
-
-	/** A row's HeaderId, outer identity first like GetPropertyName; 0 when it has none or it is compiled out. */
-	int32 HeaderIdOf(const FPCGExPropertyOverrideEntry& Row)
-	{
-#if WITH_EDITORONLY_DATA
-		if (Row.HeaderId != 0)
-		{
-			return Row.HeaderId;
-		}
-		if (const FPCGExProperty* Property = Row.GetProperty())
-		{
-			return Property->HeaderId;
-		}
-#endif
-		return 0;
-	}
-
-	/** The resolved property row RowIndex stands for, matched on the schema's outer identity; null when there is none. */
 	const FPCGExPropertyResolved* FindProperty(const TConstArrayView<FPCGExPropertyOverrideEntry> Rows, const int32 RowIndex, const TConstArrayView<FPCGExPropertyResolved> Resolved)
 	{
-		const FPCGExPropertyOverrideEntry& Row = Rows[RowIndex];
-		const FName RowName = Row.GetPropertyName();
-		const int32 RowId = HeaderIdOf(Row);
+		const int32 PropertyIndex = FindPropertyIndex(Rows, RowIndex, Resolved);
+		return PropertyIndex == INDEX_NONE ? nullptr : &Resolved[PropertyIndex];
+	}
 
-		// Rows sit parallel to the resolved list unless the schema drifted, so the row's own index is tried first.
-		if (Resolved.IsValidIndex(RowIndex))
+	bool IsParallel(const TConstArrayView<FPCGExPropertyOverrideEntry> Rows, const TConstArrayView<FPCGExPropertyResolved> Resolved)
+	{
+		if (Rows.Num() != Resolved.Num())
 		{
-			const FPCGExPropertySchema& Parallel = *Resolved[RowIndex].Source;
-			if (Parallel.Name == RowName && (RowId == 0 || RowId == HeaderIdOf(Parallel)))
+			return false;
+		}
+		for (int32 i = 0; i < Rows.Num(); ++i)
+		{
+			if (FindPropertyIndex(Rows, i, Resolved) != i || Rows[i].Value.GetScriptStruct() != Resolved[i].Source->Property.GetScriptStruct())
 			{
-				return &Resolved[RowIndex];
+				return false;
 			}
 		}
-
-		const FPCGExPropertyResolved* ByName = nullptr;
-		const FPCGExPropertyResolved* ById = nullptr;
-		int32 NumById = 0;
-		for (const FPCGExPropertyResolved& Candidate : Resolved)
-		{
-			const bool bSharesName = Candidate.Source->Name == RowName;
-			if (RowId != 0 && RowId == HeaderIdOf(*Candidate.Source))
-			{
-				if (bSharesName)
-				{
-					return &Candidate;
-				}
-				ById = &Candidate;
-				++NumById;
-			}
-			else if (bSharesName)
-			{
-				ByName = &Candidate;
-			}
-		}
-
-		// A HeaderId under another name is a rename, and outranks the name, only while it links one row to one
-		// property. Duplicated schema rows and duplicated import assets both leave several carrying one id,
-		// which then identifies nothing: the name decides.
-		if (NumById == 1)
-		{
-			int32 NumRowsWithId = 0;
-			for (const FPCGExPropertyOverrideEntry& Other : Rows)
-			{
-				NumRowsWithId += HeaderIdOf(Other) == RowId ? 1 : 0;
-			}
-			if (NumRowsWithId == 1)
-			{
-				return ById;
-			}
-		}
-		return ByName;
+		return true;
 	}
 }
 
@@ -2186,16 +2163,26 @@ const FInstancedStruct* FPCGExPropertyOverrides::GetOverride(FName PropertyName)
 	return nullptr;
 }
 
-const FInstancedStruct* FPCGExPropertyOverrides::FindEnabledSlot(const FName PropertyName, const UScriptStruct* RequiredType) const
+const FInstancedStruct* FPCGExPropertyOverrides::FindEnabledSlot(const FName PropertyName, const UScriptStruct* RequiredType, const int32 IndexHint) const
 {
 	if (!RequiredType)
 	{
 		return nullptr;
 	}
+
+	auto IsSlot = [PropertyName, RequiredType](const FPCGExPropertyOverrideEntry& Entry)
+	{
+		return Entry.bEnabled && Entry.GetPropertyName() == PropertyName && Entry.Value.IsValid()
+			&& Entry.Value.GetScriptStruct()->IsChildOf(RequiredType);
+	};
+
+	if (Overrides.IsValidIndex(IndexHint) && IsSlot(Overrides[IndexHint]))
+	{
+		return &Overrides[IndexHint].Value;
+	}
 	for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
 	{
-		if (Entry.bEnabled && Entry.GetPropertyName() == PropertyName && Entry.Value.IsValid()
-			&& Entry.Value.GetScriptStruct()->IsChildOf(RequiredType))
+		if (IsSlot(Entry))
 		{
 			return &Entry.Value;
 		}

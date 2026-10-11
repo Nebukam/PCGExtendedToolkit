@@ -13,6 +13,22 @@
 
 namespace PCGExTypeOps
 {
+	/**
+	 * The name a string spells; None at NAME_SIZE characters or more, where FName would assert. A soft path's text
+	 * can be that long: its sub-object part has no length limit.
+	 */
+	inline FName MakeNameChecked(const FString& InString)
+	{
+		return InString.Len() < NAME_SIZE ? FName(*InString) : FName();
+	}
+
+	/** The path a string names; null at NAME_SIZE characters or more, where its package or asset FName would assert. */
+	template <typename T = FSoftObjectPath>
+	T MakePathChecked(const FString& InString)
+	{
+		return InString.Len() < NAME_SIZE ? T(InString) : T();
+	}
+
 	// String Type Operations - FString
 
 	template <>
@@ -95,16 +111,15 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TTo, FName>)
 			{
-				// FName asserts on NAME_SIZE characters or more; a string that long is no name.
-				return Value.Len() < NAME_SIZE ? FName(*Value) : FName();
+				return MakeNameChecked(Value);
 			}
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>)
 			{
-				return FSoftObjectPath(Value);
+				return MakePathChecked<FSoftObjectPath>(Value);
 			}
 			else if constexpr (std::is_same_v<TTo, FSoftClassPath>)
 			{
-				return FSoftClassPath(Value);
+				return MakePathChecked<FSoftClassPath>(Value);
 			}
 			else
 			{
@@ -465,8 +480,7 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TFrom, FString>)
 			{
-				// Same guard as the String ops' own conversion to FName.
-				return Value.Len() < NAME_SIZE ? FName(*Value) : FName();
+				return MakeNameChecked(Value);
 			}
 			else if constexpr (std::is_same_v<TFrom, FName>)
 			{
@@ -474,11 +488,11 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TFrom, FSoftObjectPath>)
 			{
-				return FName(*Value.ToString());
+				return MakeNameChecked(Value.ToString());
 			}
 			else if constexpr (std::is_same_v<TFrom, FSoftClassPath>)
 			{
-				return FName(*Value.ToString());
+				return MakeNameChecked(Value.ToString());
 			}
 			else
 			{
@@ -699,7 +713,7 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TTo, FName>)
 			{
-				return FName(*Value.ToString());
+				return MakeNameChecked(Value.ToString());
 			}
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>)
 			{
@@ -764,7 +778,7 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TFrom, FString>)
 			{
-				return Type(Value);
+				return MakePathChecked<Type>(Value);
 			}
 			else if constexpr (std::is_same_v<TFrom, FName>)
 			{
@@ -982,7 +996,7 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TTo, FName>)
 			{
-				return FName(*Value.ToString());
+				return MakeNameChecked(Value.ToString());
 			}
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>)
 			{
@@ -1047,7 +1061,7 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TFrom, FString>)
 			{
-				return Type(Value);
+				return MakePathChecked<Type>(Value);
 			}
 			else if constexpr (std::is_same_v<TFrom, FName>)
 			{

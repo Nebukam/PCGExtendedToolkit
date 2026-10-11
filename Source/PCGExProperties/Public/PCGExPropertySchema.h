@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/StridedView.h"
 #include "Data/PCGExData.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Types/PCGExTypeTraits.h"
@@ -347,11 +348,15 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
  *   MySchema.ReconcileImportOverrides();                // align imports
  *   MySchema.ApplyToOverrides(MyRows);                  // apply to external rows
  *
- *   // At runtime, read values:
- *   for (int Col = 0; Col < MySchema.Num(); ++Col) {
- *       if (MyRows[RowIdx].IsOverrideEnabled(Col)) {
- *           const FPCGExProperty* Prop = MyRows[RowIdx].Overrides[Col].GetProperty();
- *           // Use Prop->Value...
+ *   // At runtime, read a row against the resolved schema by name and type, never by position alone
+ *   // (writers cast a value to its column's type unchecked):
+ *   TArray<FPCGExPropertyResolved> Columns;
+ *   MySchema.Resolve(Columns);
+ *   for (int Col = 0; Col < Columns.Num(); ++Col) {
+ *       const UScriptStruct* Type = Columns[Col].GetEffectiveProperty().GetScriptStruct();
+ *       if (const FInstancedStruct* Slot = MyRows[RowIdx].FindEnabledSlot(Columns[Col].Source->Name, Type, Col)) {
+ *           const FPCGExProperty* Prop = Slot->GetPtr<FPCGExProperty>();
+ *           // Use Prop...
  *       }
  *   }
  *
@@ -371,11 +376,12 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	 * Sync overrides to match schema - ensures parallel array structure.
 	 *
 	 * This is the core mechanism that keeps overrides aligned with their schema.
-	 * In the editor, it uses HeaderId for stable matching:
-	 * - Existing overrides matched by HeaderId preserve their bEnabled state
+	 * In the editor, each existing override is matched to the property it stands for: on HeaderId, or on the name
+	 * where it has no id or several share it. No override is handed to two properties.
+	 * - A matched override preserves its bEnabled state
 	 * - Same-type matches also preserve the override value (one standing on its picked choice follows that choice)
 	 * - Type changes preserve bEnabled but reset the value to schema default; a choices patch crosses the retype
-	 * - New properties (no HeaderId match) are added as disabled
+	 * - New properties (no match) are added as disabled
 	 *
 	 * At runtime (no editor data), overrides are rebuilt from schema defaults.
 	 *
@@ -476,8 +482,9 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	 * First ENABLED slot named PropertyName whose value derives from RequiredType. Scans the whole
 	 * array rather than stopping at the first name match, so a duplicate-named slot of the wrong type
 	 * never shadows a correct one behind it (GetOverride stops at the first). Null RequiredType = miss.
+	 * IndexHint is tried first: the index of the property in the schema these rows are kept parallel to.
 	 */
-	const FInstancedStruct* FindEnabledSlot(FName PropertyName, const UScriptStruct* RequiredType) const;
+	const FInstancedStruct* FindEnabledSlot(FName PropertyName, const UScriptStruct* RequiredType, int32 IndexHint = INDEX_NONE) const;
 
 	/**
 	 * Get typed property from enabled overrides by name.
@@ -929,6 +936,27 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 * @return True if ImportOverrides changed.
 	 */
 	bool ReconcileImportOverridesAtLoad();
+
+#if WITH_EDITOR
+	/**
+	 * Load-time heal of the value rows held against this collection; call it after ReconcileImportOverridesAtLoad.
+	 * A row sitting entry for entry on the resolved schema is synced in place; any other is rebuilt (SyncToSchema),
+	 * unless an import slot is empty anywhere in the tree: a rebuild would drop that asset's values.
+	 * Editor-only: SyncToSchema keeps no value outside the editor.
+	 *
+	 * @return True if any row changed.
+	 */
+	template <typename TRow>
+	bool SyncRowsAtLoad(TArray<TRow>& Rows) const
+	{
+		static_assert(TIsDerivedFrom<TRow, FPCGExPropertyOverrides>::Value,
+		              "SyncRowsAtLoad: TRow must derive from FPCGExPropertyOverrides.");
+		return SyncRowsAtLoad(MakeStridedViewOfBase<FPCGExPropertyOverrides, TRow>(MakeArrayView(Rows)));
+	}
+
+	/** SyncRowsAtLoad over rows of any layout derived from FPCGExPropertyOverrides. */
+	bool SyncRowsAtLoad(TStridedView<FPCGExPropertyOverrides> Rows) const;
+#endif
 
 	/**
 	 * Reconcile ImportOverrides against the current import tree.

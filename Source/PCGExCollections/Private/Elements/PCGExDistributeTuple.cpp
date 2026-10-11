@@ -89,9 +89,8 @@ void UPCGExDistributeTupleSettings::EDITOR_OnImportedSchemaChanged(UPCGExPropert
 void UPCGExDistributeTupleSettings::PostLoad()
 {
 	// An import can change while this graph is unloaded. Before Super, so the CRC it caches sees the healed rows.
-	// Value rows are synced in place: a full sync here would drop the rows of an import that failed to load.
 	bool bChanged = Composition.ReconcileImportOverridesAtLoad();
-	bChanged |= Composition.SyncRowsInPlace(Values);
+	bChanged |= Composition.SyncRowsAtLoad(Values);
 	if (bChanged)
 	{
 		(void)MarkPackageDirty();
@@ -235,8 +234,7 @@ namespace PCGExDistributeTuple
 {
 	void CompileColumns(FPCGExDistributeTupleContext* Context, const UPCGExDistributeTupleSettings* Settings, const TArray<FPCGExPropertyResolved>& Resolved)
 	{
-		// ColIdx indexes Values[k].Overrides, which the SyncAllSchemas / ReconcileImportOverrides /
-		// ApplyToOverrides pipeline keeps parallel with Resolve() output.
+		// The edit and load syncs keep Values[k].Overrides parallel to Resolved; nothing below relies on it.
 		const int32 NumRows = Settings->Values.Num();
 
 		TSet<FName> WrittenNames;
@@ -292,10 +290,12 @@ namespace PCGExDistributeTuple
 			Column.OutputName = OutputName;
 			Column.EffectiveProperty = &EffectiveProperty;
 			Column.RowSources.SetNumUninitialized(NumRows);
+			// A cell is its row's enabled entry of this column's name and type, never the entry at ColIdx on position
+			// alone: WriteOutputFrom casts a row source to the column's type unchecked.
 			for (int32 RowIdx = 0; RowIdx < NumRows; ++RowIdx)
 			{
-				const FPCGExWeightedPropertyOverrides& Row = Settings->Values[RowIdx];
-				Column.RowSources[RowIdx] = Row.IsOverrideEnabled(ColIdx) ? Row.Overrides[ColIdx].GetProperty() : nullptr;
+				const FInstancedStruct* Cell = Settings->Values[RowIdx].FindEnabledSlot(Entry.Source->Name, EffectiveProperty.GetScriptStruct(), ColIdx);
+				Column.RowSources[RowIdx] = Cell ? Cell->GetPtr<FPCGExProperty>() : nullptr;
 			}
 		}
 	}

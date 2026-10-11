@@ -61,9 +61,8 @@ void UPCGExTupleSettings::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAss
 void UPCGExTupleSettings::PostLoad()
 {
 	// An import can change while this graph is unloaded. Before Super, so the CRC it caches sees the healed rows.
-	// Value rows are synced in place: a full sync here would drop the rows of an import that failed to load.
 	bool bChanged = Composition.ReconcileImportOverridesAtLoad();
-	bChanged |= Composition.SyncRowsInPlace(Values);
+	bChanged |= Composition.SyncRowsAtLoad(Values);
 	if (bChanged)
 	{
 		(void)MarkPackageDirty();
@@ -168,9 +167,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 
 	UPCGParamData* TupleData = Context->ManagedObjects->New<UPCGParamData>();
 
-	// ColCount must match Values[k].Overrides.Num() -- the SyncAllSchemas /
-	// ReconcileImportOverrides / ApplyToOverrides pipeline (PostEditChangeProperty) keeps
-	// them parallel.
+	// The edit and load syncs keep Values[k].Overrides parallel to these columns; nothing below relies on it.
 	TArray<FPCGExPropertyResolved> Resolved;
 	Settings->Composition.Resolve(Resolved);
 	const int32 ColCount = Resolved.Num();
@@ -220,16 +217,15 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 			continue;
 		}
 
+		// A cell is its row's enabled entry of this column's name and type, never the entry at i on position alone:
+		// WriteMetadataValue casts the attribute to the entry's own type unchecked.
+		const FName PropertyName = Resolved[i].Source->Name;
+		const UScriptStruct* PropertyType = Resolved[i].GetEffectiveProperty().GetScriptStruct();
+
 		for (int k = 0; k < Keys.Num(); k++)
 		{
-			const FPCGExPropertyOverrides& Row = Settings->Values[k];
-
-			if (!Row.IsOverrideEnabled(i))
-			{
-				continue;
-			}
-
-			if (const FPCGExProperty* Property = Row.Overrides[i].GetProperty())
+			const FInstancedStruct* Cell = Settings->Values[k].FindEnabledSlot(PropertyName, PropertyType, i);
+			if (const FPCGExProperty* Property = Cell ? Cell->GetPtr<FPCGExProperty>() : nullptr)
 			{
 				Property->WriteMetadataValue(Attribute, Keys[k]);
 				if (Settings->bOutputMap && !Property->GetOutputSidecarPin().IsNone())
