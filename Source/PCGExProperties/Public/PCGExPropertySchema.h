@@ -266,10 +266,11 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bEnabled = false;
 
-	// NoResetToDefault: the default reset on the outer FInstancedStruct would clear the
-	// struct shape entirely. The inner property's per-UPROPERTY reset arrows provide the
-	// right-level "reset to CDO value" gesture; chaining to the outer would also fight the
-	// instance-data restore path (see FPCGExPropertyCollectionInstanceData).
+	//~ NoResetToDefault: the default reset on the outer FInstancedStruct would clear the
+	//~ struct shape entirely. The inner property's per-UPROPERTY reset arrows provide the
+	//~ right-level "reset to CDO value" gesture; chaining to the outer would also fight the
+	//~ instance-data restore path (see FPCGExPropertyCollectionInstanceData).
+	/** Value used in place of the collection default when this override is enabled */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, EditCondition="bEnabled", NoResetToDefault))
 	FInstancedStruct Value;
 
@@ -535,7 +536,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FName Name = NAME_None;
 
-	// NoResetToDefault: same reasoning as FPCGExPropertyOverrideEntry::Value.
+	//~ NoResetToDefault: same reasoning as FPCGExPropertyOverrideEntry::Value.
+	/** Property type and default value */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, ShowOnlyInnerProperties, NoResetToDefault))
 	FInstancedStruct Property;
 
