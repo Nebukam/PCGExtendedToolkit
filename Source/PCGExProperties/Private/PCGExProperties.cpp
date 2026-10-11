@@ -350,13 +350,16 @@ void FPCGExPropertyChoicesPatch::Apply(FPCGExPropertyChoices& InOut) const
 }
 
 #if WITH_EDITORONLY_DATA
-void FPCGExPropertyResolved::GetEffectiveChoices(FPCGExPropertyChoices& Out) const
+void FPCGExPropertyResolved::GetEffectiveChoices(FPCGExPropertyChoices& Out, const FPCGExPropertyChoicesPatch* Excluding) const
 {
 	const FPCGExProperty* Declared = Source ? Source->GetProperty() : nullptr;
 	Out = Declared ? Declared->Choices : FPCGExPropertyChoices();
 	for (int32 i = ChoicePatches.Num() - 1; i >= 0; --i)
 	{
-		ChoicePatches[i]->Apply(Out);
+		if (ChoicePatches[i] != Excluding)
+		{
+			ChoicePatches[i]->Apply(Out);
+		}
 	}
 	PCGExProperties::SanitizeChoices(Out);
 	if (Source)

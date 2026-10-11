@@ -19,6 +19,7 @@
 #include "PropertyHandle.h"
 #include "StructUtilsDelegates.h"
 #include "Details/PCGExEditorCustomizationUtils.h"
+#include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Details/PCGExPropertyLabelRow.h"
 #include "Details/PCGExPropertyLabelRow.h"
 #include "GameFramework/Actor.h"
@@ -38,6 +39,15 @@ namespace PCGExPropertyOverrideEntryCustomization
 		int32 OverrideIndex,
 		bool& OutEnabled,
 		FInstancedStruct& OutValue);
+
+	/** True when the entry lives in a collection's ImportOverrides (not a consumer row such as a Tuple's). */
+	bool IsImportEntry(const TSharedRef<IPropertyHandle>& EntryHandle)
+	{
+		const TSharedPtr<IPropertyHandle> ArrayHandle = EntryHandle->GetParentHandle();
+		const TSharedPtr<IPropertyHandle> OverridesHandle = ArrayHandle.IsValid() ? ArrayHandle->GetParentHandle() : nullptr;
+		return OverridesHandle.IsValid() && OverridesHandle->GetProperty()
+			&& OverridesHandle->GetProperty()->GetFName() == GET_MEMBER_NAME_CHECKED(FPCGExPropertySchemaCollection, ImportOverrides);
+	}
 }
 
 TSharedRef<IPropertyTypeCustomization> FPCGExPropertyOverrideEntryCustomization::MakeInstance()
@@ -690,5 +700,15 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	{
 		FPCGExInlineWidgetRegistry::AddComplexValueRows(
 			ChildBuilder, InnerScope.ToSharedRef(), InnerStruct, IsEnabledAttr, WeakOwner);
+	}
+
+	// An import entry carries this importer's rewrite of the inherited choices; a locked schema never authors it.
+	if (PCGExPropertyOverrideEntryCustomization::IsImportEntry(PropertyHandle)
+		&& !FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(PropertyHandle))
+	{
+		if (const TSharedPtr<IPropertyHandle> PatchHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyOverrideEntry, ChoicesPatch)))
+		{
+			ChildBuilder.AddProperty(PatchHandle.ToSharedRef());
+		}
 	}
 }

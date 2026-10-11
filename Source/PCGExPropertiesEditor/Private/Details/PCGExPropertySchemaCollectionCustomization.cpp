@@ -346,6 +346,12 @@ void FPCGExPropertySchemaCollectionCustomization::EmitImportSections(IDetailChil
 		return;
 	}
 
+	// Values-only hosts edit import values but never the schema: no choice patches on their import rows.
+	if (bValuesOnly)
+	{
+		ImportOverridesHandle->SetInstanceMetaData(FName(TEXT("ReadOnlySchema")), TEXT("true"));
+	}
+
 	// Force the detail panel to build property nodes for the ImportOverrides subtree by
 	// adding the parent as a collapsed row. Without this, per-instance UPROPERTY delta
 	// tracking can fail for writes through the entry handles below -- UE only builds the

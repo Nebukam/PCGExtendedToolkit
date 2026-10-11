@@ -5,9 +5,13 @@
 
 #include "IPropertyTypeCustomization.h"
 #include "Input/Reply.h"
+#include "StructUtils/StructView.h"
 
 class FInstancedStructProvider;
 class IPropertyUtilities;
+struct FPCGExPropertyChoices;
+struct FPCGExPropertyChoicesPatch;
+struct FPropertyChangedEvent;
 
 /**
  * FPCGExPropertyChoices in schema-edit mode. Header strip: [Locked] [N choices] [Add Current Value]; children: one
@@ -18,6 +22,9 @@ class FPCGExPropertyChoicesCustomization : public IPropertyTypeCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+
+	/** True when an ancestor handle carries ReadOnlySchema (values-only hosts): no choice authoring of any kind. */
+	static bool IsUnderReadOnlySchema(const TSharedRef<IPropertyHandle>& Handle);
 
 	virtual void CustomizeHeader(
 		TSharedRef<IPropertyHandle> PropertyHandle,
@@ -68,4 +75,53 @@ private:
 	/** The carrier's own "Value" field. */
 	TSharedPtr<IPropertyHandle> CarrierValueHandle;
 	bool bInlineCarrier = false;
+};
+
+/**
+ * FPCGExPropertyChoicesPatch on an import override row: this importer's rewrite of the inherited choices. Header:
+ * [Mode] [Lock] [N effective] [Add Current Value]. Children: the inherited choices (read-only, with Override / Remove /
+ * Restore; hidden under Replace) followed by this patch's own items (hidden under Inherit). Any action on an inherited
+ * choice flips Inherit to Modify. Every committed edit re-mirrors the collection's import rows in place.
+ */
+class FPCGExPropertyChoicesPatchCustomization : public IPropertyTypeCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+
+	virtual void CustomizeHeader(
+		TSharedRef<IPropertyHandle> PropertyHandle,
+		class FDetailWidgetRow& HeaderRow,
+		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+	virtual void CustomizeChildren(
+		TSharedRef<IPropertyHandle> PropertyHandle,
+		class IDetailChildrenBuilder& ChildBuilder,
+		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+private:
+	FPCGExPropertyChoicesPatch* GetPatch() const;
+	/** The import row's own property (its Value), the host every carrier of this patch answers to. */
+	FStructView GetHost() const;
+	/** What this importer inherits: the effective list with this patch left out. */
+	void GetInheritedChoices(FPCGExPropertyChoices& Out) const;
+	FText GetCountText() const;
+
+	FReply OnAddCurrentValue();
+	FReply OnOverrideInherited(FGuid ChoiceId);
+	FReply OnRemoveInherited(FGuid ChoiceId);
+	FReply OnRestoreInherited(FGuid ChoiceId);
+	/** Inherit never applies a rewrite: the first action on the list switches to Modify. */
+	void EnsureModifyMode();
+
+	void OnPatchChanged(const FPropertyChangedEvent& InEvent);
+	void SyncImportRowsInPlace();
+	void RequestRebuild();
+
+	TWeakPtr<IPropertyHandle> PatchHandlePtr;
+	TSharedPtr<IPropertyHandle> ModeHandle;
+	TSharedPtr<IPropertyHandle> LockHandle;
+	TSharedPtr<IPropertyHandle> ItemsHandle;
+	TSharedPtr<IPropertyHandle> RemovedIdsHandle;
+	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
+	bool bReadOnly = false;
 };

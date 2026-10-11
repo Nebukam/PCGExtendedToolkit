@@ -186,8 +186,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertyChoicesPatch
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(TitleProperty="{Label}"))
 	TArray<FPCGExPropertyChoice> Items;
 
-	/** Modify only: imported choices to drop, by Id. */
-	UPROPERTY()
+	/** Modify only: imported choices to drop, by Id. Editable so the details tree builds its node; the patch row owns the UI. */
+	UPROPERTY(EditAnywhere, Category = Settings)
 	TArray<FGuid> RemovedIds;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -233,8 +233,11 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	UPROPERTY()
 	FName PropertyName = NAME_None;
 
-	/** Only read on an ImportOverrides entry: this importer's rewrite of the imported property's choices. */
-	UPROPERTY()
+	/**
+	 * Only read on an ImportOverrides entry: this importer's rewrite of the imported property's choices. Editable so
+	 * the details tree builds its node (a bare UPROPERTY gets none); the entry customization decides where it shows.
+	 */
+	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExPropertyChoicesPatch ChoicesPatch;
 #endif
 
@@ -562,8 +565,11 @@ struct PCGEXPROPERTIES_API FPCGExPropertyResolved
 	 */
 	TArray<const FPCGExPropertyChoicesPatch*, TInlineAllocator<2>> ChoicePatches;
 
-	/** The choices this entry's rows mirror: the declaration's list with ChoicePatches applied, deepest first. */
-	void GetEffectiveChoices(FPCGExPropertyChoices& Out) const;
+	/**
+	 * The choices this entry's rows mirror: the declaration's list with ChoicePatches applied, deepest first, carriers
+	 * synced to the declaration. Excluding skips one patch: what an importer INHERITS before its own rewrite.
+	 */
+	void GetEffectiveChoices(FPCGExPropertyChoices& Out, const FPCGExPropertyChoicesPatch* Excluding = nullptr) const;
 #endif
 
 	FPCGExPropertyResolved() = default;

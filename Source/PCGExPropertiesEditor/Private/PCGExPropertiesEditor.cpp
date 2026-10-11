@@ -66,6 +66,10 @@ void FPCGExPropertiesEditorModule::StartupModule()
 		FPCGExPropertyChoice::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyChoiceCustomization::MakeInstance)
 		);
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertyChoicesPatch::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyChoicesPatchCustomization::MakeInstance)
+		);
 
 	// Register FPCGExPropertySchemaCollection customization - handles schema array changes
 	// Used by Tuple (Composition), Collections (CollectionProperties), Valency (DefaultProperties)
