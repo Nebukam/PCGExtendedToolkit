@@ -1060,6 +1060,7 @@ public:
 
 	virtual void PostDuplicate(bool bDuplicateForPIE) override;
 	virtual void PostEditImport() override;
+	virtual void Serialize(FArchive& Ar) override;
 	virtual void PostLoad() override;
 	virtual void BeginDestroy() override;
 
@@ -1444,6 +1445,12 @@ public:
 	/** Versioned fitting/variations schema. PostLoad migrates legacy data to the current version. 0 = pre-opt-in entry variations. */
 	UPROPERTY()
 	int32 FittingSchemaVersion = 0;
+
+#if WITH_EDITORONLY_DATA
+	// Set by Serialize when the package predates FPCGExCollectionsCustomVersion; the schema ints alone cannot
+	// distinguish a legacy asset from a freshly created one (both read 0).
+	bool bLoadedFromPreVersionedPackage = false;
+#endif
 
 	/** Exclude entries whose asset slot is EMPTY from the pickable set. Off (default): empty entries stay valid picks that stage nothing -- weighted "spawn nothing" slots. Governs only empty asset slots, nothing else. */
 	UPROPERTY(EditAnywhere, Category = "Settings|Utils")

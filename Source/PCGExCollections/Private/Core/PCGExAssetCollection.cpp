@@ -3,6 +3,7 @@
 
 #include "Core/PCGExAssetCollection.h"
 #include "Core/PCGExStagingBoundsModifier.h"
+#include "PCGExCollectionsCustomVersion.h"
 
 #include "PCGExLog.h"
 #include "PCGExProperty.h"
@@ -1293,6 +1294,20 @@ namespace PCGExAssetCollectionMigration
 }
 #endif
 
+void UPCGExAssetCollection::Serialize(FArchive& Ar)
+{
+	Ar.UsingCustomVersion(FPCGExCollectionsCustomVersion::GUID);
+
+	Super::Serialize(Ar);
+
+#if WITH_EDITORONLY_DATA
+	if (Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting())
+	{
+		bLoadedFromPreVersionedPackage = Ar.CustomVer(FPCGExCollectionsCustomVersion::GUID) < FPCGExCollectionsCustomVersion::SchemaMigrationsGatedByCustomVersion;
+	}
+#endif
+}
+
 void UPCGExAssetCollection::PostLoad()
 {
 	Super::PostLoad();
@@ -1326,8 +1341,8 @@ void UPCGExAssetCollection::PostLoad()
 #endif
 
 #if WITH_EDITOR
-	// Grammar schema migration. Runs once per collection; subsequent loads no-op.
-	if (GrammarSchemaVersion < PCGExAssetCollectionMigration::CurrentGrammarSchemaVersion)
+	// Grammar schema migration, legacy packages only: a fresh collection also reads schema version 0.
+	if (bLoadedFromPreVersionedPackage && GrammarSchemaVersion < PCGExAssetCollectionMigration::CurrentGrammarSchemaVersion)
 	{
 		int32 DowngradedEntries = 0;
 		int32 DisabledEntries = 0;
@@ -1370,10 +1385,10 @@ void UPCGExAssetCollection::PostLoad()
 		(void)MarkPackageDirty();
 	}
 
-	// Entry variations opt-in migration (v0 -> v1). VariationMode's default flipped from Local
-	// to None; this pass recovers authored intent from the serialized data (see
-	// MigrateEntryVariationsV0ToV1). Runs once per collection; subsequent loads no-op.
-	if (FittingSchemaVersion < PCGExAssetCollectionMigration::CurrentFittingSchemaVersion)
+	// Entry variations opt-in migration (v0 -> v1), legacy packages only. VariationMode's default
+	// flipped from Local to None; this pass recovers authored intent from the serialized data (see
+	// MigrateEntryVariationsV0ToV1).
+	if (bLoadedFromPreVersionedPackage && FittingSchemaVersion < PCGExAssetCollectionMigration::CurrentFittingSchemaVersion)
 	{
 		ForEachEntry([](FPCGExAssetCollectionEntry* Entry, int32 /*Index*/)
 		{
