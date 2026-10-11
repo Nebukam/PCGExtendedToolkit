@@ -22,6 +22,8 @@ struct FPCGExChoicesEditContext
 {
 	/** The property instance the choices answer to (an import row's Value for a patch). */
 	FStructView Host;
+	/** The object the real handle edits: the align lever's host, or the schema asset importers are aligned against. */
+	TWeakObjectPtr<UObject> Owner;
 	/** Patch only: the collection whose import rows the patch lives in. */
 	FPCGExPropertySchemaCollection* Collection = nullptr;
 	/** Patch only: the import entry's property name. */

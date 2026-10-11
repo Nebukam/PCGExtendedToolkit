@@ -12,6 +12,7 @@
 #include "PCGExAssetGrammar.h"
 #include "PCGExCategoryOverrides.h"
 #include "PCGExCollectionGlobals.h"
+#include "PCGExPropertyRowHost.h"
 #include "PCGExPropertySchema.h"
 #include "PCGExSchemaMerging.h"
 #include "Core/PCGExContext.h"
@@ -779,7 +780,7 @@ namespace PCGExAssetCollection
  * All return FPCGExEntryAccessResult with entry + host collection.
  */
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection", meta=(PCGExNodeLibraryDoc="staging/collections/asset-collection-base"))
-class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset, public IPCGExCookDependencyProvider, public IPCGExExternalPackageProducer
+class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset, public IPCGExCookDependencyProvider, public IPCGExExternalPackageProducer, public IPCGExPropertyRowHost
 {
 	mutable FRWLock CacheLock;
 
@@ -999,6 +1000,14 @@ public:
 	 * compatibility arbiter for cross-collection transfers. No Modify/dirty/staging: caller owns them.
 	 */
 	virtual FPCGExAssetCollectionEntry* AddEntryOfType(const UScriptStruct* EntryStruct = nullptr);
+
+#if WITH_EDITOR
+	//~Begin IPCGExPropertyRowHost: entry rows and category rows against CollectionProperties.
+	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor) override;
+	virtual void EDITOR_NotifyRowsAligned() override;
+	//~End IPCGExPropertyRowHost
+#endif
 
 	/** ForEach iteration (const) */
 	using FForEachConstEntryFunc = TFunctionRef<void(const FPCGExAssetCollectionEntry*, int32)>;

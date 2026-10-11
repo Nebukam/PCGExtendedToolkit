@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "ComponentInstanceDataCache.h"
 #include "PCGExProperty.h"
+#include "PCGExPropertyRowHost.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/Actor.h"
 
@@ -158,12 +159,20 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCollectionInstanceData : public FActorC
  * collection's FInstancedStruct picker automatically.
  */
 UCLASS(ClassGroup = "PCGEx", meta = (BlueprintSpawnableComponent, DisplayName = "PCGEx Property Collection", PCGExNodeLibraryDoc="metadata/keys/property-collection-component"))
-class PCGEXPROPERTIES_API UPCGExPropertyCollectionComponent : public UActorComponent
+class PCGEXPROPERTIES_API UPCGExPropertyCollectionComponent : public UActorComponent, public IPCGExPropertyRowHost
 {
 	GENERATED_BODY()
 
 public:
 	UPCGExPropertyCollectionComponent();
+
+#if WITH_EDITOR
+	//~Begin IPCGExPropertyRowHost: this component's own import overrides against Properties.
+	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor) override;
+	virtual void EDITOR_NotifyRowsAligned() override;
+	//~End IPCGExPropertyRowHost
+#endif
 
 	virtual void OnRegister() override;
 

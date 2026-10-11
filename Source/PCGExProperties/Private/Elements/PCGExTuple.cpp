@@ -20,6 +20,26 @@
 #define PCGEX_NAMESPACE Tuple
 
 #if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExTupleSettings::EDITOR_GetRowSchema() const
+{
+	return &Composition;
+}
+
+void UPCGExTupleSettings::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+{
+	for (FPCGExPropertyOverrides& Row : Values)
+	{
+		Visitor(Row);
+	}
+}
+
+void UPCGExTupleSettings::EDITOR_NotifyRowsAligned()
+{
+	// A value-level edit of Values: dirties the cache and refreshes the node, no schema sync.
+	FPropertyChangedEvent Event(FindFProperty<FProperty>(GetClass(), GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values)), EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
+
 void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::PostEditChangeProperty);

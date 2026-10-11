@@ -37,6 +37,12 @@ void SPCGExPropertyChoicesEditor::Construct(const FArguments& InArgs)
 	{
 		Context.RealPatch = static_cast<const FPCGExPropertyChoicesPatch*>(GetRealData());
 	}
+	if (!Context.Owner.IsValid() && RealHandle.IsValid())
+	{
+		TArray<UObject*> Outers;
+		RealHandle->GetOuterObjects(Outers);
+		Context.Owner = Outers.Num() == 1 ? Outers[0] : nullptr;
+	}
 	RefreshScratchFromReal();
 	Scope = MakeUnique<FPCGExChoicesEditScope>(ScratchMember, Context);
 

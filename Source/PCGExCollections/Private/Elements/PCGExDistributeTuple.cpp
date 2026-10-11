@@ -48,6 +48,25 @@ void FPCGExDistributeTupleContext::RegisterAssetDependencies()
 }
 
 #if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExDistributeTupleSettings::EDITOR_GetRowSchema() const
+{
+	return &Composition;
+}
+
+void UPCGExDistributeTupleSettings::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+{
+	for (FPCGExWeightedPropertyOverrides& Row : Values)
+	{
+		Visitor(Row);
+	}
+}
+
+void UPCGExDistributeTupleSettings::EDITOR_NotifyRowsAligned()
+{
+	FPropertyChangedEvent Event(FindFProperty<FProperty>(GetClass(), GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values)), EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
+
 void UPCGExDistributeTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExDistributeTupleSettings::PostEditChangeProperty);

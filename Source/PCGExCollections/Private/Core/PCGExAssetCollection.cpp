@@ -2035,6 +2035,35 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 
+#if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExAssetCollection::EDITOR_GetRowSchema() const
+{
+	return &CollectionProperties;
+}
+
+void UPCGExAssetCollection::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+{
+	ForEachEntry([&Visitor](FPCGExAssetCollectionEntry* InEntry, int32 /*i*/)
+	{
+		if (InEntry)
+		{
+			Visitor(InEntry->PropertyOverrides);
+		}
+	});
+	for (FPCGExCategoryOverrides& Row : CategoryOverrides)
+	{
+		Visitor(Row.PropertyOverrides);
+	}
+}
+
+void UPCGExAssetCollection::EDITOR_NotifyRowsAligned()
+{
+	// No member: the structural path, which is the one that re-syncs rows, rebuilds the registry and refreshes caches.
+	FPropertyChangedEvent Event(nullptr, EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
+#endif
+
 void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
 {
 	// Remap must happen before the SyncToSchema loop below -- SyncToSchema's HeaderId index

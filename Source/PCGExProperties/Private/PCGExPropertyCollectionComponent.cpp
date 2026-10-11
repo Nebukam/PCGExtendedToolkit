@@ -278,6 +278,26 @@ void UPCGExPropertyCollectionComponent::SyncBEnabledFromOverrideSet()
 	}
 }
 
+#if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExPropertyCollectionComponent::EDITOR_GetRowSchema() const
+{
+	return &Properties;
+}
+
+void UPCGExPropertyCollectionComponent::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+{
+	Visitor(Properties.ImportOverrides);
+}
+
+void UPCGExPropertyCollectionComponent::EDITOR_NotifyRowsAligned()
+{
+	// Not PostEditChangeProperty: the component path re-registers and can re-run construction scripts.
+	(void)MarkPackageDirty();
+	FPropertyChangedEvent Event(nullptr, EPropertyChangeType::ValueSet);
+	FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, Event);
+}
+#endif
+
 void UPCGExPropertyCollectionComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	// Only chain edits whose leaf is FPCGExPropertyOverrideEntry::bEnabled are relevant.
