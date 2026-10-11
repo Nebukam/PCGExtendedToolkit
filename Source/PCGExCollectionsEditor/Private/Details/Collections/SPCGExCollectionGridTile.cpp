@@ -14,6 +14,7 @@
 #include "Core/PCGExAssetCollection.h"
 #include "Details/Collections/PCGExCollectionEditorSlateUtils.h"
 #include "Details/Collections/PCGExCollectionEditorUtils.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SCheckBox.h"
@@ -258,7 +259,7 @@ void SPCGExCollectionGridTile::Construct(const FArguments& InArgs)
 							FPCGExAssetCollectionEntry* Entry = Coll->EDITOR_GetMutableEntry(Idx);
 							if (Entry)
 							{
-								const FName NewCat = FName(*Text.ToString());
+								const FName NewCat = PCGExTypeOps::MakeNameChecked(Text.ToString());
 								if (BatchFlagPtr)
 								{
 									*BatchFlagPtr = true;

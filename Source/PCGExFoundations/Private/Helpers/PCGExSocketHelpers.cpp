@@ -11,6 +11,7 @@
 #include "Details/PCGExSocketOutputDetails.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Helpers/PCGExRandomHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 
 namespace PCGExStaging
 {
@@ -228,7 +229,7 @@ namespace PCGExStaging
 				OutSeed[Index] = PCGExRandomHelpers::ComputeSpatialSeed(WorldTransform.GetLocation());
 
 				PCGEX_OUTPUT_VALUE(SocketName, Index, Socket.SocketName)
-				PCGEX_OUTPUT_VALUE(SocketTag, Index, FName(Socket.Tag))
+				PCGEX_OUTPUT_VALUE(SocketTag, Index, PCGExTypeOps::MakeNameChecked(Socket.Tag))
 				PCGEX_OUTPUT_VALUE(Category, Index, Category)
 				PCGEX_OUTPUT_VALUE(AssetPath, Index, Path)
 

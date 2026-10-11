@@ -13,6 +13,7 @@
 #include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "UObject/Package.h"
 #include "UObject/UnrealType.h"
 
@@ -282,7 +283,7 @@ namespace PCGExCollectionHelpers
 		{
 			const FSoftObjectPath Path = SoftPathAttribute
 				? SoftPathAttribute->GetValueFromItemKey(ItemKey)
-				: FSoftObjectPath(StringPathAttribute->GetValueFromItemKey(ItemKey));
+				: PCGExTypeOps::MakePathChecked(StringPathAttribute->GetValueFromItemKey(ItemKey));
 			if (!Path.IsValid())
 			{
 				continue;

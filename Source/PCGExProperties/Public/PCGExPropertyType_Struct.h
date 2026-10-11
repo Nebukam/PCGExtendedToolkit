@@ -16,7 +16,7 @@ namespace PCGExData
 
 // Intentionally not PCGExInlineValue: requires the AddComplexValueRows fallback path so the
 // editor customization can bypass the redundant FInstancedStruct wrapper row.
-USTRUCT(BlueprintType, DisplayName="Struct")
+USTRUCT(BlueprintType, meta=(PCGExStructuralValue), DisplayName="Struct")
 struct PCGEXPROPERTIES_API FPCGExProperty_Struct : public FPCGExProperty
 {
 	GENERATED_BODY()
@@ -50,6 +50,9 @@ public:
 	}
 
 	virtual FName GetDisplayTypeName() const override;
+
+	/** A choice must hold the schema's inner struct type. */
+	virtual bool IsChoiceCompatible(const FPCGExProperty& Carrier) const override;
 
 	virtual FPCGMetadataAttributeBase* CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const override;
 	virtual void WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const override;

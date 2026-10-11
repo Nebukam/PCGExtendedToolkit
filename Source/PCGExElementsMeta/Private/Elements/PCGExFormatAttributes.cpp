@@ -15,6 +15,7 @@
 #include "Metadata/PCGMetadataAttribute.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFormatAttributesElement"
 #define PCGEX_NAMESPACE FormatAttributes
@@ -435,7 +436,7 @@ namespace PCGExFormatAttributes
 		FName OutputName = TargetName;
 		if (Settings->WriteMode == EPCGExFormatWriteMode::NewAttribute)
 		{
-			OutputName = FName(*(TargetName.ToString() + Settings->NewAttributeSuffix));
+			OutputName = PCGExTypeOps::MakeNameChecked(TargetName.ToString() + Settings->NewAttributeSuffix);
 			if (!PCGExMetaHelpers::IsWritableAttributeName(OutputName))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(

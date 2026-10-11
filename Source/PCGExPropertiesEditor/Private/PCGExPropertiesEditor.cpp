@@ -18,6 +18,7 @@
 #include "Details/PCGExNumericRangeCustomization.h"
 #include "Details/PCGExObjectPropertyOverrideDescriptionCustomization.h"
 #include "Details/PCGExPackedFloatSlotCustomization.h"
+#include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Details/PCGExPropertyCollectionActorDetails.h"
 #include "Details/PCGExPropertyCompiledCustomization.h"
 #include "Details/PCGExPropertyFloatCurveCustomization.h"
@@ -54,6 +55,17 @@ void FPCGExPropertiesEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FPCGExNumericRange::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExNumericRangeCustomization::MakeInstance)
+		);
+
+	// Choices are authored in their popover, which registers its own layouts on its own view: anywhere else
+	// these structs get no row, so nothing edits them behind the commit that keeps rows in line.
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertyChoices::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&PCGExPropertyChoicesUI::MakeHiddenCustomization)
+		);
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertyChoicesPatch::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&PCGExPropertyChoicesUI::MakeHiddenCustomization)
 		);
 
 	// Register FPCGExPropertySchemaCollection customization - handles schema array changes

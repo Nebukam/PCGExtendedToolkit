@@ -24,6 +24,7 @@ PRAGMA_ENABLE_EXPERIMENTAL_WARNINGS // FPCGSplineStruct
 #include "Math/PCGExProjectionDetails.h"
 #include "Math/Geo/PCGExGeo.h"
 #include "Math/OBB/PCGExOBB.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSpatialBake"
 
@@ -204,7 +205,7 @@ namespace PCGExSpatial::Bake
 		{
 			return InSettings.FallbackChannel;
 		}
-		return FName(*Channel);
+		return PCGExTypeOps::MakeNameChecked(Channel);
 	}
 
 	bool TryBake(

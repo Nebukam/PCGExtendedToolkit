@@ -4,6 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExPropertyChoiceHost.h"
+#include "Framework/SlateDelegates.h"
+#include "Layout/Visibility.h"
 #include "Misc/Attribute.h"
 #include "Templates/Function.h"
 #include "Templates/SharedPointer.h"
@@ -86,11 +89,12 @@ public:
 		TSharedRef<FStructOnScope> Scope,
 		UScriptStruct* InnerStruct,
 		TSharedRef<SWidget> NameContent,
-		TAttribute<bool> IsEnabled = TAttribute<bool>(true));
+		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
+		const FPCGExChoiceRowArgs& Choices = FPCGExChoiceRowArgs());
 
 	/**
-	 * Adds all non-metadata properties of InnerStruct as child rows, skipping the internal fields
-	 * PropertyName, HeaderId, and OutputBuffer. Applies IsEnabled to each row.
+	 * Adds every editable property of InnerStruct as a child row, minus the internal OutputBuffer and Choices
+	 * fields. Applies IsEnabled to each row.
 	 * Used for complex (non-PCGExInlineValue) property types shown in override or read-only-schema contexts.
 	 *
 	 * When a Compact factory is registered for InnerStruct (and the type is NOT PCGExInlineValue,
@@ -107,5 +111,42 @@ public:
 		TSharedRef<FStructOnScope> Scope,
 		UScriptStruct* InnerStruct,
 		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
-		const TWeakObjectPtr<UObject>& WeakOwner = nullptr);
+		const TWeakObjectPtr<UObject>& WeakOwner = nullptr,
+		const FPCGExChoiceRowArgs& Choices = FPCGExChoiceRowArgs());
+
+	// --- Choices ---
+	// Every affordance reads the row's FPCGExChoiceRowState, so it follows the lock and the list as they change.
+	// IsEnabled gates the value editor and the choice entries, never the arrow: "Edit Choices..." has to stay
+	// reachable on an import row whose value override is off.
+
+	/**
+	 * The value cell of a one-row editor: the editor with its bound-choice badge, the picker that stands in for it
+	 * while locked, and the quick-pick arrow while unlocked.
+	 */
+	static TSharedRef<SWidget> WrapValueWidgetWithChoices(
+		TSharedRef<SWidget> ValueWidget,
+		const TSharedRef<FPCGExChoiceRowState>& State,
+		const TSharedRef<IPropertyHandle>& NotifyHandle,
+		TAttribute<bool> IsEnabled,
+		const FPCGExChoiceRowArgs& Choices);
+
+	/**
+	 * A standalone "Choices" row for layouts whose value spans several rows: the current choice while locked, a
+	 * quick-pick arrow otherwise. Collapsed while there is nothing to pick and nothing to author.
+	 */
+	static void AddChoicesRow(
+		IDetailChildrenBuilder& ChildBuilder,
+		const TSharedRef<FPCGExChoiceRowState>& State,
+		const TSharedRef<IPropertyHandle>& NotifyHandle,
+		TAttribute<bool> IsEnabled,
+		FOnGetContent EditChoices);
+
+	/** Visibility for a value row the Choices row stands in for: collapsed while State is locked. */
+	static TAttribute<EVisibility> VisibleUnlessLocked(const TSharedRef<FPCGExChoiceRowState>& State);
+
+	/** Value cell widths: wide for a row showing a factory widget or the locked picker, narrow for a default editor. */
+	static constexpr float WideValueMinWidth = 250.0f;
+	static constexpr float WideValueMaxWidth = 3000.0f;
+	static constexpr float NarrowValueMinWidth = 125.0f;
+	static constexpr float NarrowValueMaxWidth = 600.0f;
 };

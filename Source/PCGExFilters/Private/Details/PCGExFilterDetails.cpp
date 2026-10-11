@@ -8,6 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGMetadata.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
+#include "Types/PCGExTypeOpsString.h"
 
 namespace PCGEx
 {
@@ -21,15 +22,22 @@ namespace PCGEx
 			return;
 		}
 
+		// No attribute for a key too long to be a name, nor for one that spells None.
 		if (Action == EPCGExTagsToDataAction::ToData)
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
+				const FName Key = PCGExTypeOps::MakeNameChecked(ValueTag.Key);
+				if (Key.IsNone())
+				{
+					continue;
+				}
+
 				PCGExMetaHelpers::ExecuteWithRightType(ValueTag.Value->GetTypeId(), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
-					PCGExData::Helpers::SetDataValue<T>(Data, FName(ValueTag.Key), TypedValue->Value);
+					PCGExData::Helpers::SetDataValue<T>(Data, Key, TypedValue->Value);
 				});
 			}
 		}
@@ -37,11 +45,17 @@ namespace PCGEx
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
+				const FName Key = PCGExTypeOps::MakeNameChecked(ValueTag.Key);
+				if (Key.IsNone())
+				{
+					continue;
+				}
+
 				PCGExMetaHelpers::ExecuteWithRightType(ValueTag.Value->GetTypeId(), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
-					Data->MutableMetadata()->FindOrCreateAttribute<T>(FName(ValueTag.Key), TypedValue->Value);
+					Data->MutableMetadata()->FindOrCreateAttribute<T>(Key, TypedValue->Value);
 				});
 			}
 		}
