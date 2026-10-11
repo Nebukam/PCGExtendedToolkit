@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExPropertyChoiceHost.h"
 #include "Framework/SlateDelegates.h"
+#include "Layout/Visibility.h"
 #include "Misc/Attribute.h"
-#include "StructUtils/StructView.h"
 #include "Templates/Function.h"
 #include "Templates/SharedPointer.h"
 #include "UObject/WeakObjectPtr.h"
@@ -89,11 +90,11 @@ public:
 		UScriptStruct* InnerStruct,
 		TSharedRef<SWidget> NameContent,
 		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
-		FOnGetContent EditChoices = FOnGetContent());
+		const FPCGExChoiceRowArgs& Choices = FPCGExChoiceRowArgs());
 
 	/**
-	 * Adds all non-metadata properties of InnerStruct as child rows, skipping the internal fields
-	 * PropertyName, HeaderId, and OutputBuffer. Applies IsEnabled to each row.
+	 * Adds every editable property of InnerStruct as a child row, minus the internal OutputBuffer and Choices
+	 * fields. Applies IsEnabled to each row.
 	 * Used for complex (non-PCGExInlineValue) property types shown in override or read-only-schema contexts.
 	 *
 	 * When a Compact factory is registered for InnerStruct (and the type is NOT PCGExInlineValue,
@@ -111,45 +112,41 @@ public:
 		UScriptStruct* InnerStruct,
 		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
 		const TWeakObjectPtr<UObject>& WeakOwner = nullptr,
-		FOnGetContent EditChoices = FOnGetContent());
+		const FPCGExChoiceRowArgs& Choices = FPCGExChoiceRowArgs());
 
 	// --- Choices ---
-	// Host views alias the property struct instance a row edits (its struct-on-scope memory, or the raw data behind
-	// a real handle). Every affordance re-reads it per paint; none caches a pointer into Choices.Items.
-	// EditChoices, when bound, builds the popover that authors the choices (or an import's patch): the arrow then shows
-	// even without choices and its menu leads with "Edit Choices...". Unbound = a consumer row: arrow only with choices.
-
-	/** True when Host carries choices; bOutLocked tells whether its editors are restricted to them. */
-	static bool HasChoices(FConstStructView Host, bool* bOutLocked = nullptr);
-
-	/** True when Host's value is bound to one of its choices (a live pick), as opposed to a custom value. */
-	static bool IsBoundToChoice(FConstStructView Host);
-
-	/** The bound choice's label, empty for a custom value. */
-	static FText GetBoundChoiceLabel(FConstStructView Host);
+	// Every affordance reads the row's FPCGExChoiceRowState, so it follows the lock and the list as they change.
+	// IsEnabled gates the value editor and the choice entries, never the arrow: "Edit Choices..." has to stay
+	// reachable on an import row whose value override is off.
 
 	/**
-	 * Give an inline value widget its choices: locked, the picker stands in for it; unlocked, a quick-pick arrow is
-	 * appended; no choices, ValueWidget comes back untouched. Also hooks NotifyHandle so a free edit forgets the pick.
+	 * The value cell of a one-row editor: the editor with its bound-choice badge, the picker that stands in for it
+	 * while locked, and the quick-pick arrow while unlocked.
 	 */
 	static TSharedRef<SWidget> WrapValueWidgetWithChoices(
 		TSharedRef<SWidget> ValueWidget,
-		FStructView Host,
+		const TSharedRef<FPCGExChoiceRowState>& State,
 		const TSharedRef<IPropertyHandle>& NotifyHandle,
-		FOnGetContent EditChoices = FOnGetContent());
+		TAttribute<bool> IsEnabled,
+		const FPCGExChoiceRowArgs& Choices);
 
 	/**
-	 * A standalone "Choices" row (locked: the current choice; unlocked: a quick pick) for layouts whose value spans
-	 * several rows. No-op without choices unless EditChoices is bound. Does not hook the free-edit unbind: the caller
-	 * hooks its own value rows.
+	 * A standalone "Choices" row for layouts whose value spans several rows: the current choice while locked, a
+	 * quick-pick arrow otherwise. Collapsed while there is nothing to pick and nothing to author.
 	 */
 	static void AddChoicesRow(
 		IDetailChildrenBuilder& ChildBuilder,
-		FStructView Host,
+		const TSharedRef<FPCGExChoiceRowState>& State,
 		const TSharedRef<IPropertyHandle>& NotifyHandle,
-		TAttribute<bool> IsEnabled = TAttribute<bool>(true),
-		FOnGetContent EditChoices = FOnGetContent());
+		TAttribute<bool> IsEnabled,
+		FOnGetContent EditChoices);
 
-	/** After a committed edit through Handle (own or a child), forget Host's pick unless the value still equals it. */
-	static void HookUnbindOnFreeEdit(const TSharedRef<IPropertyHandle>& Handle, FStructView Host);
+	/** Visibility for a value row the Choices row stands in for: collapsed while State is locked. */
+	static TAttribute<EVisibility> VisibleUnlessLocked(const TSharedRef<FPCGExChoiceRowState>& State);
+
+	/** Value cell widths: wide for a row showing a factory widget or the locked picker, narrow for a default editor. */
+	static constexpr float WideValueMinWidth = 250.0f;
+	static constexpr float WideValueMaxWidth = 3000.0f;
+	static constexpr float NarrowValueMinWidth = 125.0f;
+	static constexpr float NarrowValueMaxWidth = 600.0f;
 };

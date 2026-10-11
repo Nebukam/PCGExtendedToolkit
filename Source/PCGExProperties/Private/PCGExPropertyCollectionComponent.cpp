@@ -20,7 +20,7 @@
 namespace PCGExPropertyCollectionComponent
 {
 	template <typename TSchemaArray>
-	static auto FindSchemaByIdentity(TSchemaArray& Schemas, int32 HeaderId, FName Name) -> decltype(&Schemas[0])
+	auto FindSchemaByIdentity(TSchemaArray& Schemas, int32 HeaderId, FName Name) -> decltype(&Schemas[0])
 	{
 		if (HeaderId != 0)
 		{
@@ -69,6 +69,11 @@ void UPCGExPropertyCollectionComponent::OnComponentCreated()
 	for (FPCGExPropertyOverrideEntry& Entry : Properties.ImportOverrides.Overrides)
 	{
 		Entry.bEnabled = false;
+#if WITH_EDITORONLY_DATA
+		// Same for the template's choices patch: it reaches this instance through the chain, and a copy held
+		// here would apply a second time on top of it.
+		Entry.ChoicesPatch.Reset();
+#endif
 	}
 	EnabledOverrides.Empty();
 }
@@ -278,28 +283,56 @@ void UPCGExPropertyCollectionComponent::SyncBEnabledFromOverrideSet()
 	}
 }
 
-#if WITH_EDITOR
+namespace PCGExPropertyCollectionComponent
+{
+	void BuildOverrideChain(const UPCGExPropertyCollectionComponent* Self, TArray<const FPCGExPropertyOverrides*, TInlineAllocator<4>>& OutChain);
+}
+
 const FPCGExPropertySchemaCollection* UPCGExPropertyCollectionComponent::EDITOR_GetRowSchema() const
 {
 	return &Properties;
 }
 
-void UPCGExPropertyCollectionComponent::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+void UPCGExPropertyCollectionComponent::EDITOR_GetRowSchemaFallbackChain(FLayerChain& OutChain) const
 {
-	Visitor(Properties.ImportOverrides);
+	PCGExPropertyCollectionComponent::BuildOverrideChain(this, OutChain);
 }
 
-void UPCGExPropertyCollectionComponent::EDITOR_NotifyRowsAligned()
+void UPCGExPropertyCollectionComponent::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor)
 {
-	// Not PostEditChangeProperty: the component path re-registers and can re-run construction scripts.
+	// The visitor reads bEnabled, which on an instance is a mirror of EnabledOverrides.
+	SyncBEnabledFromOverrideSet();
+	Visitor(Properties.ImportOverrides, true);
+}
+
+void UPCGExPropertyCollectionComponent::EDITOR_NotifyRowsChanged()
+{
+	// A broadcast, not a PostEditChange on this object: that would re-register it and can re-run construction scripts.
 	(void)MarkPackageDirty();
 	FPropertyChangedEvent Event(nullptr, EPropertyChangeType::ValueSet);
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, Event);
 }
-#endif
+
+void UPCGExPropertyCollectionComponent::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset)
+{
+	FLayerChain Chain;
+	PCGExPropertyCollectionComponent::BuildOverrideChain(this, Chain);
+	if (Properties.SyncImportOverridesInPlace(MakeArrayView(Chain)))
+	{
+		EDITOR_NotifyRowsChanged();
+	}
+}
 
 void UPCGExPropertyCollectionComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
+	// No other hook runs for an edit of this component's own declarations: without it their choices never get an
+	// id, their carriers keep the schema-owned fields of a class or type the declaration left, and a retype in
+	// progress is never finished. A drag commits once, at its end.
+	if (PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
+	{
+		Properties.SyncDeclaredChoices();
+	}
+
 	// Only chain edits whose leaf is FPCGExPropertyOverrideEntry::bEnabled are relevant.
 	const FProperty* Leaf = PropertyChangedEvent.Property;
 	const bool bIsBEnabledEdit =
@@ -358,7 +391,7 @@ namespace PCGExPropertyCollectionComponent
 	// Editor walks SCS templates; cooked walks GetArchetype(). Skips Self so the same routine
 	// works for both "include own overrides at the head" and "exclude own overrides" callers --
 	// the caller decides via the bIncludeOwnOverrides flag on BuildSchema below.
-	static void BuildOverrideChain(
+	void BuildOverrideChain(
 		const UPCGExPropertyCollectionComponent* Self,
 		TArray<const FPCGExPropertyOverrides*, TInlineAllocator<4>>& OutChain)
 	{
@@ -474,10 +507,10 @@ FPCGExPropertyCollectionInstanceData::FPCGExPropertyCollectionInstanceData(const
 		const FPCGExPropertySchema* MatchedArch = PCGExPropertyCollectionComponent::FindSchemaByIdentity(
 			ArchCol.Schemas, InstanceSchema.HeaderId, InstanceSchema.Name);
 
-		// No archetype match: this entry exists only on the instance. Treat as authored and
-		// capture (rare in practice: SyncFromArchetype drops these on OnRegister, but a fresh
-		// instance-created component might briefly carry such state before its first sync).
-		const bool bDiffers = !MatchedArch || (InstanceSchema.Property != MatchedArch->Property);
+		// No archetype match: the entry exists only on the instance (rare: SyncFromArchetype drops these on
+		// OnRegister), so it counts as authored. Otherwise values only: a whole-struct compare reads a template's
+		// choices edit as a divergence, and the replay would put the instance's old list back over the new one.
+		const bool bDiffers = !MatchedArch || !PCGExProperties::ValuesIdentical(InstanceSchema.Property, MatchedArch->Property);
 		if (!bDiffers)
 		{
 			continue;
@@ -527,7 +560,7 @@ FPCGExPropertyCollectionInstanceData::FPCGExPropertyCollectionInstanceData(const
 		// the CDO matches would round-trip to false on reconstruct. Value is captured on diff even
 		// when disabled, so a toggle-off/toggle-on cycle preserves the previously-authored value
 		// (inspector value is iteration scratch space).
-		const bool bValueDiffers = MatchedArch && MatchedArch->Value != InstanceEntry.Value;
+		const bool bValueDiffers = MatchedArch && !PCGExProperties::ValuesIdentical(MatchedArch->Value, InstanceEntry.Value);
 		if (!InstanceEntry.bEnabled && !bValueDiffers)
 		{
 			continue;
@@ -591,8 +624,8 @@ void FPCGExPropertyCollectionInstanceData::ApplyToComponent(UActorComponent* Com
 			continue;
 		}
 
-		Match->Property = Captured.Property;
-		Match->SyncPropertyName(); // Refresh inner PropertyName / HeaderId cache.
+		// The value alone: identity, schema-owned fields and the choice list stay the freshly built component's.
+		PCGExProperties::AdoptValue(Match->Property, Captured.Property);
 	}
 
 	for (const FPCGExCapturedImportOverride& Captured : DivergentImportOverrides)
@@ -632,15 +665,18 @@ void FPCGExPropertyCollectionInstanceData::ApplyToComponent(UActorComponent* Com
 		const UScriptStruct* MatchType = Match->Value.GetScriptStruct();
 		if (CapturedType && CapturedType == MatchType)
 		{
-			Match->Value = Captured.Value;
+			PCGExProperties::AdoptValue(Match->Value, Captured.Value);
 		}
 	}
 
-	// Brings ImportOverrides.Overrides into alignment with the resolved imports tree -- handles
-	// the case where a referenced asset's schema list drifted out-of-band since the BP CDO last
-	// reconciled. Neither OnRegister (Schemas-only) nor the replay loop above (in-place writes)
-	// fixes that drift.
-	Live.ReconcileImportOverrides();
+	// Aligns ImportOverrides with the resolved imports tree when a referenced asset's schema list drifted since the
+	// BP CDO last reconciled: neither OnRegister (Schemas only) nor the replay above (in-place writes) fixes that.
+	// Resolved through the class chain, so the rows mirror the patches its templates carry.
+	TArray<const FPCGExPropertyOverrides*, TInlineAllocator<4>> Chain;
+	PCGExPropertyCollectionComponent::BuildOverrideChain(Typed, Chain);
+	TArray<FPCGExPropertyResolved> Resolved;
+	Live.Resolve(Resolved, MakeArrayView(Chain));
+	Live.ReconcileImportOverrides(Resolved);
 
 	// Restore TSet wholesale and re-derive bEnabled from it. Must run after ReconcileImportOverrides
 	// (which can resize the array) so the bEnabled sync targets the post-reconcile entry set.

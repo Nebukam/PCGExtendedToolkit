@@ -825,7 +825,9 @@ public:
  * - OutputBuffer is TBuffer<int64> (enum values stored as integer)
  * - Output methods extract Value.Value (the int64) before writing
  */
-USTRUCT(BlueprintType, meta=(PCGExInlineValue), DisplayName="Enum")
+// PCGExStructuralValue: the value editor also sets the type's structure (here the enum class), so the row that
+// declares the property keeps that editor when its choices are locked.
+USTRUCT(BlueprintType, meta=(PCGExInlineValue, PCGExStructuralValue), DisplayName="Enum")
 struct PCGEXPROPERTIES_API FPCGExProperty_Enum : public FPCGExProperty
 {
 	GENERATED_BODY()

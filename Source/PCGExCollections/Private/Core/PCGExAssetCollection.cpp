@@ -1386,17 +1386,8 @@ void UPCGExAssetCollection::PostLoad()
 
 	// Heal stale CollectionProperties.ImportOverrides at load time so the customization's
 	// drift path doesn't have to fire mid-layout (which would leave the property tree's
-	// child count stale until a refresh). ConditionalPostLoad each import first -- UE
-	// doesn't guarantee referenced-asset PostLoad ordering, and the reconcile reads each
-	// asset's HeaderIds, which the asset's own PostLoad canonicalizes.
-	for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : CollectionProperties.ImportedSchemas)
-	{
-		if (UPCGExPropertySchemaAsset* Asset = AssetPtr.Get())
-		{
-			Asset->ConditionalPostLoad();
-		}
-	}
-	if (CollectionProperties.ReconcileImportOverrides())
+	// child count stale until a refresh).
+	if (CollectionProperties.ReconcileImportOverridesAtLoad())
 	{
 		(void)MarkPackageDirty();
 	}
@@ -1422,8 +1413,18 @@ void UPCGExAssetCollection::BeginDestroy()
 
 void UPCGExAssetCollection::RebuildPropertyRegistry()
 {
-	TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
-	PCGExProperties::BuildRegistry(Schema, PropertyRegistry);
+	// Straight off the resolved view: an entry is a name and a type, so no property is worth copying for it.
+	TArray<FPCGExPropertyResolved> Resolved;
+	CollectionProperties.Resolve(Resolved);
+
+	PropertyRegistry.Empty(Resolved.Num());
+	for (const FPCGExPropertyResolved& Entry : Resolved)
+	{
+		if (const FPCGExProperty* Property = Entry.GetEffectiveProperty().GetPtr<FPCGExProperty>())
+		{
+			PropertyRegistry.Add(Property->ToRegistryEntry());
+		}
+	}
 }
 
 void UPCGExAssetCollection::RebuildStagingData(bool bRecursive)
@@ -1675,35 +1676,47 @@ void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, PCGEx
 
 void UPCGExAssetCollection::GatherPropertySoftObjectPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
-	// Collection-level defaults, category rows, then every entry's overrides. Shared by the
+	// Collection-level defaults, then every entry's and every category's rows. Shared by the
 	// editor cook-dependency walk and runtime preloading -- every tier that can hold a soft
 	// path must be represented here or packaged builds resolve it to null with no editor symptom.
 	PCGExProperties::GatherSoftObjectPaths(CollectionProperties, OutPaths);
-
-	for (const FPCGExCategoryOverrides& Row : CategoryOverrides)
+	ForEachPropertyRows([&OutPaths](const FPCGExPropertyOverrides& Rows)
 	{
-		PCGExProperties::GatherSoftObjectPaths(Row.PropertyOverrides, OutPaths);
-	}
-
-	ForEachEntry([&OutPaths](const FPCGExAssetCollectionEntry* Entry, int32 /*Idx*/)
-	{
-		PCGExProperties::GatherSoftObjectPaths(Entry->PropertyOverrides, OutPaths);
+		PCGExProperties::GatherSoftObjectPaths(Rows, OutPaths);
 	});
 }
 
 void UPCGExAssetCollection::GatherPropertyOutputDependencies(TSet<FSoftObjectPath>& OutPaths) const
 {
 	PCGExProperties::GatherOutputDependencies(CollectionProperties, OutPaths);
+	ForEachPropertyRows([&OutPaths](const FPCGExPropertyOverrides& Rows)
+	{
+		PCGExProperties::GatherOutputDependencies(Rows, OutPaths);
+	});
+}
 
+void UPCGExAssetCollection::ForEachPropertyRows(TFunctionRef<void(const FPCGExPropertyOverrides& Rows)> Visitor) const
+{
+	ForEachEntry([&Visitor](const FPCGExAssetCollectionEntry* Entry, int32 /*Idx*/)
+	{
+		Visitor(Entry->PropertyOverrides);
+	});
 	for (const FPCGExCategoryOverrides& Row : CategoryOverrides)
 	{
-		PCGExProperties::GatherOutputDependencies(Row.PropertyOverrides, OutPaths);
+		Visitor(Row.PropertyOverrides);
 	}
+}
 
-	ForEachEntry([&OutPaths](const FPCGExAssetCollectionEntry* Entry, int32 /*Idx*/)
+void UPCGExAssetCollection::ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows)> Visitor)
+{
+	ForEachEntry([&Visitor](FPCGExAssetCollectionEntry* Entry, int32 /*Idx*/)
 	{
-		PCGExProperties::GatherOutputDependencies(Entry->PropertyOverrides, OutPaths);
+		Visitor(Entry->PropertyOverrides);
 	});
+	for (FPCGExCategoryOverrides& Row : CategoryOverrides)
+	{
+		Visitor(Row.PropertyOverrides);
+	}
 }
 
 #if WITH_EDITOR
@@ -1847,15 +1860,9 @@ bool UPCGExAssetCollection::SyncPropertySchemaAndRemapEntries()
 	CollectionProperties.SyncAllSchemasAndRemap([this, &bRemapped](TConstArrayView<FPCGExHeaderIdRemap> Remaps)
 	{
 		bRemapped = true;
-
-		for (FPCGExCategoryOverrides& Row : CategoryOverrides)
+		ForEachPropertyRows([&Remaps](FPCGExPropertyOverrides& Rows)
 		{
-			Row.PropertyOverrides.ApplyHeaderIdRemap(Remaps);
-		}
-
-		ForEachEntry([&Remaps](FPCGExAssetCollectionEntry* InEntry, int32 /*i*/)
-		{
-			InEntry->PropertyOverrides.ApplyHeaderIdRemap(Remaps);
+			Rows.ApplyHeaderIdRemap(Remaps);
 		});
 	});
 	return bRemapped;
@@ -1924,11 +1931,11 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	// Default-to-structural is the safe bias; only a positive "leaf is an FPCGExProperty value
 	// field" identification opts out, and array shape changes always force structural anyway.
-	bool bIsValueOnlyLeafEdit = false;
+	bool bIsValueOnlyLeafEdit = bEDITOR_RowValuesOnlyEdit;
 	bool bIsStructuralSchemaChange = false;
 	bool bIsSchemaValueLeafEdit = false;
 
-	if (PropertyChangedEvent.MemberProperty)
+	if (!bEDITOR_RowValuesOnlyEdit && PropertyChangedEvent.MemberProperty)
 	{
 		const FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
 		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties))
@@ -2000,8 +2007,8 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	else if (bIsSchemaValueLeafEdit)
 	{
 		// A schema leaf can be a structural field (AllowedClass, Range, bounds) that entry and category rows
-		// mirror, so they re-sync. SyncToSchema takes its fast path: no reallocation, override values kept.
-		// Registry prototypes heal separately via the cache invalidation below.
+		// mirror, so they re-sync. SyncToSchema takes its fast path: no reallocation, and a value is only
+		// rewritten to follow the choice it stands on. Registry prototypes heal via the cache invalidation below.
 		SyncPropertyOverridesToEntries();
 	}
 
@@ -2035,34 +2042,40 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 
-#if WITH_EDITOR
 const FPCGExPropertySchemaCollection* UPCGExAssetCollection::EDITOR_GetRowSchema() const
 {
 	return &CollectionProperties;
 }
 
-void UPCGExAssetCollection::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor)
+void UPCGExAssetCollection::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor)
 {
-	ForEachEntry([&Visitor](FPCGExAssetCollectionEntry* InEntry, int32 /*i*/)
+	Visitor(CollectionProperties.ImportOverrides, true);
+	ForEachPropertyRows([&Visitor](FPCGExPropertyOverrides& Rows)
 	{
-		if (InEntry)
-		{
-			Visitor(InEntry->PropertyOverrides);
-		}
+		Visitor(Rows, false);
 	});
-	for (FPCGExCategoryOverrides& Row : CategoryOverrides)
-	{
-		Visitor(Row.PropertyOverrides);
-	}
 }
 
-void UPCGExAssetCollection::EDITOR_NotifyRowsAligned()
+void UPCGExAssetCollection::EDITOR_NotifyRowsChanged()
 {
-	// No member: the structural path, which is the one that re-syncs rows, rebuilds the registry and refreshes caches.
+	// Through the virtual so subclasses react as to any edit. No member to name: the rows live in several.
+	TGuardValue<bool> ValuesOnly(bEDITOR_RowValuesOnlyEdit, true);
 	FPropertyChangedEvent Event(nullptr, EPropertyChangeType::ValueSet);
 	PostEditChangeProperty(Event);
 }
-#endif
+
+void UPCGExAssetCollection::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset)
+{
+	// The collection-level rows first, and only in place: entries resolve their defaults through them, and
+	// reshaping that layer under a live panel is the schema customization's job (parked buffers).
+	CollectionProperties.SyncImportOverridesInPlace();
+
+	// Then the standard structural path: registry, entry and category SyncToSchema, staging, view refresh.
+	FPropertyChangedEvent Event(
+		FindFProperty<FProperty>(UPCGExAssetCollection::StaticClass(), GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties)),
+		EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
 
 void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
 {
@@ -2088,15 +2101,13 @@ bool UPCGExAssetCollection::SyncPropertyOverridesInPlace()
 		return false;
 	}
 
+	// One cache for every row: a patched property's effective list is built once, not once per entry.
+	FPCGExResolvedChoicesCache ChoicesCache;
 	bool bChanged = false;
-	ForEachEntry([&Resolved, &bChanged](FPCGExAssetCollectionEntry* InEntry, int32 /*i*/)
+	ForEachPropertyRows([&Resolved, &ChoicesCache, &bChanged](FPCGExPropertyOverrides& Rows)
 	{
-		bChanged |= InEntry->PropertyOverrides.SyncInPlace(Resolved);
+		bChanged |= Rows.SyncInPlace(Resolved, &ChoicesCache);
 	});
-	for (FPCGExCategoryOverrides& Row : CategoryOverrides)
-	{
-		bChanged |= Row.PropertyOverrides.SyncInPlace(Resolved);
-	}
 	return bChanged;
 }
 
@@ -2182,8 +2193,9 @@ bool UPCGExAssetCollection::EDITOR_RenameCategoryOverrides(const FName OldCatego
 		{
 			continue;
 		}
+		// Values only: two rows saying the same thing may still differ by a pick or a mirrored choice list.
 		const FInstancedStruct* DestSlot = Dest.GetOverride(SlotName);
-		if (!DestSlot || !DestSlot->Identical(&Slot.Value, PPF_DeepComparison))
+		if (!DestSlot || !PCGExProperties::ValuesIdentical(*DestSlot, Slot.Value))
 		{
 			Dropped.Add(SlotName);
 		}

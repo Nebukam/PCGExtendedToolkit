@@ -612,51 +612,17 @@ void SPCGExCollectionGridView::IncrementalCategoryRefresh()
 	ApplySelectionVisuals();
 }
 
-void SPCGExCollectionGridView::StructuralRefresh(EPCGExStructuralRefreshFlags Flags)
+void SPCGExCollectionGridView::StructuralRefresh()
 {
-	// Don't clear ActiveTiles here -- IncrementalCategoryRefresh snapshots them for tile reuse
-
-	if (EnumHasAnyFlags(Flags, EPCGExStructuralRefreshFlags::ClearSelection))
-	{
-		SelectedIndices.Reset();
-		LastClickedIndex = INDEX_NONE;
-	}
-	else
-	{
-		// Entries may have gone; a surviving index keeps its selection and its panel.
-		const int32 Num = Collection.IsValid() ? Collection->NumEntries() : 0;
-		for (auto It = SelectedIndices.CreateIterator(); It; ++It)
-		{
-			if (*It < 0 || *It >= Num)
-			{
-				It.RemoveCurrent();
-			}
-		}
-		if (LastClickedIndex < 0 || LastClickedIndex >= Num)
-		{
-			LastClickedIndex = INDEX_NONE;
-		}
-	}
-
+	// Don't clear ActiveTiles here -- IncrementalCategoryRefresh snapshots them for tile reuse,
+	// and re-applies the selection highlight to the tiles it keeps.
+	PruneSelection();
 	IncrementalCategoryRefresh();
-	// Reused tiles cache their highlight; without this a cleared or pruned selection leaves ghosts.
-	ApplySelectionVisuals();
 	UpdateDetailForSelection();
-
-	if (EnumHasAnyFlags(Flags, EPCGExStructuralRefreshFlags::ScrollToEnd))
-	{
-		if (GroupScrollBox.IsValid())
-		{
-			GroupScrollBox->ScrollToEnd();
-		}
-	}
 }
 
-void SPCGExCollectionGridView::RefreshGrid()
+void SPCGExCollectionGridView::PruneSelection()
 {
-	RebuildCategoryCache();
-
-	// Prune selection -- remove indices that are no longer valid
 	const int32 Num = Collection.IsValid() ? Collection->NumEntries() : 0;
 	for (auto It = SelectedIndices.CreateIterator(); It; ++It)
 	{
@@ -669,7 +635,12 @@ void SPCGExCollectionGridView::RefreshGrid()
 	{
 		LastClickedIndex = INDEX_NONE;
 	}
+}
 
+void SPCGExCollectionGridView::RefreshGrid()
+{
+	RebuildCategoryCache();
+	PruneSelection();
 	RebuildGroupedLayout();
 	UpdateDetailForSelection();
 }
@@ -1468,6 +1439,21 @@ void SPCGExCollectionGridView::PopulateCategoryTiles(FName Category)
 
 // ── Detail panel management ─────────────────────────────────────────────────
 
+bool SPCGExCollectionGridView::OwnsKeyboardFocus() const
+{
+	if (HasKeyboardFocus() || HasFocusedDescendants())
+	{
+		return true;
+	}
+
+	// A menu is a window of its own: it is ours when the widget that opened it sits in this view.
+	const TSharedPtr<SWidget> MenuHost = FSlateApplication::Get().GetMenuHostWidget();
+	FWidgetPath HostPath;
+	return MenuHost.IsValid()
+		&& FSlateApplication::Get().GeneratePathToWidgetUnchecked(MenuHost.ToSharedRef(), HostPath)
+		&& HostPath.ContainsWidget(this);
+}
+
 void SPCGExCollectionGridView::UpdateDetailForSelection()
 {
 	// Force any focused detail-panel widget through its normal focus-lost path BEFORE
@@ -1481,7 +1467,8 @@ void SPCGExCollectionGridView::UpdateDetailForSelection()
 	//       (e.g. SNumericEntryBox lambda CreateCopy).
 	// Re-focus the grid (not ClearKeyboardFocus) so the previously focused widget commits
 	// any pending edit via OnFocusLost AND OnKeyDown (Delete, Ctrl+D) keeps working after.
-	if (FSlateApplication::IsInitialized())
+	// Only focus this view owns: the refresh also runs for edits made elsewhere, and taking focus closes their menu.
+	if (FSlateApplication::IsInitialized() && OwnsKeyboardFocus())
 	{
 		FSlateApplication::Get().SetKeyboardFocus(SharedThis(this), EFocusCause::Cleared);
 	}

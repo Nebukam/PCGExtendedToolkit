@@ -138,7 +138,7 @@ private:
 	 * time and passing by-value into the lambdas does work for every row type.
 	 *
 	 * The archetype side of the reset (BP-chain walk) is resolved dynamically per paint
-	 * inside ApplyLocalSchemaResetOverride's lambdas -- see TryGetLocalSchemaResetSource --
+	 * inside ApplyLocalSchemaResetOverride's lambdas -- see FindLocalSchemaResetSource --
 	 * so no separate WeakArchetypeComponent is cached here.
 	 */
 	TWeakObjectPtr<class UPCGExPropertyCollectionComponent> WeakLiveComponent;

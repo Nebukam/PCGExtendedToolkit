@@ -11,6 +11,7 @@
 #include "PCGExInlineWidgetRegistry.h"
 #include "PCGExProperty.h"
 #include "PropertyHandle.h"
+#include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Details/PCGExPropertyLabelRow.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -21,17 +22,30 @@ TSharedRef<IPropertyTypeCustomization> FPCGExPropertySchemaCustomization::MakeIn
 
 const FPCGExPropertySchema* FPCGExPropertySchemaCustomization::AccessSchema() const
 {
-	if (!PropertyHandlePtr.IsValid())
+	const FPCGExPropertySchema* First = nullptr;
+	ForEachSchema([&First](FPCGExPropertySchema& Schema)
 	{
-		return nullptr;
-	}
-	TArray<void*> RawData;
-	PropertyHandlePtr.Pin()->AccessRawData(RawData);
-	if (RawData.IsEmpty() || !RawData[0])
+		First = First ? First : &Schema;
+	});
+	return First;
+}
+
+void FPCGExPropertySchemaCustomization::ForEachSchema(const TFunctionRef<void(FPCGExPropertySchema&)> Visitor) const
+{
+	// EnumerateRawData dereferences the handle's property node unchecked.
+	const TSharedPtr<IPropertyHandle> PropertyHandle = PropertyHandlePtr.Pin();
+	if (!PropertyHandle.IsValid() || !PropertyHandle->IsValidHandle())
 	{
-		return nullptr;
+		return;
 	}
-	return static_cast<const FPCGExPropertySchema*>(RawData[0]);
+	PropertyHandle->EnumerateRawData([&Visitor](void* Raw, const int32 /*Index*/, const int32 /*Num*/)
+	{
+		if (Raw)
+		{
+			Visitor(*static_cast<FPCGExPropertySchema*>(Raw));
+		}
+		return true;
+	});
 }
 
 FText FPCGExPropertySchemaCustomization::GetHeaderNameText() const
@@ -53,82 +67,23 @@ FText FPCGExPropertySchemaCustomization::GetHeaderTypeText() const
 
 void FPCGExPropertySchemaCustomization::OnSchemaChanged()
 {
-	if (!PropertyHandlePtr.IsValid())
+	ForEachSchema([](FPCGExPropertySchema& Schema)
 	{
-		return;
-	}
-
-	// Access schema to sync
-	TArray<void*> RawData;
-	PropertyHandlePtr.Pin()->AccessRawData(RawData);
-	if (RawData.IsEmpty() || !RawData[0])
-	{
-		return;
-	}
-
-	FPCGExPropertySchema* Schema = static_cast<FPCGExPropertySchema*>(RawData[0]);
-	if (!Schema)
-	{
-		return;
-	}
-	Schema->SyncPropertyName();
-
-	// A retype rebuilt Property from scratch. The choices come back from the pre-change snapshot inside the
-	// picker's own transaction (the owner was Modify'd for it); hosts synced their rows before this delegate ran,
-	// so their post-edit path is re-run once the stack unwinds.
-	const bool bRetyped = PreChangeSnapshot.IsValid() && Schema->Property.IsValid()
-		&& PreChangeSnapshot.GetScriptStruct() != Schema->Property.GetScriptStruct();
-	if (bRetyped && PCGExProperties::CarryChoicesAcrossRetype(FConstStructView(PreChangeSnapshot), FStructView(Schema->Property)))
-	{
-		if (const TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
-		{
-			const TWeakPtr<IPropertyHandle> WeakInner = PropertyInnerHandlePtr;
-			Utils->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([WeakInner]()
-			{
-				if (const TSharedPtr<IPropertyHandle> Inner = WeakInner.Pin())
-				{
-					Inner->NotifyPostChange(EPropertyChangeType::ValueSet);
-				}
-			}));
-		}
-	}
-	PreChangeSnapshot.Reset();
+		Schema.SyncPropertyName();
+		// The host's own sync has already finished a retype in progress; this covers a host that has none.
+		Schema.ConsumeRetype();
+	});
 
 	// Note: Parent collection will handle ForceRefresh via its own listener
 }
 
 void FPCGExPropertySchemaCustomization::OnPropertyPreChange()
 {
-	PreChangeSnapshot.Reset();
-	const TSharedPtr<IPropertyHandle> Inner = PropertyInnerHandlePtr.Pin();
-	if (!Inner.IsValid())
+	// Raised for a change of the Property node itself (the type picker, a paste), not for an edit under it.
+	ForEachSchema([](FPCGExPropertySchema& Schema)
 	{
-		return;
-	}
-	TArray<void*> RawData;
-	Inner->AccessRawData(RawData);
-	if (RawData.Num() == 1 && RawData[0])
-	{
-		PreChangeSnapshot = *static_cast<const FInstancedStruct*>(RawData[0]);
-	}
-}
-
-bool FPCGExPropertySchemaCustomization::IsReadOnlySchema(TSharedRef<IPropertyHandle> PropertyHandle) const
-{
-	// Walk up the property hierarchy looking for ReadOnlySchema on any ancestor handle.
-	// IPropertyHandle::HasMetaData checks both compile-time UPROPERTY metadata and
-	// runtime instance metadata set via SetInstanceMetaData, so this works for both
-	// the static meta=(ReadOnlySchema) case and the dynamic per-instance locking case.
-	TSharedPtr<IPropertyHandle> ParentHandle = PropertyHandle->GetParentHandle();
-	while (ParentHandle.IsValid())
-	{
-		if (ParentHandle->HasMetaData(TEXT("ReadOnlySchema")))
-		{
-			return true;
-		}
-		ParentHandle = ParentHandle->GetParentHandle();
-	}
-	return false;
+		Schema.RetypedFrom = Schema.Property;
+	});
 }
 
 void FPCGExPropertySchemaCustomization::CustomizeHeader(
@@ -138,7 +93,7 @@ void FPCGExPropertySchemaCustomization::CustomizeHeader(
 {
 	PropertyHandlePtr = PropertyHandle;
 	WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
-	bIsReadOnly = IsReadOnlySchema(PropertyHandle);
+	bIsReadOnly = PCGExPropertyChoicesUI::IsUnderReadOnlySchema(PropertyHandle);
 
 	HeaderRow
 		.NameContent()
@@ -227,21 +182,27 @@ void FPCGExPropertySchemaCustomization::CustomizeChildren(
 		// Create FStructOnScope for the inner struct (FPCGExPropertyCompiled_*)
 		TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);
 
+		// Values-only: the choices are picked from here, never authored. Read through the Property handle, which
+		// follows the struct where the scope above only aliases today's memory.
+		FPCGExChoiceRowArgs Choices;
+		Choices.Host = FPCGExPropertyHostRef(PropertyInnerHandle, EPCGExPropertyHostKind::Instanced);
+
 		if (bShouldInline)
 		{
 			// Same funnel as override rows: Compact factory, choices picker, default widget.
-			if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
+			if (const FProperty* ValueProperty = PCGExProperties::FindValueProperty(InnerStruct))
 			{
 				FPCGExInlineWidgetRegistry::AddCompactValueRow(
 					ChildBuilder, StructOnScope, InnerStruct,
 					SNew(STextBlock)
 					.Text(ValueProperty->GetDisplayNameText())
-					.Font(IDetailLayoutBuilder::GetDetailFont()));
+					.Font(IDetailLayoutBuilder::GetDetailFont()),
+					TAttribute<bool>(true), Choices);
 			}
 		}
 		else
 		{
-			FPCGExInlineWidgetRegistry::AddComplexValueRows(ChildBuilder, StructOnScope, InnerStruct);
+			FPCGExInlineWidgetRegistry::AddComplexValueRows(ChildBuilder, StructOnScope, InnerStruct, TAttribute<bool>(true), nullptr, Choices);
 		}
 	}
 	else
@@ -257,7 +218,6 @@ void FPCGExPropertySchemaCustomization::CustomizeChildren(
 
 		if (PropertyInnerHandle.IsValid())
 		{
-			PropertyInnerHandlePtr = PropertyInnerHandle;
 			PropertyInnerHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnPropertyPreChange));
 			PropertyInnerHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
 			PropertyInnerHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));

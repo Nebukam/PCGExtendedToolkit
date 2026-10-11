@@ -3,157 +3,124 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Details/PCGExPropertyChoiceHost.h"
+#include "Framework/SlateDelegates.h"
 #include "IPropertyTypeCustomization.h"
-#include "Input/Reply.h"
-#include "StructUtils/StructView.h"
 
-class FInstancedStructProvider;
-class IPropertyUtilities;
+class FStructOnScope;
+class IDetailsView;
+class UPCGExPropertySchemaAsset;
 struct FPCGExPropertyChoices;
 struct FPCGExPropertyChoicesPatch;
+struct FPCGExPropertyOverrideEntry;
 struct FPCGExPropertySchemaCollection;
-struct FPropertyChangedEvent;
 
 /**
- * What the choices customizations cannot walk to from a scratch copy: the property the choices belong to and, for a
- * patch, where it sits. The popover editor registers one per scratch struct for its lifetime.
+ * One open choices popover: what it edits, the scratch copy its details view shows, and the single way that copy
+ * reaches the real data. The edited data is only ever reached through property handles, checked on every use: the
+ * panel that opened the popover can rebuild under it (undo, a refresh, a host that reseeds its view), and from then
+ * on IsValid() is false and nothing here touches memory again.
+ *
+ * Declaration: the list a property declares. Patch: an importer's rewrite, stored on its import override entry.
  */
-struct FPCGExChoicesEditContext
+class PCGEXPROPERTIESEDITOR_API FPCGExChoicesEditSession : public TSharedFromThis<FPCGExChoicesEditSession>
 {
-	/** The property instance the choices answer to (an import row's Value for a patch). */
-	FStructView Host;
-	/** The object the real handle edits: the align lever's host, or the schema asset importers are aligned against. */
+public:
+	/** ChoicesHandle is the FPCGExPropertyChoices member of the property Host leads to. */
+	static TSharedRef<FPCGExChoicesEditSession> MakeForDeclaration(const TSharedRef<IPropertyHandle>& ChoicesHandle, const FPCGExPropertyHostRef& Host);
+
+	/** EntryHandle is the import override entry; Host leads to its Value. */
+	static TSharedRef<FPCGExChoicesEditSession> MakeForPatch(const TSharedRef<IPropertyHandle>& EntryHandle, const FPCGExPropertyHostRef& Host);
+
+	bool IsPatch() const
+	{
+		return bPatch;
+	}
+
+	bool IsValid() const;
+
+	/** The property the choices answer to; invalid once the session is. */
+	FStructView ResolveHost() const;
+
+	/** The single object edited; null for none or several. */
+	UObject* GetOwner() const
+	{
+		return Owner.Get();
+	}
+
+	/** Root struct shown by the popover's view: FPCGExPropertyChoicesEditTarget or FPCGExPropertyChoicesPatchEditTarget. */
+	TSharedRef<FStructOnScope> GetScratch() const
+	{
+		return Scratch.ToSharedRef();
+	}
+
+	/** The edited copy; null in the other mode. */
+	FPCGExPropertyChoices* GetScratchChoices() const;
+	FPCGExPropertyChoicesPatch* GetScratchPatch() const;
+
+	/** Patch only: what this importer inherits, resolved without its own layer. False when it cannot be resolved. */
+	bool GetInheritedChoices(FPCGExPropertyChoices& Out) const;
+
+	/** Name the edited property resolves under. */
+	FName GetPropertyName() const;
+
+	/** The schema asset declaring the edited property; null when the owner declares it itself and is not one. */
+	const UPCGExPropertySchemaAsset* GetDeclaringAsset() const;
+
+	/**
+	 * Write the scratch to the real data in one transaction, through the same pre / post-change bracket as a typed
+	 * edit, then take back what the host made of it. Nothing happens, and nothing is notified, when the scratch
+	 * already equals the real data. True if something was written.
+	 */
+	bool Commit(const FText& Description);
+
+	/** Commit for an action that reshaped the scratch by hand: the view is told to rebuild either way. */
+	void CommitAction(const FText& Description);
+
+	/** Take the real data into the scratch. True if the scratch changed. */
+	bool PullFromReal();
+
+	/** The scratch no longer matches the rows the view built: rebuild them. */
+	FSimpleMulticastDelegate OnScratchChanged;
+
+private:
+	FPCGExChoicesEditSession() = default;
+
+	/** The one edited instance behind TargetHandle; null when invalid. */
+	void* GetTargetRaw() const;
+	FPCGExPropertySchemaCollection* ResolveCollection() const;
+	bool ScratchEqualsReal() const;
+	void WriteReal(void* Raw) const;
+
+	bool bPatch = false;
+	/** Declaration: the property's Choices. Patch: the import override entry. */
+	TSharedPtr<IPropertyHandle> TargetHandle;
+	FPCGExPropertyHostRef Host;
+	/** Patch only: the FPCGExPropertySchemaCollection whose import layer holds the entry. */
+	TSharedPtr<IPropertyHandle> CollectionHandle;
 	TWeakObjectPtr<UObject> Owner;
-	/** Patch only: the collection whose import rows the patch lives in. */
-	FPCGExPropertySchemaCollection* Collection = nullptr;
-	/** Patch only: the import entry's property name. */
-	FName EntryName = NAME_None;
-	/** Patch only: the real patch, the one the resolve chain points at (the scratch copy is not). */
-	const FPCGExPropertyChoicesPatch* RealPatch = nullptr;
+
+	TSharedPtr<FStructOnScope> Scratch;
+	/** The edited struct inside the scratch root. */
+	void* ScratchMember = nullptr;
+	bool bCommitting = false;
 };
 
-/** RAII registration of a FPCGExChoicesEditContext under the address of the struct being edited. */
-class PCGEXPROPERTIESEDITOR_API FPCGExChoicesEditScope
+namespace PCGExPropertyChoicesUI
 {
-public:
-	FPCGExChoicesEditScope(const void* InKey, const FPCGExChoicesEditContext& InContext);
-	~FPCGExChoicesEditScope();
+	/** True when an ancestor of Handle carries ReadOnlySchema (values-only hosts): nothing under it authors a schema. */
+	PCGEXPROPERTIESEDITOR_API bool IsUnderReadOnlySchema(const TSharedRef<IPropertyHandle>& Handle);
 
-	static const FPCGExChoicesEditContext* Find(const void* Key);
+	/** Popover content authoring the choices the property Host leads to declares. Unbound without a handle. */
+	PCGEXPROPERTIESEDITOR_API FOnGetContent MakeDeclarationEditor(const TSharedPtr<IPropertyHandle>& ChoicesHandle, const FPCGExPropertyHostRef& Host);
 
-private:
-	const void* Key = nullptr;
-};
+	/** Popover content authoring an import override entry's choices patch. Unbound without a handle. */
+	PCGEXPROPERTIESEDITOR_API FOnGetContent MakePatchEditor(const TSharedPtr<IPropertyHandle>& EntryHandle, const FPCGExPropertyHostRef& Host);
 
-/**
- * FPCGExPropertyChoices in schema-edit mode. Header strip: [Locked] [N choices] [Add Current Value]; children: one
- * row per choice (FPCGExPropertyChoiceCustomization), with the engine's element buttons. Collapsed entirely under a
- * ReadOnlySchema ancestor: values-only hosts never author choices.
- */
-class FPCGExPropertyChoicesCustomization : public IPropertyTypeCustomization
-{
-public:
-	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+	/** Register the customizations of the choices structs on View, each bound to Session. For the popover's own view. */
+	void RegisterSessionLayouts(IDetailsView& View, const TSharedRef<FPCGExChoicesEditSession>& Session);
 
-	/** True when an ancestor handle carries ReadOnlySchema (values-only hosts): no choice authoring of any kind. */
-	static bool IsUnderReadOnlySchema(const TSharedRef<IPropertyHandle>& Handle);
-
-	virtual void CustomizeHeader(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class FDetailWidgetRow& HeaderRow,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-	virtual void CustomizeChildren(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class IDetailChildrenBuilder& ChildBuilder,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-private:
-	FText GetCountText() const;
-	FReply OnAddCurrentValue();
-	void OnNumItemsChanged();
-
-	TWeakPtr<IPropertyHandle> ChoicesHandlePtr;
-	TSharedPtr<IPropertyHandle> ItemsHandle;
-	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
-	bool bReadOnly = false;
-};
-
-/**
- * One choice as one row: the Label editor as the name, the carrier's own Value editor as the value (Compact factory,
- * else the default widget). A carrier of a complex type keeps a preview in the header and expands to its editor.
- * A carrier the host type no longer accepts shows why instead of an editor.
- */
-class FPCGExPropertyChoiceCustomization : public IPropertyTypeCustomization
-{
-public:
-	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
-
-	virtual void CustomizeHeader(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class FDetailWidgetRow& HeaderRow,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-	virtual void CustomizeChildren(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class IDetailChildrenBuilder& ChildBuilder,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-private:
-	/** FPCGExPropertyChoice::Value, the carrier FInstancedStruct. */
-	TSharedPtr<IPropertyHandle> CarrierHandle;
-	/** Keeps the carrier's child-structure nodes alive for the row's lifetime. */
-	TSharedPtr<FInstancedStructProvider> CarrierProvider;
-	/** The carrier's own "Value" field. */
-	TSharedPtr<IPropertyHandle> CarrierValueHandle;
-	bool bInlineCarrier = false;
-};
-
-/**
- * FPCGExPropertyChoicesPatch on an import override row: this importer's rewrite of the inherited choices. Header:
- * [Mode] [Lock] [N effective] [Add Current Value]. Children: the inherited choices (read-only, with Override / Remove /
- * Restore; hidden under Replace) followed by this patch's own items (hidden under Inherit). Any action on an inherited
- * choice flips Inherit to Modify. Every committed edit re-mirrors the collection's import rows in place.
- */
-class FPCGExPropertyChoicesPatchCustomization : public IPropertyTypeCustomization
-{
-public:
-	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
-
-	virtual void CustomizeHeader(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class FDetailWidgetRow& HeaderRow,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-	virtual void CustomizeChildren(
-		TSharedRef<IPropertyHandle> PropertyHandle,
-		class IDetailChildrenBuilder& ChildBuilder,
-		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
-private:
-	FPCGExPropertyChoicesPatch* GetPatch() const;
-	/** The import row's own property (its Value), the host every carrier of this patch answers to. */
-	FStructView GetHost() const;
-	/** What this importer inherits: the effective list with this patch left out. */
-	void GetInheritedChoices(FPCGExPropertyChoices& Out) const;
-	FText GetCountText() const;
-
-	FReply OnAddCurrentValue();
-	FReply OnOverrideInherited(FGuid ChoiceId);
-	FReply OnRemoveInherited(FGuid ChoiceId);
-	FReply OnRestoreInherited(FGuid ChoiceId);
-	/** Inherit never applies a rewrite: the first action on the list switches to Modify. */
-	void EnsureModifyMode();
-
-	void OnPatchChanged(const FPropertyChangedEvent& InEvent);
-	void SyncImportRowsInPlace();
-	void RequestRebuild();
-
-	TWeakPtr<IPropertyHandle> PatchHandlePtr;
-	TSharedPtr<IPropertyHandle> ModeHandle;
-	TSharedPtr<IPropertyHandle> LockHandle;
-	TSharedPtr<IPropertyHandle> ItemsHandle;
-	TSharedPtr<IPropertyHandle> RemovedIdsHandle;
-	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
-	bool bReadOnly = false;
-};
+	/** What the choices structs get in every other view: no row. They are authored in the popover only. */
+	TSharedRef<IPropertyTypeCustomization> MakeHiddenCustomization();
+}

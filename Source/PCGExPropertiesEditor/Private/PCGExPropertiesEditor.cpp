@@ -57,18 +57,15 @@ void FPCGExPropertiesEditorModule::StartupModule()
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExNumericRangeCustomization::MakeInstance)
 		);
 
-	// Choices: the authoring strip on schema-edit rows, and one row per choice.
+	// Choices are authored in their popover, which registers its own layouts on its own view: anywhere else
+	// these structs get no row, so nothing edits them behind the commit that keeps rows in line.
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FPCGExPropertyChoices::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyChoicesCustomization::MakeInstance)
-		);
-	PropertyModule.RegisterCustomPropertyTypeLayout(
-		FPCGExPropertyChoice::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyChoiceCustomization::MakeInstance)
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&PCGExPropertyChoicesUI::MakeHiddenCustomization)
 		);
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FPCGExPropertyChoicesPatch::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyChoicesPatchCustomization::MakeInstance)
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&PCGExPropertyChoicesUI::MakeHiddenCustomization)
 		);
 
 	// Register FPCGExPropertySchemaCollection customization - handles schema array changes

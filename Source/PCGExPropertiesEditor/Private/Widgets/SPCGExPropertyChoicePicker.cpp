@@ -4,13 +4,14 @@
 #include "Widgets/SPCGExPropertyChoicePicker.h"
 
 #include "DetailLayoutBuilder.h"
+#include "Details/PCGExPropertyChoiceHost.h"
+#include "Details/PCGExRawPropertyEdit.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Commands/UIAction.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Textures/SlateIcon.h"
 #include "PCGExProperty.h"
 #include "PropertyHandle.h"
-#include "ScopedTransaction.h"
 #include "Styling/AppStyle.h"
 #include "Styling/StyleColors.h"
 #include "Widgets/Input/SComboButton.h"
@@ -20,24 +21,12 @@
 
 #define LOCTEXT_NAMESPACE "SPCGExPropertyChoicePicker"
 
-namespace PCGExPropertyChoicePicker
+void SPCGExPropertyChoicePicker::Construct(const FArguments& InArgs, const TSharedRef<FPCGExChoiceRowState>& InState, const TSharedRef<IPropertyHandle>& InNotifyHandle)
 {
-	FText LabelOf(const FPCGExPropertyChoice& Choice)
-	{
-		return Choice.Label.IsNone() ? LOCTEXT("UnnamedChoice", "(unnamed)") : FText::FromName(Choice.Label);
-	}
-
-	FText PreviewOf(const FPCGExPropertyChoice& Choice)
-	{
-		return PCGExProperties::GetValuePreviewText(FConstStructView(Choice.Value));
-	}
-}
-
-void SPCGExPropertyChoicePicker::Construct(const FArguments& InArgs, const FStructView InHost, const TSharedRef<IPropertyHandle>& InNotifyHandle)
-{
-	Host = InHost;
+	State = InState;
 	NotifyHandle = InNotifyHandle;
 	bLocked = InArgs._Locked;
+	CanPick = InArgs._CanPick;
 	OnGetEditContent = InArgs._OnGetEditContent;
 
 	TSharedRef<SWidget> ButtonContent = SNullWidget::NullWidget;
@@ -84,65 +73,42 @@ void SPCGExPropertyChoicePicker::Construct(const FArguments& InArgs, const FStru
 	];
 }
 
-const FPCGExProperty* SPCGExPropertyChoicePicker::GetHost() const
-{
-	return Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
-}
-
-int32 SPCGExPropertyChoicePicker::GetSelectedIndex() const
-{
-	const FPCGExProperty* Property = GetHost();
-	return Property ? PCGExProperties::ResolveSelectedChoice(FConstStructView(Host), Property->Choices) : INDEX_NONE;
-}
-
 FText SPCGExPropertyChoicePicker::GetSelectionLabel() const
 {
-	const FPCGExProperty* Property = GetHost();
-	const int32 Selected = GetSelectedIndex();
-	if (!Property || Selected == INDEX_NONE)
-	{
-		return LOCTEXT("CustomValue", "Custom");
-	}
-	return PCGExPropertyChoicePicker::LabelOf(Property->Choices.Items[Selected]);
+	const FPCGExChoiceRowState::FSnapshot& Snapshot = State->Get();
+	return Snapshot.Selected == INDEX_NONE ? LOCTEXT("CustomValue", "Custom") : Snapshot.SelectedLabel;
 }
 
 FText SPCGExPropertyChoicePicker::GetSelectionPreview() const
 {
-	return Host.IsValid() ? PCGExProperties::GetValuePreviewText(FConstStructView(Host)) : FText::GetEmpty();
-}
-
-int32 SPCGExPropertyChoicePicker::GetBoundIndex() const
-{
-	const FPCGExProperty* Property = GetHost();
-	const int32 Chosen = Property ? PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId) : INDEX_NONE;
-	return Chosen != INDEX_NONE && PCGExProperties::IsChoiceCompatible(FConstStructView(Host), Property->Choices.Items[Chosen]) ? Chosen : INDEX_NONE;
+	return State->Get().ValuePreview;
 }
 
 FSlateColor SPCGExPropertyChoicePicker::GetSelectionColor() const
 {
 	// Explicit, not UseForeground: the button's foreground carries the arrow's accent and must not bleed into the label.
-	return GetSelectedIndex() == INDEX_NONE ? FStyleColors::Warning : FStyleColors::Foreground;
+	return State->Get().Selected == INDEX_NONE ? FStyleColors::Warning : FStyleColors::Foreground;
 }
 
 FSlateColor SPCGExPropertyChoicePicker::GetArrowColor() const
 {
-	return GetBoundIndex() != INDEX_NONE ? FStyleColors::Primary : FSlateColor::UseStyle();
+	return State->Get().bBound ? FStyleColors::Primary : FSlateColor::UseStyle();
 }
 
 FText SPCGExPropertyChoicePicker::GetSelectionToolTip() const
 {
+	const FPCGExChoiceRowState::FSnapshot& Snapshot = State->Get();
 	if (!bLocked)
 	{
-		const int32 Bound = GetBoundIndex();
-		if (Bound != INDEX_NONE)
+		if (Snapshot.bBound)
 		{
 			return FText::Format(
 				LOCTEXT("BoundToolTip", "Bound to '{0}': the value follows this choice and detaches when edited."),
-				PCGExPropertyChoicePicker::LabelOf(GetHost()->Choices.Items[Bound]));
+				Snapshot.SelectedLabel);
 		}
 		return LOCTEXT("CustomToolTipUnlocked", "Custom value. Pick a choice to bind the value to it.");
 	}
-	return GetSelectedIndex() == INDEX_NONE
+	return Snapshot.Selected == INDEX_NONE
 		? LOCTEXT("CustomToolTip", "This value is not one of the choices. Pick one to align it; the value is kept as is until then.")
 		: LOCTEXT("LockedToolTip", "This property is restricted to its choices.");
 }
@@ -151,7 +117,9 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 {
 	FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection*/ true, nullptr);
 
-	const FPCGExProperty* Property = GetHost();
+	// Read for the menu's build only: entries keep ids and texts, never a pointer into the list.
+	const FStructView Host = State->GetHost().Resolve();
+	const FPCGExProperty* Property = Host.GetPtr<FPCGExProperty>();
 	const bool bHasChoices = Property && !Property->Choices.Items.IsEmpty();
 
 	if (OnGetEditContent.IsBound())
@@ -178,16 +146,18 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 		return MenuBuilder.MakeWidget();
 	}
 
-	const int32 Selected = GetSelectedIndex();
+	const int32 Selected = PCGExProperties::ResolveSelectedChoice(Host, Property->Choices);
+	const TAttribute<bool> CanPickNow = CanPick;
 	for (int32 i = 0; i < Property->Choices.Items.Num(); ++i)
 	{
 		const FPCGExPropertyChoice& Choice = Property->Choices.Items[i];
-		const bool bCompatible = PCGExProperties::IsChoiceCompatible(FConstStructView(Host), Choice);
+		const bool bCompatible = PCGExProperties::IsChoiceCompatible(Host, Choice);
 		const bool bSelected = (i == Selected);
+		const FText Preview = PCGExProperties::GetValuePreviewText(FConstStructView(Choice.Value));
 
 		FUIAction Action(
 			FExecuteAction::CreateSP(this, &SPCGExPropertyChoicePicker::PickChoice, Choice.Id),
-			FCanExecuteAction::CreateLambda([bCompatible]() { return bCompatible; }),
+			FCanExecuteAction::CreateLambda([bCompatible, CanPickNow]() { return bCompatible && CanPickNow.Get(); }),
 			FIsActionChecked::CreateLambda([bSelected]() { return bSelected; }));
 
 		const TSharedRef<SWidget> Row = SNew(SHorizontalBox)
@@ -197,7 +167,7 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 			[
 				SNew(STextBlock)
 				.Font(IDetailLayoutBuilder::GetDetailFont())
-				.Text(PCGExPropertyChoicePicker::LabelOf(Choice))
+				.Text(FPCGExChoiceRowState::LabelOf(Choice))
 			]
 			+ SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -207,7 +177,7 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 			[
 				SNew(STextBlock)
 				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-				.Text(PCGExPropertyChoicePicker::PreviewOf(Choice))
+				.Text(Preview)
 				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
 			];
 
@@ -215,9 +185,7 @@ TSharedRef<SWidget> SPCGExPropertyChoicePicker::BuildMenu()
 			Action,
 			Row,
 			NAME_None,
-			bCompatible
-				? PCGExPropertyChoicePicker::PreviewOf(Choice)
-				: LOCTEXT("IncompatibleChoice", "This choice no longer matches the property's type."),
+			bCompatible ? Preview : LOCTEXT("IncompatibleChoice", "This choice no longer matches the property's type."),
 			EUserInterfaceActionType::Check);
 	}
 
@@ -247,24 +215,33 @@ void SPCGExPropertyChoicePicker::OpenEditor()
 
 void SPCGExPropertyChoicePicker::PickChoice(const FGuid ChoiceId)
 {
-	const FPCGExProperty* Property = GetHost();
-	if (!Property || !NotifyHandle.IsValid())
+	// Re-resolved by Id, here and again inside the edit: the menu may have outlived the list, or the host itself.
+	auto FindChoice = [this, &ChoiceId](FStructView& OutHost) -> const FPCGExPropertyChoice*
 	{
-		return;
-	}
-	// Re-resolved by Id: the list may have changed between the menu's build and the click.
-	const int32 Index = PCGExProperties::FindChoiceById(Property->Choices, ChoiceId);
-	if (Index == INDEX_NONE || !PCGExProperties::IsChoiceCompatible(FConstStructView(Host), Property->Choices.Items[Index]))
+		OutHost = State->GetHost().Resolve();
+		const FPCGExProperty* Property = OutHost.GetPtr<FPCGExProperty>();
+		const int32 Index = Property ? PCGExProperties::FindChoiceById(Property->Choices, ChoiceId) : INDEX_NONE;
+		return Index != INDEX_NONE && PCGExProperties::IsChoiceCompatible(OutHost, Property->Choices.Items[Index])
+			? &Property->Choices.Items[Index]
+			: nullptr;
+	};
+
+	FStructView Host;
+	if (!NotifyHandle.IsValid() || !CanPick.Get() || !FindChoice(Host))
 	{
 		return;
 	}
 
-	// Same bracket a typed edit produces: owner dirty hooks and refreshes ride NotifyPostChange.
-	FScopedTransaction Transaction(LOCTEXT("PickChoice", "Pick Choice"));
-	NotifyHandle->NotifyPreChange();
-	PCGExProperties::ApplyChoice(Host, Property->Choices.Items[Index]);
-	NotifyHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
-	NotifyHandle->NotifyFinishedChangingProperties();
+	FPCGExRawPropertyEdit Edit(NotifyHandle.ToSharedRef());
+	Edit.Commit(LOCTEXT("PickChoice", "Pick Choice"), [&FindChoice](void*)
+	{
+		// The pre-change notify ran in between: an owner hook may have moved things.
+		FStructView Target;
+		if (const FPCGExPropertyChoice* Choice = FindChoice(Target))
+		{
+			PCGExProperties::ApplyChoice(Target, *Choice);
+		}
+	});
 }
 
 #undef LOCTEXT_NAMESPACE

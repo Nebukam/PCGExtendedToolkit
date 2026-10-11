@@ -104,6 +104,31 @@ namespace PCGExMeshExportHandler
 		TArray<TMap<uint32, int32>> VariantHashToIndex;
 	};
 
+	/**
+	 * CRC over a property that leaves its choice data out. PropertyComponentHash is persisted and identifies an
+	 * entry across exports: it is a hash of what the actor resolves to, never of what the editor offers for it.
+	 */
+	class FPropertyIdentityCrc final : public FArchiveCrc32
+	{
+	public:
+		FPropertyIdentityCrc()
+		{
+#if WITH_EDITORONLY_DATA
+			ChoicesProperty = FPCGExProperty::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices));
+			PickProperty = FPCGExProperty::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FPCGExProperty, ChosenChoiceId));
+#endif
+		}
+
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override
+		{
+			return InProperty == ChoicesProperty || InProperty == PickProperty || FArchiveCrc32::ShouldSkipProperty(InProperty);
+		}
+
+	private:
+		const FProperty* ChoicesProperty = nullptr;
+		const FProperty* PickProperty = nullptr;
+	};
+
 	// Hash is over the EFFECTIVE extracted schema (BP class chain + PreparePropertyValues), not raw
 	// component state -- a raw-state hash would collapse actors that resolve to different values.
 	const FActorPropertySchemaCache& GetOrComputeActorPropertySchema(AActor* Actor, TMap<AActor*, FActorPropertySchemaCache>& Cache)
@@ -125,7 +150,7 @@ namespace PCGExMeshExportHandler
 			return Entry;
 		}
 
-		FArchiveCrc32 Crc;
+		FPropertyIdentityCrc Crc;
 		for (const FInstancedStruct& Prop : Entry.Resolved)
 		{
 			const UScriptStruct* ScriptStruct = Prop.GetScriptStruct();

@@ -4,6 +4,7 @@
 #include "PCGExProperties.h"
 #include "PCGExLog.h"
 #include "PCGExProperty.h"
+#include "PCGExPropertyRowMatching.h"
 #include "PCGExPropertySchemaAsset.h"
 #include "PCGExPropertyTypes.h"
 #include "Data/PCGExDataHelpers.h"
@@ -203,6 +204,23 @@ void FPCGExPropertyOverrideEntry::SeedOuterIdentityFromInner()
 		HeaderId = Prop->HeaderId;
 	}
 }
+
+bool FPCGExPropertyOverrideEntry::SetChoicesPatch(const FPCGExPropertyChoicesPatch& Patch)
+{
+	const FPCGExPropertyChoicesPatch* Stored = ChoicesPatch.GetPtr();
+	if (Patch.IsEmpty())
+	{
+		ChoicesPatch.Reset();
+		return Stored != nullptr;
+	}
+	// Also what makes Patch safe to be the stored patch itself: InitializeAs frees the storage before it copies.
+	if (Stored && *Stored == Patch)
+	{
+		return false;
+	}
+	ChoicesPatch.InitializeAs(Patch);
+	return true;
+}
 #endif
 
 FName FPCGExPropertyOverrideEntry::GetPropertyName() const
@@ -230,31 +248,139 @@ FPCGExProperty* FPCGExPropertyOverrideEntry::GetPropertyMutable()
 	return Value.GetMutablePtr<FPCGExProperty>();
 }
 
-bool FPCGExPropertyOverrideEntry::SyncStructuralFields(const FInstancedStruct& SchemaValue, const FPCGExPropertyChoices* EffectiveChoices)
-{
-	// The hook casts its argument to its own type unchecked: same script struct, or nothing.
-	FPCGExProperty* Mine = GetPropertyMutable();
-	if (!Mine || Value.GetScriptStruct() != SchemaValue.GetScriptStruct())
-	{
-		return false;
-	}
-
-	const FPCGExProperty& Schema = SchemaValue.Get<FPCGExProperty>();
-	bool bChanged = false;
-
 #if WITH_EDITORONLY_DATA
-	const FPCGExPropertyChoices& Choices = EffectiveChoices ? *EffectiveChoices : Schema.Choices;
-	if (Mine->Choices != Choices)
+namespace PCGExPropertyChoicesSync
+{
+	/** How a host's pick stands against the list the host holds. */
+	enum class EPick : uint8
 	{
-		Mine->Choices = Choices;
-		bChanged = true;
+		None,     // nothing picked
+		Unlisted, // picked a choice the list does not offer: hidden by a patch, removed, or no longer of the host's type
+		OnChoice, // the value still equals the picked choice
+		Diverged, // the picked choice is offered, the value moved away from it
+	};
+
+	/** Whether Host's Value equals Choice's. Choice must be compatible with Host. */
+	bool HoldsValueOf(const FConstStructView Host, const FPCGExPropertyChoice& Choice)
+	{
+		const FProperty* ValueProperty = PCGExProperties::FindValueProperty(Host.GetScriptStruct());
+		return ValueProperty && ValueProperty->Identical_InContainer(static_cast<const void*>(Host.GetMemory()), Choice.Value.GetMemory());
 	}
-	bChanged |= PCGExProperties::ReapplyChosenChoice(Value);
+
+	/** Host's pick against Host's own list. Taken BEFORE that list is replaced, settled after (SettlePick). */
+	EPick SamplePick(const FConstStructView Host)
+	{
+		const FPCGExProperty* Property = Host.GetPtr<FPCGExProperty>();
+		if (!Property || !Property->ChosenChoiceId.IsValid())
+		{
+			return EPick::None;
+		}
+		const int32 Chosen = PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId);
+		if (Chosen == INDEX_NONE || !PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]))
+		{
+			return EPick::Unlisted;
+		}
+		return HoldsValueOf(Host, Property->Choices.Items[Chosen]) ? EPick::OnChoice : EPick::Diverged;
+	}
+
+	/**
+	 * Bring Host's pick in line with the list it now holds. A value that stood on its choice follows it (bFollow);
+	 * any other value is kept, and keeps its pick only when it equals the choice. A pick the list does not offer
+	 * stays dormant: it binds again if the choice returns holding this very value. True if Host changed.
+	 */
+	bool SettlePick(const FStructView Host, const EPick Before, const bool bFollow)
+	{
+		FPCGExProperty* Property = Host.GetPtr<FPCGExProperty>();
+		if (!Property || Before == EPick::None)
+		{
+			return false;
+		}
+		if (Before == EPick::Diverged)
+		{
+			Property->ChosenChoiceId.Invalidate();
+			return true;
+		}
+
+		const int32 Chosen = PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId);
+		if (Chosen == INDEX_NONE || !PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]))
+		{
+			return false;
+		}
+
+		// Reference into Host's own Choices: copying into the sibling Value field leaves it put.
+		const FPCGExPropertyChoice& Choice = Property->Choices.Items[Chosen];
+		if (HoldsValueOf(Host, Choice))
+		{
+			return false;
+		}
+		if (Before == EPick::OnChoice && bFollow)
+		{
+			PCGExProperties::FindValueProperty(Host.GetScriptStruct())->CopyCompleteValue_InContainer(Host.GetMemory(), Choice.Value.GetMemory());
+		}
+		else
+		{
+			Property->ChosenChoiceId.Invalidate();
+		}
+		return true;
+	}
+
+	/** Mirror Incoming onto a row. Compared first: most syncs change nothing, and most properties have no choices. */
+	bool Mirror(FPCGExPropertyChoices& Mine, const FPCGExPropertyChoices& Incoming)
+	{
+		if (Mine.Items.IsEmpty() && Incoming.Items.IsEmpty())
+		{
+			if (Mine.bLocked == Incoming.bLocked)
+			{
+				return false;
+			}
+			Mine.bLocked = Incoming.bLocked;
+			return true;
+		}
+		if (Mine == Incoming)
+		{
+			return false;
+		}
+		Mine = Incoming;
+		return true;
+	}
+}
 #endif
 
-	// Not short-circuited: the type's own sync must run even when the base already changed.
-	bChanged |= Mine->SyncStructuralFromSchema(Schema);
-	return bChanged;
+namespace PCGExPropertyRowSync
+{
+	/**
+	 * Bring Row, a value held against Schema, in line with it: the type's own schema-owned fields, then (editor) the
+	 * choice list, EffectiveChoices standing in for Schema's own when given. Nothing unless both are one property type.
+	 */
+	bool MirrorSchemaOwnedFields(const FStructView Row, const FConstStructView Schema, const FPCGExPropertyChoices* EffectiveChoices, const bool bFollowPick)
+	{
+		// The hook casts its argument to its own type unchecked: same script struct, or nothing.
+		FPCGExProperty* Mine = Row.GetPtr<FPCGExProperty>();
+		const FPCGExProperty* Theirs = Schema.GetPtr<FPCGExProperty>();
+		if (!Mine || !Theirs || Row.GetScriptStruct() != Schema.GetScriptStruct())
+		{
+			return false;
+		}
+
+#if WITH_EDITORONLY_DATA
+		// Before either sync below can move the value or the list it is judged against.
+		const PCGExPropertyChoicesSync::EPick Before = PCGExPropertyChoicesSync::SamplePick(Row);
+#endif
+
+		bool bChanged = Mine->SyncStructuralFromSchema(*Theirs);
+
+#if WITH_EDITORONLY_DATA
+		// Not short-circuited: each step must run even when an earlier one already changed the row.
+		bChanged |= PCGExPropertyChoicesSync::Mirror(Mine->Choices, EffectiveChoices ? *EffectiveChoices : Theirs->Choices);
+		bChanged |= PCGExPropertyChoicesSync::SettlePick(Row, Before, bFollowPick);
+#endif
+		return bChanged;
+	}
+}
+
+bool FPCGExPropertyOverrideEntry::SyncStructuralFields(const FInstancedStruct& SchemaValue, const FPCGExPropertyChoices* EffectiveChoices, const bool bFollowPick)
+{
+	return PCGExPropertyRowSync::MirrorSchemaOwnedFields(Value, SchemaValue, EffectiveChoices, bFollowPick);
 }
 
 #pragma endregion
@@ -265,20 +391,19 @@ namespace PCGExPropertyChoicesSync
 {
 	bool NormalizeIds(TArray<FPCGExPropertyChoice>& Items)
 	{
-		TSet<FGuid> Seen;
-		Seen.Reserve(Items.Num());
+		// The last holder keeps a shared Id: the details panel's Duplicate inserts the copy before its source.
 		bool bChanged = false;
-		for (FPCGExPropertyChoice& Choice : Items)
+		for (int32 i = Items.Num() - 1; i >= 0; --i)
 		{
-			bool bDuplicate = false;
-			if (Choice.Id.IsValid())
+			FGuid& Id = Items[i].Id;
+			bool bMint = !Id.IsValid();
+			for (int32 j = i + 1; !bMint && j < Items.Num(); ++j)
 			{
-				Seen.Add(Choice.Id, &bDuplicate);
+				bMint = Items[j].Id == Id;
 			}
-			if (!Choice.Id.IsValid() || bDuplicate)
+			if (bMint)
 			{
-				Choice.Id = FGuid::NewGuid();
-				Seen.Add(Choice.Id);
+				Id = FGuid::NewGuid();
 				bChanged = true;
 			}
 		}
@@ -349,33 +474,204 @@ void FPCGExPropertyChoicesPatch::Apply(FPCGExPropertyChoices& InOut) const
 	}
 }
 
+namespace PCGExProperties
+{
+	const FProperty* FindValueProperty(const UScriptStruct* InStruct)
+	{
+		static const FName ValueFieldName(TEXT("Value"));
+		return InStruct ? InStruct->FindPropertyByName(ValueFieldName) : nullptr;
+	}
+
+	bool ValuesIdentical(const FConstStructView A, const FConstStructView B)
+	{
+		if (A.GetScriptStruct() != B.GetScriptStruct())
+		{
+			return false;
+		}
+		// Two unset properties hold the same nothing.
+		if (!A.IsValid() || !B.IsValid())
+		{
+			return A.IsValid() == B.IsValid();
+		}
+		// A type with no Value field has nothing narrower to compare than itself.
+		const FProperty* ValueProperty = FindValueProperty(A.GetScriptStruct());
+		return ValueProperty
+			? ValueProperty->Identical_InContainer(static_cast<const void*>(A.GetMemory()), B.GetMemory())
+			: A.GetScriptStruct()->CompareScriptStruct(A.GetMemory(), B.GetMemory(), PPF_None);
+	}
+
+	bool CopyValue(const FStructView Dest, const FConstStructView Src)
+	{
+		FPCGExProperty* DestProperty = Dest.GetPtr<FPCGExProperty>();
+		const FPCGExProperty* SrcProperty = Src.GetPtr<FPCGExProperty>();
+		const FProperty* ValueProperty = DestProperty && SrcProperty && Dest.GetScriptStruct() == Src.GetScriptStruct()
+			? FindValueProperty(Dest.GetScriptStruct())
+			: nullptr;
+		if (!ValueProperty)
+		{
+			return false;
+		}
+		ValueProperty->CopyCompleteValue_InContainer(Dest.GetMemory(), Src.GetMemory());
 #if WITH_EDITORONLY_DATA
-void FPCGExPropertyResolved::GetEffectiveChoices(FPCGExPropertyChoices& Out, const FPCGExPropertyChoicesPatch* Excluding) const
+		DestProperty->ChosenChoiceId = SrcProperty->ChosenChoiceId;
+#endif
+		return true;
+	}
+}
+
+#if WITH_EDITORONLY_DATA
+void FPCGExPropertyResolved::GetEffectiveChoices(FPCGExPropertyChoices& Out) const
 {
 	const FPCGExProperty* Declared = Source ? Source->GetProperty() : nullptr;
 	Out = Declared ? Declared->Choices : FPCGExPropertyChoices();
 	for (int32 i = ChoicePatches.Num() - 1; i >= 0; --i)
 	{
-		if (ChoicePatches[i] != Excluding)
-		{
-			ChoicePatches[i]->Apply(Out);
-		}
+		ChoicePatches[i]->Apply(Out);
 	}
-	PCGExProperties::SanitizeChoices(Out);
 	if (Source)
 	{
 		// Patch-added carriers were authored against an importer's copy: every carrier follows the declaration.
-		PCGExProperties::SyncChoiceCarriers(Out, FConstStructView(Source->Property));
+		PCGExProperties::SanitizeChoices(Out.Items);
+		PCGExProperties::SyncChoiceCarriers(Out.Items, FConstStructView(Source->Property));
+	}
+}
+
+const FPCGExPropertyChoices& FPCGExResolvedChoicesCache::Get(const TConstArrayView<FPCGExPropertyResolved> Resolved, const int32 Index)
+{
+	if (Lists.Num() != Resolved.Num())
+	{
+		Lists.Reset();
+		Lists.SetNum(Resolved.Num());
+		Built.Init(false, Resolved.Num());
+	}
+	if (!Built[Index])
+	{
+		Resolved[Index].GetEffectiveChoices(Lists[Index]);
+		Built[Index] = true;
+	}
+	return Lists[Index];
+}
+
+namespace PCGExPropertyChoicesSync
+{
+	/** A row overwritten in place (a paste) keeps its own identity: the incoming Id belongs to the row it came from. */
+	void KeepOverwrittenIds(const TConstArrayView<FPCGExPropertyChoice> Previous, TArray<FPCGExPropertyChoice>& Items)
+	{
+		if (Previous.Num() != Items.Num())
+		{
+			return;
+		}
+		for (int32 i = 0; i < Items.Num(); ++i)
+		{
+			const FGuid& PreviousId = Previous[i].Id;
+			if (!PreviousId.IsValid() || Items[i].Id == PreviousId)
+			{
+				continue;
+			}
+			// Still held by another row: this one was moved, not overwritten.
+			if (!Items.ContainsByPredicate([&PreviousId](const FPCGExPropertyChoice& Item) { return Item.Id == PreviousId; }))
+			{
+				Items[i].Id = PreviousId;
+			}
+		}
+	}
+
+	/** What every committed list goes through: identities settled, then each carrier made a plain value under Host's rules. */
+	void PrepareCommittedItems(const TConstArrayView<FPCGExPropertyChoice> Previous, TArray<FPCGExPropertyChoice>& Items, const FConstStructView Host)
+	{
+		KeepOverwrittenIds(Previous, Items);
+		NormalizeIds(Items);
+		for (FPCGExPropertyChoice& Choice : Items)
+		{
+			// The details panel's Insert adds an element with no carrier, which no row editor can fill.
+			if (!Choice.Value.IsValid())
+			{
+				Choice.Value = PCGExProperties::MakeChoiceCarrier(Host);
+			}
+		}
+		PCGExProperties::SanitizeChoices(Items);
+		PCGExProperties::SyncChoiceCarriers(Items, Host);
+	}
+
+	/** Whether a value of From's type can be carried into To's through From's attribute projection. */
+	bool CanConvertValue(const FPCGExProperty& From, const FPCGExProperty& To)
+	{
+		if (!From.SupportsValueConversion() || !To.SupportsValueConversion())
+		{
+			return false;
+		}
+		// TryWriteValue on a type outside the legacy set reports success and writes nothing.
+		const EPCGMetadataTypes FromType = From.GetOutputType();
+		const EPCGMetadataTypes ToType = To.GetOutputType();
+		if (!PCGExMetaHelpers::IsLegacyScalarType(FromType) || !PCGExMetaHelpers::IsLegacyScalarType(ToType))
+		{
+			return false;
+		}
+		// Only a path makes a path: FSoftObjectPath ensures on any text that is not a full object path.
+		const bool bFromPath = FromType == EPCGMetadataTypes::SoftObjectPath || FromType == EPCGMetadataTypes::SoftClassPath;
+		const bool bToPath = ToType == EPCGMetadataTypes::SoftObjectPath || ToType == EPCGMetadataTypes::SoftClassPath;
+		return bFromPath || !bToPath;
+	}
+
+	/**
+	 * Items re-made for NewHost's type after a retype: ids and labels kept, a value converted where CanConvertValue
+	 * allows, else the new type's default. An item already of NewHost's type is kept as is; one with no carrier is dropped.
+	 */
+	TArray<FPCGExPropertyChoice> ConvertItems(const TConstArrayView<FPCGExPropertyChoice> OldItems, const FConstStructView NewHost)
+	{
+		TArray<FPCGExPropertyChoice> Converted;
+		const FPCGExProperty* NewProperty = NewHost.GetPtr<FPCGExProperty>();
+		if (!NewProperty)
+		{
+			return Converted;
+		}
+
+		Converted.Reserve(OldItems.Num());
+		for (const FPCGExPropertyChoice& OldChoice : OldItems)
+		{
+			const FPCGExProperty* OldCarrier = OldChoice.Value.GetPtr<FPCGExProperty>();
+			if (!OldCarrier)
+			{
+				continue;
+			}
+			if (OldChoice.Value.GetScriptStruct() == NewHost.GetScriptStruct())
+			{
+				Converted.Add(OldChoice);
+				continue;
+			}
+
+			FPCGExPropertyChoice& NewChoice = Converted.AddDefaulted_GetRef();
+			NewChoice.Id = OldChoice.Id;
+			NewChoice.Label = OldChoice.Label;
+			NewChoice.Value.InitializeAs(NewHost.GetScriptStruct());
+			FPCGExProperty& NewCarrier = NewChoice.Value.GetMutable<FPCGExProperty>();
+			NewCarrier.SyncStructuralFromSchema(*NewProperty);
+
+			if (CanConvertValue(*OldCarrier, NewCarrier))
+			{
+				const EPCGMetadataTypes Pivot = OldCarrier->GetOutputType();
+				PCGExTypes::FScopedTypedValue PivotValue(Pivot);
+				if (OldCarrier->TryWriteValue(Pivot, PivotValue.GetRaw()))
+				{
+					NewCarrier.TryReadValue(Pivot, PivotValue.GetRaw());
+				}
+			}
+		}
+		return Converted;
+	}
+
+	/** Whether any item's carrier is of another type than Host. */
+	bool HasForeignCarrier(const TConstArrayView<FPCGExPropertyChoice> Items, const FConstStructView Host)
+	{
+		return Items.ContainsByPredicate([&Host](const FPCGExPropertyChoice& Item)
+		{
+			return Item.Value.IsValid() && Item.Value.GetScriptStruct() != Host.GetScriptStruct();
+		});
 	}
 }
 
 namespace PCGExProperties
 {
-	const FProperty* FindValueProperty(const UScriptStruct* InStruct)
-	{
-		return InStruct ? InStruct->FindPropertyByName(TEXT("Value")) : nullptr;
-	}
-
 	bool IsChoiceCompatible(const FConstStructView Host, const FPCGExPropertyChoice& Choice)
 	{
 		const FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
@@ -392,61 +688,6 @@ namespace PCGExProperties
 			return INDEX_NONE;
 		}
 		return Choices.Items.IndexOfByPredicate([&Id](const FPCGExPropertyChoice& Choice) { return Choice.Id == Id; });
-	}
-
-	int32 ResolveSelectedChoice(const FConstStructView Host, const FPCGExPropertyChoices& Choices)
-	{
-		const FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
-		const int32 Chosen = HostProperty ? FindChoiceById(Choices, HostProperty->ChosenChoiceId) : INDEX_NONE;
-		if (Chosen != INDEX_NONE && IsChoiceCompatible(Host, Choices.Items[Chosen]))
-		{
-			return Chosen;
-		}
-		return FindMatchingChoice(Host, Choices);
-	}
-
-	bool ReapplyChosenChoice(const FStructView Host)
-	{
-		FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
-		const FProperty* ValueProperty = HostProperty ? FindValueProperty(Host.GetScriptStruct()) : nullptr;
-		if (!ValueProperty)
-		{
-			return false;
-		}
-		const int32 Chosen = FindChoiceById(HostProperty->Choices, HostProperty->ChosenChoiceId);
-		if (Chosen == INDEX_NONE)
-		{
-			return false;
-		}
-		// Reference into Host's own Choices: copying into the sibling Value field leaves it put.
-		const FPCGExPropertyChoice& Choice = HostProperty->Choices.Items[Chosen];
-		if (!IsChoiceCompatible(Host, Choice)
-			|| ValueProperty->Identical_InContainer(static_cast<const void*>(Host.GetMemory()), Choice.Value.GetMemory()))
-		{
-			return false;
-		}
-		ValueProperty->CopyCompleteValue_InContainer(Host.GetMemory(), Choice.Value.GetMemory());
-		return true;
-	}
-
-	bool UnbindDivergedChoice(const FStructView Host)
-	{
-		FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
-		if (!HostProperty || !HostProperty->ChosenChoiceId.IsValid())
-		{
-			return false;
-		}
-		const FProperty* ValueProperty = FindValueProperty(Host.GetScriptStruct());
-		const int32 Chosen = FindChoiceById(HostProperty->Choices, HostProperty->ChosenChoiceId);
-		const bool bStillBound = ValueProperty && Chosen != INDEX_NONE
-			&& IsChoiceCompatible(Host, HostProperty->Choices.Items[Chosen])
-			&& ValueProperty->Identical_InContainer(static_cast<const void*>(Host.GetMemory()), HostProperty->Choices.Items[Chosen].Value.GetMemory());
-		if (bStillBound)
-		{
-			return false;
-		}
-		HostProperty->ChosenChoiceId.Invalidate();
-		return true;
 	}
 
 	int32 FindMatchingChoice(const FConstStructView Host, const FPCGExPropertyChoices& Choices)
@@ -468,6 +709,39 @@ namespace PCGExProperties
 		return INDEX_NONE;
 	}
 
+	int32 FindBoundChoice(const FConstStructView Host, const FPCGExPropertyChoices& Choices)
+	{
+		const FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
+		const int32 Chosen = HostProperty ? FindChoiceById(Choices, HostProperty->ChosenChoiceId) : INDEX_NONE;
+		const bool bBound = Chosen != INDEX_NONE
+			&& IsChoiceCompatible(Host, Choices.Items[Chosen])
+			&& PCGExPropertyChoicesSync::HoldsValueOf(Host, Choices.Items[Chosen]);
+		return bBound ? Chosen : INDEX_NONE;
+	}
+
+	bool IsBoundToChoice(const FConstStructView Host)
+	{
+		return PCGExPropertyChoicesSync::SamplePick(Host) == PCGExPropertyChoicesSync::EPick::OnChoice;
+	}
+
+	bool AdoptValue(const FStructView Dest, const FConstStructView Src)
+	{
+		// Src's own list is the one its value was authored against, which is what tells a pick from a leftover.
+		const PCGExPropertyChoicesSync::EPick SrcPick = PCGExPropertyChoicesSync::SamplePick(Src);
+		if (!CopyValue(Dest, Src))
+		{
+			return false;
+		}
+		PCGExPropertyChoicesSync::SettlePick(Dest, SrcPick, true);
+		return true;
+	}
+
+	int32 ResolveSelectedChoice(const FConstStructView Host, const FPCGExPropertyChoices& Choices)
+	{
+		const int32 Bound = FindBoundChoice(Host, Choices);
+		return Bound != INDEX_NONE ? Bound : FindMatchingChoice(Host, Choices);
+	}
+
 	bool ApplyChoice(const FStructView Host, const FPCGExPropertyChoice& Choice)
 	{
 		const FProperty* ValueProperty = Host.IsValid() ? FindValueProperty(Host.GetScriptStruct()) : nullptr;
@@ -480,28 +754,68 @@ namespace PCGExProperties
 		return true;
 	}
 
-	void SanitizeChoices(FPCGExPropertyChoices& InOut)
+	bool UnbindDivergedChoice(const FStructView Host)
 	{
-		for (FPCGExPropertyChoice& Choice : InOut.Items)
+		const PCGExPropertyChoicesSync::EPick Pick = PCGExPropertyChoicesSync::SamplePick(Host);
+		if (Pick == PCGExPropertyChoicesSync::EPick::None || Pick == PCGExPropertyChoicesSync::EPick::OnChoice)
 		{
-			if (FPCGExProperty* Carrier = Choice.Value.GetMutablePtr<FPCGExProperty>())
+			return false;
+		}
+		Host.GetPtr<FPCGExProperty>()->ChosenChoiceId.Invalidate();
+		return true;
+	}
+
+	FInstancedStruct MakeChoiceCarrier(const FConstStructView Host)
+	{
+		FInstancedStruct Carrier;
+		const FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
+		const FProperty* ValueProperty = HostProperty ? FindValueProperty(Host.GetScriptStruct()) : nullptr;
+		if (ValueProperty)
+		{
+			// Built up from a default instance: copying Host would drag its whole choice list into the carrier first.
+			Carrier.InitializeAs(Host.GetScriptStruct());
+			ValueProperty->CopyCompleteValue_InContainer(Carrier.GetMutableMemory(), Host.GetMemory());
+			Carrier.GetMutable<FPCGExProperty>().SyncStructuralFromSchema(*HostProperty);
+		}
+		return Carrier;
+	}
+
+	FPCGExPropertyChoice MakeChoiceFromValue(const FConstStructView Host, const FString& Label)
+	{
+		FPCGExPropertyChoice Choice;
+		Choice.Id = FGuid::NewGuid();
+		Choice.Label = Label;
+		Choice.Value = MakeChoiceCarrier(Host);
+		return Choice;
+	}
+
+	bool SanitizeChoices(const TArrayView<FPCGExPropertyChoice> Items)
+	{
+		bool bChanged = false;
+		for (FPCGExPropertyChoice& Choice : Items)
+		{
+			FPCGExProperty* Carrier = Choice.Value.GetMutablePtr<FPCGExProperty>();
+			if (!Carrier)
+			{
+				continue;
+			}
+			const bool bClean = Carrier->PropertyName.IsNone() && Carrier->HeaderId == 0
+				&& Carrier->Choices.Items.IsEmpty() && !Carrier->Choices.bLocked && !Carrier->ChosenChoiceId.IsValid();
+			if (!bClean)
 			{
 				Carrier->PropertyName = NAME_None;
 				Carrier->HeaderId = 0;
 				Carrier->Choices = FPCGExPropertyChoices();
 				Carrier->ChosenChoiceId.Invalidate();
+				bChanged = true;
 			}
 		}
+		return bChanged;
 	}
 
-	bool SyncChoiceCarriers(FPCGExPropertyChoices& InOut, const FConstStructView Host)
+	bool SyncChoiceCarriers(const TArrayView<FPCGExPropertyChoice> Items, const FConstStructView Host)
 	{
-		return SyncChoiceCarriers(InOut.Items, Host);
-	}
-
-	bool SyncChoiceCarriers(TArray<FPCGExPropertyChoice>& Items, const FConstStructView Host)
-	{
-		const FPCGExProperty* HostProperty = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
+		const FPCGExProperty* HostProperty = Host.GetPtr<FPCGExProperty>();
 		if (!HostProperty)
 		{
 			return false;
@@ -518,85 +832,93 @@ namespace PCGExProperties
 		return bChanged;
 	}
 
-	bool CarryChoicesAcrossRetype(const FConstStructView Old, const FStructView New)
+	bool CommitDeclaredChoices(const FStructView Host, FPCGExPropertyChoices Edited)
 	{
-		const FPCGExProperty* OldProperty = Old.IsValid() ? Old.GetPtr<FPCGExProperty>() : nullptr;
-		FPCGExProperty* NewProperty = New.IsValid() ? New.GetPtr<FPCGExProperty>() : nullptr;
-		if (!OldProperty || !NewProperty || Old.GetScriptStruct() == New.GetScriptStruct())
+		FPCGExProperty* Property = Host.GetPtr<FPCGExProperty>();
+		if (!Property)
 		{
 			return false;
 		}
 
-		// A value crosses types through its attribute projection: TryWriteValue on an unsupported type reports
-		// success and writes nothing, so the pivot is gated on the legacy set both sides must land in.
-		auto IsLegacyType = [](const EPCGMetadataTypes Type)
+		PCGExPropertyChoicesSync::PrepareCommittedItems(Property->Choices.Items, Edited.Items, Host);
+		if (Property->Choices == Edited)
 		{
-			switch (Type)
-			{
-			case EPCGMetadataTypes::Float:
-			case EPCGMetadataTypes::Double:
-			case EPCGMetadataTypes::Integer32:
-			case EPCGMetadataTypes::Integer64:
-			case EPCGMetadataTypes::Vector2:
-			case EPCGMetadataTypes::Vector:
-			case EPCGMetadataTypes::Vector4:
-			case EPCGMetadataTypes::Quaternion:
-			case EPCGMetadataTypes::Transform:
-			case EPCGMetadataTypes::String:
-			case EPCGMetadataTypes::Boolean:
-			case EPCGMetadataTypes::Rotator:
-			case EPCGMetadataTypes::Name:
-			case EPCGMetadataTypes::SoftObjectPath:
-			case EPCGMetadataTypes::SoftClassPath:
-				return true;
-			default:
-				return false;
-			}
-		};
-
-		FPCGExPropertyChoices Carried;
-		Carried.bLocked = OldProperty->Choices.bLocked;
-		for (const FPCGExPropertyChoice& OldChoice : OldProperty->Choices.Items)
-		{
-			const FPCGExProperty* OldCarrier = OldChoice.Value.GetPtr<FPCGExProperty>();
-			if (!OldCarrier)
-			{
-				continue;
-			}
-
-			FPCGExPropertyChoice& NewChoice = Carried.Items.AddDefaulted_GetRef();
-			NewChoice.Id = OldChoice.Id;
-			NewChoice.Label = OldChoice.Label;
-			NewChoice.Value.InitializeAs(New.GetScriptStruct());
-			FPCGExProperty* NewCarrier = NewChoice.Value.GetMutablePtr<FPCGExProperty>();
-			NewCarrier->SyncStructuralFromSchema(*NewProperty);
-
-			const EPCGMetadataTypes Pivot = OldCarrier->GetOutputType();
-			if (IsLegacyType(Pivot) && IsLegacyType(NewCarrier->GetOutputType()))
-			{
-				PCGExTypes::FScopedTypedValue PivotValue(Pivot);
-				if (OldCarrier->TryWriteValue(Pivot, PivotValue.GetRaw()))
-				{
-					NewCarrier->TryReadValue(Pivot, PivotValue.GetRaw());
-				}
-			}
+			return false;
 		}
 
-		NewProperty->Choices = MoveTemp(Carried);
-		NewProperty->ChosenChoiceId = OldProperty->ChosenChoiceId;
-		SanitizeChoices(NewProperty->Choices);
-		return !NewProperty->Choices.Items.IsEmpty();
+		const PCGExPropertyChoicesSync::EPick Before = PCGExPropertyChoicesSync::SamplePick(Host);
+		Property->Choices = MoveTemp(Edited);
+		PCGExPropertyChoicesSync::SettlePick(Host, Before, true);
+		// A declaration's own list is the whole truth: a pick it no longer offers is dead, not dormant.
+		UnbindDivergedChoice(Host);
+		return true;
 	}
 
-	FPCGExPropertyChoice MakeChoiceFromValue(const FConstStructView Host, const FName Label)
+	bool CommitChoicesPatch(FPCGExPropertyOverrideEntry& Row, FPCGExPropertyChoicesPatch Edited)
 	{
-		FPCGExPropertyChoices Single;
-		FPCGExPropertyChoice& Choice = Single.Items.AddDefaulted_GetRef();
-		Choice.Id = FGuid::NewGuid();
-		Choice.Label = Label;
-		Choice.Value = FInstancedStruct(Host);
-		SanitizeChoices(Single);
-		return MoveTemp(Single.Items[0]);
+		const FPCGExPropertyChoicesPatch* Stored = Row.GetChoicesPatch();
+		PCGExPropertyChoicesSync::PrepareCommittedItems(
+			Stored ? TConstArrayView<FPCGExPropertyChoice>(Stored->Items) : TConstArrayView<FPCGExPropertyChoice>(), Edited.Items, Row.Value);
+
+		// A stored patch holds only what its Mode reads, so a later Mode change cannot bring stale edits back.
+		switch (Edited.Mode)
+		{
+		case EPCGExChoicesPatchMode::Inherit:
+			Edited.Items.Reset();
+			Edited.RemovedIds.Reset();
+			break;
+		case EPCGExChoicesPatchMode::Modify:
+			break;
+		case EPCGExChoicesPatchMode::Replace:
+			Edited.RemovedIds.Reset();
+			break;
+		default:
+			checkNoEntry();
+			break;
+		}
+
+		return Row.SetChoicesPatch(Edited);
+	}
+
+	bool CarryChoicesAcrossRetype(const FConstStructView Old, const FStructView New)
+	{
+		const FPCGExProperty* OldProperty = Old.GetPtr<FPCGExProperty>();
+		FPCGExProperty* NewProperty = New.GetPtr<FPCGExProperty>();
+		if (!OldProperty || !NewProperty || Old.GetScriptStruct() == New.GetScriptStruct())
+		{
+			return false;
+		}
+		// A property that arrives with a list of its own was pasted whole: nothing of the old one applies to it.
+		if (OldProperty->Choices.Items.IsEmpty() || !NewProperty->Choices.Items.IsEmpty())
+		{
+			return false;
+		}
+
+		// Both read before New is written: Old's pick crosses only onto a New still holding its type's default.
+		const bool bOldOnChoice = PCGExPropertyChoicesSync::SamplePick(Old) == PCGExPropertyChoicesSync::EPick::OnChoice;
+		FInstancedStruct DefaultOfNew;
+		DefaultOfNew.InitializeAs(New.GetScriptStruct());
+		const bool bNewIsDefault = ValuesIdentical(New, DefaultOfNew);
+
+		FPCGExPropertyChoices Carried;
+		Carried.Items = PCGExPropertyChoicesSync::ConvertItems(OldProperty->Choices.Items, New);
+		if (Carried.Items.IsEmpty())
+		{
+			return false;
+		}
+		// A lock over values that could not cross would trap the property on its type's default.
+		Carried.bLocked = OldProperty->Choices.bLocked && PCGExPropertyChoicesSync::CanConvertValue(*OldProperty, *NewProperty);
+		NewProperty->Choices = MoveTemp(Carried);
+
+		if (bOldOnChoice && bNewIsDefault)
+		{
+			const int32 Chosen = FindChoiceById(NewProperty->Choices, OldProperty->ChosenChoiceId);
+			if (Chosen != INDEX_NONE)
+			{
+				ApplyChoice(New, NewProperty->Choices.Items[Chosen]);
+			}
+		}
+		return true;
 	}
 
 	FText GetValuePreviewText(const FConstStructView Host)
@@ -658,6 +980,19 @@ FPCGExProperty* FPCGExPropertySchema::GetPropertyMutable()
 	return Property.GetMutablePtr<FPCGExProperty>();
 }
 
+#if WITH_EDITORONLY_DATA
+bool FPCGExPropertySchema::ConsumeRetype()
+{
+	if (!RetypedFrom.IsValid())
+	{
+		return false;
+	}
+	const bool bCarried = PCGExProperties::CarryChoicesAcrossRetype(RetypedFrom, Property);
+	RetypedFrom.Reset();
+	return bCarried;
+}
+#endif
+
 #pragma endregion
 
 #pragma region FPCGExPropertySchemaCollection
@@ -665,18 +1000,95 @@ FPCGExProperty* FPCGExPropertySchema::GetPropertyMutable()
 namespace PCGExPropertySchemaResolve
 {
 	using FImportPath = TArray<const UPCGExPropertySchemaAsset*, TInlineAllocator<8>>;
+	using FLayerChain = TArray<const FPCGExPropertyOverrides*, TInlineAllocator<8>>;
+	// Import trees are a handful of assets deep: a linear scan beats a set, and stays off the heap on per-row lookups.
+	using FVisitedAssets = TArray<const UPCGExPropertySchemaAsset*, TInlineAllocator<16>>;
+
+	/**
+	 * Chain plus Asset's own ImportOverrides: what the locals of the assets Asset imports read. An asset's layer joins
+	 * after every importer's (the outermost consumer wins, then each level down) and never applies to its own locals.
+	 */
+	FLayerChain ExtendChain(const TConstArrayView<const FPCGExPropertyOverrides*> Chain, const UPCGExPropertySchemaAsset* Asset)
+	{
+		FLayerChain Extended;
+		Extended.Reserve(Chain.Num() + 1);
+		Extended.Append(Chain.GetData(), Chain.Num());
+		Extended.Add(&Asset->Collection.ImportOverrides);
+		return Extended;
+	}
+
+	/**
+	 * What Chain says about an imported entry, one scan per layer: returns the enabled value override nearest the root,
+	 * and hands PatchSink every choices patch (editor data), which applies whether or not its row's value override is on.
+	 */
+	const FInstancedStruct* ReadLayers(const TConstArrayView<const FPCGExPropertyOverrides*> Chain, const FPCGExPropertySchema& Schema, FPCGExPropertyResolved* PatchSink = nullptr)
+	{
+#if WITH_EDITORONLY_DATA
+		const bool bWantsPatches = PatchSink != nullptr;
+#else
+		const bool bWantsPatches = false;
+#endif
+
+		const FInstancedStruct* Override = nullptr;
+		for (const FPCGExPropertyOverrides* Layer : Chain)
+		{
+			if (!Layer)
+			{
+				continue;
+			}
+
+			bool bValueRead = Override != nullptr;
+			bool bPatchRead = !bWantsPatches;
+			for (const FPCGExPropertyOverrideEntry& Row : Layer->Overrides)
+			{
+				if (Row.GetPropertyName() != Schema.Name)
+				{
+					continue;
+				}
+				if (!bValueRead && Row.bEnabled)
+				{
+					bValueRead = true;
+					// A row still holding another type than its declaration is stale, not an override: readers cast unchecked.
+					if (Row.Value.GetScriptStruct() == Schema.Property.GetScriptStruct())
+					{
+						Override = &Row.Value;
+					}
+				}
+#if WITH_EDITORONLY_DATA
+				if (!bPatchRead)
+				{
+					bPatchRead = true;
+					const FPCGExPropertyChoicesPatch* Patch = Row.GetChoicesPatch();
+					if (Patch && !Patch->IsIdentity())
+					{
+						PatchSink->ChoicePatches.Add(Patch);
+					}
+				}
+#endif
+				if (bValueRead && bPatchRead)
+				{
+					break;
+				}
+			}
+
+			if (Override && !bWantsPatches)
+			{
+				return Override;
+			}
+		}
+		return Override;
+	}
 
 	// Depth-first walk: locals first, then ImportedSchemas in array order.
 	// Seen / Visited accumulate across the whole walk: first-wins dedup by Name, one resolution per asset.
 	// Path is the active recursion stack: a revisit on Path is a cycle (warned; IsDataValid flags it too),
 	// a revisit off Path is a diamond, which is supported authoring and skipped at Verbose.
-	// Override layers apply only to imported entries -- locals are edited in-place and never read overrides.
-	// Each asset's own ImportOverrides joins the chain for its subtree, after every importer's layer: the
-	// outermost consumer wins, then each level down.
-	static void Walk(
+	// LocalsChain is what Collection's own locals read, and only an imported asset's locals read anything:
+	// the root's are edited in place.
+	void Walk(
 		const FPCGExPropertySchemaCollection& Collection,
 		UPCGExPropertySchemaAsset* OwningAsset,
-		TConstArrayView<const FPCGExPropertyOverrides*> OverrideChain,
+		TConstArrayView<const FPCGExPropertyOverrides*> LocalsChain,
 		TArray<FPCGExPropertyResolved>& Out,
 		TSet<FName>& Seen,
 		TSet<const UPCGExPropertySchemaAsset*>& Visited,
@@ -697,39 +1109,25 @@ namespace PCGExPropertySchemaResolve
 				continue;
 			}
 
-			const FInstancedStruct* Override = nullptr;
+			FPCGExPropertyResolved& Resolved = Out.Emplace_GetRef(&Schema, OwningAsset, i);
 			if (OwningAsset)
 			{
-				for (const FPCGExPropertyOverrides* Layer : OverrideChain)
-				{
-					if (!Layer)
-					{
-						continue;
-					}
-					if (const FInstancedStruct* Found = Layer->GetOverride(Schema.Name))
-					{
-						Override = Found;
-						break;
-					}
-				}
+				Resolved.OverrideValue = ReadLayers(LocalsChain, Schema, &Resolved);
 			}
+		}
 
-			FPCGExPropertyResolved& Resolved = Out.Emplace_GetRef(&Schema, OwningAsset, i, Override);
+		if (Collection.ImportedSchemas.IsEmpty())
+		{
+			return;
+		}
 
-#if WITH_EDITORONLY_DATA
-			// Patches ride the same layers as values but apply whether or not the entry's value override is on.
-			if (OwningAsset)
-			{
-				for (const FPCGExPropertyOverrides* Layer : OverrideChain)
-				{
-					const FPCGExPropertyOverrideEntry* LayerEntry = Layer ? Layer->FindEntryByName(Schema.Name) : nullptr;
-					if (LayerEntry && !LayerEntry->ChoicesPatch.IsIdentity())
-					{
-						Resolved.ChoicePatches.Add(&LayerEntry->ChoicesPatch);
-					}
-				}
-			}
-#endif
+		// The root's own layer is already in the chain its caller built (or left out of it on purpose).
+		FLayerChain Extended;
+		TConstArrayView<const FPCGExPropertyOverrides*> ImportsChain = LocalsChain;
+		if (OwningAsset)
+		{
+			Extended = ExtendChain(LocalsChain, OwningAsset);
+			ImportsChain = MakeArrayView(Extended);
 		}
 
 		for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : Collection.ImportedSchemas)
@@ -759,66 +1157,45 @@ namespace PCGExPropertySchemaResolve
 				continue;
 			}
 
-			TArray<const FPCGExPropertyOverrides*, TInlineAllocator<8>> SubtreeChain;
-			SubtreeChain.Reserve(OverrideChain.Num() + 1);
-			SubtreeChain.Append(OverrideChain.GetData(), OverrideChain.Num());
-			SubtreeChain.Add(&Asset->Collection.ImportOverrides);
-
 			Path.Push(Asset);
-			Walk(Asset->Collection, Asset, MakeArrayView(SubtreeChain), Out, Seen, Visited, Path);
+			Walk(Asset->Collection, Asset, ImportsChain, Out, Seen, Visited, Path);
 			Path.Pop(EAllowShrinking::No);
 		}
 	}
 
-	// GetPropertyByName's imports leg: the first imported declaration of PropertyName in Walk order, read
-	// through the same override chain Walk would hand it. Visited prevents infinite recursion through cycles.
-	static const FInstancedStruct* FindEffective(
+	// GetPropertyByName's imports leg: the first imported declaration of PropertyName in Walk order, read through the
+	// layers Walk would hand it. ImportsChain is what the locals of Collection's imports read; Visited stops cycles.
+	const FInstancedStruct* FindEffectiveInImports(
 		const FPCGExPropertySchemaCollection& Collection,
 		FName PropertyName,
-		TConstArrayView<const FPCGExPropertyOverrides*> OverrideChain,
-		TSet<const UPCGExPropertySchemaAsset*>& Visited)
+		TConstArrayView<const FPCGExPropertyOverrides*> ImportsChain,
+		FVisitedAssets& Visited)
 	{
 		for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : Collection.ImportedSchemas)
 		{
-			UPCGExPropertySchemaAsset* Asset = AssetPtr.Get();
-			if (!Asset)
+			const UPCGExPropertySchemaAsset* Asset = AssetPtr.Get();
+			if (!Asset || Visited.Contains(Asset))
 			{
 				continue;
 			}
-
-			bool bAlreadyVisited = false;
-			Visited.Add(Asset, &bAlreadyVisited);
-			if (bAlreadyVisited)
-			{
-				continue;
-			}
+			Visited.Add(Asset);
 
 			for (const FPCGExPropertySchema& Schema : Asset->Collection.Schemas)
 			{
-				if (Schema.Name != PropertyName)
+				if (Schema.Name == PropertyName)
 				{
-					continue;
+					const FInstancedStruct* Override = ReadLayers(ImportsChain, Schema);
+					return Override ? Override : &Schema.Property;
 				}
-				for (const FPCGExPropertyOverrides* Layer : OverrideChain)
-				{
-					if (!Layer)
-					{
-						continue;
-					}
-					if (const FInstancedStruct* Found = Layer->GetOverride(PropertyName))
-					{
-						return Found;
-					}
-				}
-				return &Schema.Property;
 			}
 
-			TArray<const FPCGExPropertyOverrides*, TInlineAllocator<8>> SubtreeChain;
-			SubtreeChain.Reserve(OverrideChain.Num() + 1);
-			SubtreeChain.Append(OverrideChain.GetData(), OverrideChain.Num());
-			SubtreeChain.Add(&Asset->Collection.ImportOverrides);
+			if (Asset->Collection.ImportedSchemas.IsEmpty())
+			{
+				continue;
+			}
 
-			if (const FInstancedStruct* Found = FindEffective(Asset->Collection, PropertyName, MakeArrayView(SubtreeChain), Visited))
+			const FLayerChain Extended = ExtendChain(ImportsChain, Asset);
+			if (const FInstancedStruct* Found = FindEffectiveInImports(Asset->Collection, PropertyName, MakeArrayView(Extended), Visited))
 			{
 				return Found;
 			}
@@ -829,10 +1206,10 @@ namespace PCGExPropertySchemaResolve
 
 	// FindByName equivalent of Walk -- early-exits on the first matching name without allocating
 	// the full resolved list. Visited prevents infinite recursion through cyclic imports.
-	static const FPCGExPropertySchema* Find(
+	const FPCGExPropertySchema* Find(
 		const FPCGExPropertySchemaCollection& Collection,
 		FName PropertyName,
-		TSet<const UPCGExPropertySchemaAsset*>& Visited)
+		FVisitedAssets& Visited)
 	{
 		for (const FPCGExPropertySchema& Schema : Collection.Schemas)
 		{
@@ -844,18 +1221,12 @@ namespace PCGExPropertySchemaResolve
 
 		for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : Collection.ImportedSchemas)
 		{
-			UPCGExPropertySchemaAsset* Asset = AssetPtr.Get();
-			if (!Asset)
+			const UPCGExPropertySchemaAsset* Asset = AssetPtr.Get();
+			if (!Asset || Visited.Contains(Asset))
 			{
 				continue;
 			}
-
-			bool bAlreadyVisited = false;
-			Visited.Add(Asset, &bAlreadyVisited);
-			if (bAlreadyVisited)
-			{
-				continue;
-			}
+			Visited.Add(Asset);
 
 			if (const FPCGExPropertySchema* Found = Find(Asset->Collection, PropertyName, Visited))
 			{
@@ -864,6 +1235,29 @@ namespace PCGExPropertySchemaResolve
 		}
 
 		return nullptr;
+	}
+
+	/** Whether an import slot is empty anywhere in Collection's tree: an asset that failed to load leaves one. */
+	bool HasMissingImport(const FPCGExPropertySchemaCollection& Collection, FVisitedAssets& Visited)
+	{
+		for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : Collection.ImportedSchemas)
+		{
+			const UPCGExPropertySchemaAsset* Asset = AssetPtr.Get();
+			if (!Asset)
+			{
+				return true;
+			}
+			if (Visited.Contains(Asset))
+			{
+				continue;
+			}
+			Visited.Add(Asset);
+			if (HasMissingImport(Asset->Collection, Visited))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }
 
@@ -933,7 +1327,7 @@ const FPCGExPropertySchema* FPCGExPropertySchemaCollection::FindByName(FName Pro
 		return nullptr;
 	}
 
-	TSet<const UPCGExPropertySchemaAsset*> Visited;
+	PCGExPropertySchemaResolve::FVisitedAssets Visited;
 	return PCGExPropertySchemaResolve::Find(*this, PropertyName, Visited);
 }
 
@@ -959,8 +1353,8 @@ const FInstancedStruct* FPCGExPropertySchemaCollection::GetPropertyByName(FName 
 
 	// Same chain as Resolve: an override only surfaces for a name the import tree still declares.
 	const FPCGExPropertyOverrides* Chain[] = {&ImportOverrides};
-	TSet<const UPCGExPropertySchemaAsset*> Visited;
-	return PCGExPropertySchemaResolve::FindEffective(*this, PropertyName, MakeArrayView(Chain), Visited);
+	PCGExPropertySchemaResolve::FVisitedAssets Visited;
+	return PCGExPropertySchemaResolve::FindEffectiveInImports(*this, PropertyName, MakeArrayView(Chain), Visited);
 }
 
 FPCGExPropertySchema* FPCGExPropertySchemaCollection::FindByNameMutable(FName PropertyName)
@@ -990,10 +1384,14 @@ TArray<FInstancedStruct> FPCGExPropertySchemaCollection::BuildSchema(TConstArray
 	{
 		FInstancedStruct& Copy = Result.Add_GetRef(Entry.GetEffectiveProperty());
 #if WITH_EDITORONLY_DATA
-		// The copy's own Choices are a stale mirror when it came from an override row; bake the effective list.
-		if (FPCGExProperty* Property = Copy.GetMutablePtr<FPCGExProperty>())
+		// A declaration copied as is already carries the effective list. An override row's is a mirror that may be
+		// stale, and a patch makes the effective list differ from both: bake it then.
+		if (Entry.OverrideValue || !Entry.ChoicePatches.IsEmpty())
 		{
-			Entry.GetEffectiveChoices(Property->Choices);
+			if (FPCGExProperty* Property = Copy.GetMutablePtr<FPCGExProperty>())
+			{
+				Entry.GetEffectiveChoices(Property->Choices);
+			}
 		}
 #endif
 	}
@@ -1070,22 +1468,43 @@ void FPCGExPropertySchemaCollection::SyncAllSchemas(TArray<FPCGExHeaderIdRemap>&
 			}
 		}
 		Schema.SyncPropertyName();
-
-		// Choice identities follow the same rule as HeaderId: minted here, never by a constructor. Carriers then
-		// take the declaration's structural fields, and the default follows the choice it picked.
-		if (FPCGExProperty* Declared = Schema.GetPropertyMutable())
-		{
-			Declared->Choices.NormalizeIds();
-			PCGExProperties::SyncChoiceCarriers(Declared->Choices, FConstStructView(Schema.Property));
-			PCGExProperties::ReapplyChosenChoice(Schema.Property);
-		}
 	}
+
+	SyncDeclaredChoices();
 #else
 	for (FPCGExPropertySchema& Schema : Schemas)
 	{
 		Schema.SyncPropertyName();
 	}
 #endif
+}
+
+bool FPCGExPropertySchemaCollection::SyncDeclaredChoices()
+{
+	bool bChanged = false;
+#if WITH_EDITORONLY_DATA
+	for (FPCGExPropertySchema& Schema : Schemas)
+	{
+		// First: the carry writes the list the steps below maintain.
+		bChanged |= Schema.ConsumeRetype();
+
+		FPCGExProperty* Declared = Schema.GetPropertyMutable();
+		if (!Declared || (Declared->Choices.Items.IsEmpty() && !Declared->ChosenChoiceId.IsValid()))
+		{
+			continue;
+		}
+
+		// Choice identities follow the same rule as HeaderId: minted here, never by a constructor. Carriers are made
+		// plain values under this declaration's rules here too, which is what lets rows mirror the list as it stands.
+		bChanged |= Declared->Choices.NormalizeIds();
+		bChanged |= PCGExProperties::SanitizeChoices(Declared->Choices.Items);
+		bChanged |= PCGExProperties::SyncChoiceCarriers(Declared->Choices.Items, FConstStructView(Schema.Property));
+		// The list is this declaration's own, so a pick it no longer offers is dead. The default is never written here:
+		// it follows a choice only through CommitDeclaredChoices, which knows the list it stood on.
+		bChanged |= PCGExProperties::UnbindDivergedChoice(Schema.Property);
+	}
+#endif
+	return bChanged;
 }
 
 void FPCGExPropertySchemaCollection::SyncAllSchemasAndRemap(TFunctionRef<void(TConstArrayView<FPCGExHeaderIdRemap>)> ApplyRemap)
@@ -1126,10 +1545,23 @@ bool FPCGExPropertySchemaCollection::ReconcileImportOverrides(const TArray<FPCGE
 
 	bool bChanged = false;
 #if WITH_EDITORONLY_DATA
-	// In place, before the bake below reads the patches: Resolved points at these entries, which stay put.
-	for (FPCGExPropertyOverrideEntry& Entry : ImportOverrides.Overrides)
+	// Patches are settled in place before the bake below reads them through Resolved, which points at them: ids
+	// minted, and the items of a row whose declaration was retyped re-made for the new type like the declaration's own.
+	for (int32 i = 0; i < ImportOverrides.Overrides.Num(); ++i)
 	{
-		bChanged |= Entry.ChoicesPatch.NormalizeIds();
+		FPCGExPropertyChoicesPatch* Patch = ImportOverrides.Overrides[i].ChoicesPatch.GetMutablePtr();
+		if (!Patch || Patch->Items.IsEmpty())
+		{
+			continue;
+		}
+		bChanged |= Patch->NormalizeIds();
+
+		const FPCGExPropertyResolved* Match = PCGExPropertyOverridesSync::FindProperty(ImportOverrides.Overrides, i, Resolved);
+		if (Match && Match->OwningAsset && PCGExPropertyChoicesSync::HasForeignCarrier(Patch->Items, Match->Source->Property))
+		{
+			Patch->Items = PCGExPropertyChoicesSync::ConvertItems(Patch->Items, Match->Source->Property);
+			bChanged = true;
+		}
 	}
 #endif
 
@@ -1157,7 +1589,10 @@ bool FPCGExPropertySchemaCollection::ReconcileImportOverrides(const TArray<FPCGE
 #endif
 #if WITH_EDITORONLY_DATA
 			// Import rows show what this collection's consumers get: the declaration's list, every patch applied.
-			Entry.GetEffectiveChoices(Prop->Choices);
+			if (!Entry.ChoicePatches.IsEmpty())
+			{
+				Entry.GetEffectiveChoices(Prop->Choices);
+			}
 #endif
 		}
 		ImportedOnlySchema.Add(MoveTemp(Patched));
@@ -1169,10 +1604,44 @@ bool FPCGExPropertySchemaCollection::ReconcileImportOverrides(const TArray<FPCGE
 	// Rows are parallel to the imports-only schema now: authored patch carriers follow their declaration too.
 	for (int32 i = 0; i < ImportOverrides.Overrides.Num() && i < ImportedOnlySchema.Num(); ++i)
 	{
-		bChanged |= PCGExProperties::SyncChoiceCarriers(ImportOverrides.Overrides[i].ChoicesPatch.Items, FConstStructView(ImportedOnlySchema[i]));
+		if (FPCGExPropertyChoicesPatch* Patch = ImportOverrides.Overrides[i].ChoicesPatch.GetMutablePtr())
+		{
+			bChanged |= PCGExProperties::SyncChoiceCarriers(Patch->Items, FConstStructView(ImportedOnlySchema[i]));
+		}
 	}
 #endif
 	return bChanged;
+}
+
+bool FPCGExPropertySchemaCollection::ReconcileImportOverridesAtLoad()
+{
+	for (const TObjectPtr<UPCGExPropertySchemaAsset>& AssetPtr : ImportedSchemas)
+	{
+		if (UPCGExPropertySchemaAsset* Asset = AssetPtr.Get())
+		{
+			Asset->ConditionalPostLoad();
+		}
+	}
+
+	// A reshape drops the rows of whatever stopped resolving, and at load that can be an asset that failed to load.
+	PCGExPropertySchemaResolve::FVisitedAssets Visited;
+	return PCGExPropertySchemaResolve::HasMissingImport(*this, Visited) ? SyncImportOverridesInPlace() : ReconcileImportOverrides();
+}
+
+bool FPCGExPropertySchemaCollection::SyncImportOverridesInPlace(const TConstArrayView<const FPCGExPropertyOverrides*> FallbackChain)
+{
+	check(IsInGameThread());
+
+	if (ImportedSchemas.IsEmpty() || ImportOverrides.Overrides.IsEmpty())
+	{
+		return false;
+	}
+
+	TArray<FPCGExPropertyResolved> Resolved;
+	Resolve(Resolved, FallbackChain);
+	// Import rows stand for imported entries only: a local shadowing one by name is not theirs to mirror.
+	Resolved.RemoveAll([](const FPCGExPropertyResolved& Entry) { return Entry.OwningAsset == nullptr; });
+	return ImportOverrides.SyncInPlace(Resolved);
 }
 
 #if WITH_EDITOR
@@ -1235,6 +1704,12 @@ void FPCGExPropertySchemaCollection::SyncFromArchetype(const FPCGExPropertySchem
 
 		if (bStructureMatches)
 		{
+			// The instance owns its default values and nothing else: raw template writes (a choices commit) reach no
+			// instance through the engine, so the schema-owned side is re-mirrored here.
+			for (int32 i = 0; i < Schemas.Num(); ++i)
+			{
+				PCGExPropertyRowSync::MirrorSchemaOwnedFields(Schemas[i].Property, Archetype.Schemas[i].Property, nullptr, true);
+			}
 			return;
 		}
 	}
@@ -1304,6 +1779,7 @@ void FPCGExPropertySchemaCollection::SyncFromArchetype(const FPCGExPropertySchem
 		if (Existing && Existing->Property.GetScriptStruct() == ArchetypeSchema.Property.GetScriptStruct())
 		{
 			NewSchema.Property = MoveTemp(Existing->Property);
+			PCGExPropertyRowSync::MirrorSchemaOwnedFields(NewSchema.Property, ArchetypeSchema.Property, nullptr, true);
 		}
 		else
 		{
@@ -1339,7 +1815,7 @@ void FPCGExPropertySchemaCollection::SyncFromArchetype(const FPCGExPropertySchem
 // At runtime (no WITH_EDITOR), the HeaderId path is skipped and all overrides
 // are rebuilt from schema defaults.
 
-bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schema)
+bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schema, const bool bFollowPicks)
 {
 #if WITH_EDITOR
 	// Fast path: structure matches entry-for-entry. Refresh in place; the slow path below
@@ -1379,7 +1855,7 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 						bChanged = true;
 					}
 				}
-				if (Overrides[i].SyncStructuralFields(Schema[i]))
+				if (Overrides[i].SyncStructuralFields(Schema[i], nullptr, bFollowPicks))
 				{
 					bChanged = true;
 				}
@@ -1493,25 +1969,27 @@ bool FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 		if (Existing)
 		{
 			NewEntry.bEnabled = Existing->bEnabled;
+#if WITH_EDITORONLY_DATA
+			// Kept through a retype as well: a patch binds to choice ids, which the declaration keeps across one.
+			// ReconcileImportOverrides re-makes its items for the new type before it gets here.
+			NewEntry.ChoicesPatch = MoveTemp(Existing->ChoicesPatch);
+#endif
 
 			if (Existing->Value.IsValid() && Existing->Value.GetScriptStruct() == SchemaProp.GetScriptStruct())
 			{
-				// Same type - preserve value, refresh inner PropertyName / structural fields from schema
+				// Same type: the value is kept (one standing on its picked choice follows that choice), the inner
+				// PropertyName and the schema-owned fields are refreshed.
 				NewEntry.Value = MoveTemp(Existing->Value);
-#if WITH_EDITORONLY_DATA
-				NewEntry.ChoicesPatch = MoveTemp(Existing->ChoicesPatch);
-#endif
 				if (FPCGExProperty* Prop = NewEntry.GetPropertyMutable())
 				{
 					Prop->PropertyName = SchemaData->PropertyName;
 				}
-				NewEntry.SyncStructuralFields(SchemaProp);
+				NewEntry.SyncStructuralFields(SchemaProp, nullptr, bFollowPicks);
 			}
 			else
 			{
 				// Type changed, or inner Value lost to broken FInstancedStruct propagation.
 				// Take schema default; bEnabled (preserved above) carries the user's authoring intent.
-				// The choices patch is dropped with the value: its carriers are of the old type.
 				NewEntry.Value = SchemaProp;
 			}
 		}
@@ -1612,8 +2090,13 @@ namespace PCGExPropertyOverridesSync
 	}
 }
 
-bool FPCGExPropertyOverrides::SyncInPlace(TConstArrayView<FPCGExPropertyResolved> Resolved)
+bool FPCGExPropertyOverrides::SyncInPlace(TConstArrayView<FPCGExPropertyResolved> Resolved, FPCGExResolvedChoicesCache* ChoicesCache)
 {
+#if WITH_EDITORONLY_DATA
+	FPCGExResolvedChoicesCache LocalCache;
+	FPCGExResolvedChoicesCache& Cache = ChoicesCache ? *ChoicesCache : LocalCache;
+#endif
+
 	bool bChanged = false;
 	for (int32 i = 0; i < Overrides.Num(); ++i)
 	{
@@ -1624,8 +2107,10 @@ bool FPCGExPropertyOverrides::SyncInPlace(TConstArrayView<FPCGExPropertyResolved
 			continue;
 		}
 
+		// The declaration, not the effective property: an override standing in for it supplies a value, and its own
+		// schema-owned fields are mirrors that may be stale (or are this very row). Both are one type by Resolve's guard.
 		// A row of another type than its property is not touched: only SyncToSchema may replace a value.
-		const FInstancedStruct& SchemaValue = Match->GetEffectiveProperty();
+		const FInstancedStruct& SchemaValue = Match->Source->Property;
 		FPCGExProperty* Row = Entry.GetPropertyMutable();
 		if (!Row || Entry.Value.GetScriptStruct() != SchemaValue.GetScriptStruct())
 		{
@@ -1646,10 +2131,11 @@ bool FPCGExPropertyOverrides::SyncInPlace(TConstArrayView<FPCGExPropertyResolved
 		}
 
 #if WITH_EDITORONLY_DATA
-		// Resolved hands out pointers, not baked copies: the effective list has to be computed here.
-		FPCGExPropertyChoices EffectiveChoices;
-		Match->GetEffectiveChoices(EffectiveChoices);
-		if (Entry.SyncStructuralFields(SchemaValue, &EffectiveChoices))
+		// Resolved hands out pointers, not baked copies. A declaration nothing patches already holds the effective list.
+		const FPCGExPropertyChoices* EffectiveChoices = Match->ChoicePatches.IsEmpty()
+			? nullptr
+			: &Cache.Get(Resolved, UE_PTRDIFF_TO_INT32(Match - Resolved.GetData()));
+		if (Entry.SyncStructuralFields(SchemaValue, EffectiveChoices))
 #else
 		if (Entry.SyncStructuralFields(SchemaValue))
 #endif
@@ -1728,7 +2214,7 @@ namespace PCGExPropertySoftPaths
 	// because Resolve dedups locals/imports by Name (first-wins) and walks override
 	// layers as a chain -- both wrong here, which must surface every soft path
 	// regardless of shadowing.
-	static void WalkOverrides(const FPCGExPropertyOverrides& Overrides, const TFunctionRef<void(const FPCGExProperty&)> Visitor)
+	void WalkOverrides(const FPCGExPropertyOverrides& Overrides, const TFunctionRef<void(const FPCGExProperty&)> Visitor)
 	{
 		for (const FPCGExPropertyOverrideEntry& Entry : Overrides.Overrides)
 		{
@@ -1743,7 +2229,7 @@ namespace PCGExPropertySoftPaths
 		}
 	}
 
-	static void WalkCollection(
+	void WalkCollection(
 		const FPCGExPropertySchemaCollection& Collection,
 		TSet<const UPCGExPropertySchemaAsset*>& Visited,
 		const TFunctionRef<void(const FPCGExProperty&)> Visitor)

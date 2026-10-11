@@ -132,8 +132,9 @@ struct PCGEXPROPERTIES_API FPCGExProperty
 	FPCGExPropertyChoices Choices;
 
 	/**
-	 * The choice Value was picked from; invalid when the value was authored freely. Syncs re-apply that choice's
-	 * current value (PCGExProperties::ReapplyChosenChoice), so a row follows edits to the choice it picked.
+	 * The choice Value was picked from; invalid when the value was authored freely. It only counts while Value still
+	 * equals that choice (PCGExProperties::FindBoundChoice): a sync makes such a value follow the choice's edits and
+	 * drops the pick of a value that moved away, so nothing ever overwrites a value written by hand or by script.
 	 */
 	UPROPERTY()
 	FGuid ChosenChoiceId;
@@ -375,6 +376,15 @@ struct PCGEXPROPERTIES_API FPCGExProperty
 	virtual bool GetValuePreviewText(FText& OutText) const
 	{
 		return false;
+	}
+
+	/**
+	 * Whether Value survives a TryWriteValue / TryReadValue round trip, which is how a retype carries choice values
+	 * to another type. False for a type whose attribute projection is derived from Value instead of being it.
+	 */
+	virtual bool SupportsValueConversion() const
+	{
+		return true;
 	}
 
 	// --- @Data Interface ---
@@ -675,14 +685,26 @@ namespace PCGExProperties
 	PCGEXPROPERTIES_API const FInstancedStruct* ResolveEffective(
 		const FPCGExPropertySchemaCollection& InSchema, const FPCGExPropertyOverrides* InOverrides, FName InName);
 
-#if WITH_EDITORONLY_DATA
-	// --- Choices ---
-	// Model-side primitives shared by the details panel and the align tooling. Every one keys off the host
-	// type's "Value" FProperty, so they work for any property type that declares one. Host is a view of a
-	// property struct instance: an FInstancedStruct converts implicitly, a detail row passes its struct-on-scope.
+	// --- Value access ---
+	// Key off the property type's "Value" FProperty, like the choice primitives below. A view is taken of a property
+	// struct instance: an FInstancedStruct converts implicitly, a detail row passes its struct-on-scope.
 
 	/** The "Value" FProperty of a property type; null when it declares none. */
 	PCGEXPROPERTIES_API const FProperty* FindValueProperty(const UScriptStruct* InStruct);
+
+	/**
+	 * Whether A and B are the same property type holding identical Values (two unset properties are identical).
+	 * Identity, schema-owned fields, choices and the pick are left out: this answers "did the authored value change",
+	 * which a whole-struct compare does not.
+	 */
+	PCGEXPROPERTIES_API bool ValuesIdentical(FConstStructView A, FConstStructView B);
+
+	/** Copy Src's Value, and in the editor its pick, into Dest. False, with Dest untouched, unless both are one type. */
+	PCGEXPROPERTIES_API bool CopyValue(FStructView Dest, FConstStructView Src);
+
+#if WITH_EDITORONLY_DATA
+	// --- Choices ---
+	// Model-side primitives shared by the details panel and the align tooling.
 
 	/** Whether Choice can stand for Host: same script struct, and the type's own IsChoiceCompatible agrees. */
 	PCGEXPROPERTIES_API bool IsChoiceCompatible(FConstStructView Host, const FPCGExPropertyChoice& Choice);
@@ -693,37 +715,58 @@ namespace PCGExProperties
 	/** Index of the first compatible choice whose Value is identical to Host's, INDEX_NONE when none is. */
 	PCGEXPROPERTIES_API int32 FindMatchingChoice(FConstStructView Host, const FPCGExPropertyChoices& Choices);
 
-	/** The choice Host stands on: the one it picked (ChosenChoiceId) when still listed and compatible, else a value match. */
+	/** Index of the choice Host picked while Choices offers it, it is compatible and Host's Value still equals it. */
+	PCGEXPROPERTIES_API int32 FindBoundChoice(FConstStructView Host, const FPCGExPropertyChoices& Choices);
+
+	/** Whether Host stands on the choice it picked, judged against the list Host itself holds. */
+	PCGEXPROPERTIES_API bool IsBoundToChoice(FConstStructView Host);
+
+	/**
+	 * Take Src's Value and pick into Dest, another copy of the same property whose choice list may be newer: a Src
+	 * that stood on its choice makes Dest follow that choice as Dest lists it; any other value arrives as is, with a
+	 * pick only if it equals the choice. False, and Dest untouched, unless both are one property type.
+	 */
+	PCGEXPROPERTIES_API bool AdoptValue(FStructView Dest, FConstStructView Src);
+
+	/** The choice Host stands on: the one it is bound to (FindBoundChoice), else the first value match. */
 	PCGEXPROPERTIES_API int32 ResolveSelectedChoice(FConstStructView Host, const FPCGExPropertyChoices& Choices);
 
 	/** Copy Choice's Value into Host's and record its Id as chosen. False, and Host untouched, when incompatible. */
 	PCGEXPROPERTIES_API bool ApplyChoice(FStructView Host, const FPCGExPropertyChoice& Choice);
 
-	/** Re-copy the chosen choice's current Value into Host when it is listed, compatible and differs. True if Host changed. */
-	PCGEXPROPERTIES_API bool ReapplyChosenChoice(FStructView Host);
-
-	/** Forget the chosen choice when Host's Value no longer equals it (or it is gone): a free edit. True if cleared. */
+	/** Forget Host's pick unless Host's own list still offers it and Value still equals it. True if cleared. */
 	PCGEXPROPERTIES_API bool UnbindDivergedChoice(FStructView Host);
 
-	/** A fresh-Id choice carrying Host's current Value under Label; the carrier's identity, choices and pick are cleared. */
-	PCGEXPROPERTIES_API FPCGExPropertyChoice MakeChoiceFromValue(FConstStructView Host, FName Label);
+	/** A plain value of Host's type holding Host's Value: no identity, choices or pick. Invalid when Host has no Value. */
+	PCGEXPROPERTIES_API FInstancedStruct MakeChoiceCarrier(FConstStructView Host);
 
-	/** Clear every carrier's identity, Choices and pick so mirrored lists never nest. */
-	PCGEXPROPERTIES_API void SanitizeChoices(FPCGExPropertyChoices& InOut);
+	/** A fresh-Id choice carrying Host's current Value under Label. */
+	PCGEXPROPERTIES_API FPCGExPropertyChoice MakeChoiceFromValue(FConstStructView Host, const FString& Label);
+
+	/** Clear every carrier's identity, Choices and pick so mirrored lists never nest. True if any carrier held one. */
+	PCGEXPROPERTIES_API bool SanitizeChoices(TArrayView<FPCGExPropertyChoice> Items);
 
 	/**
 	 * Re-mirror every same-type carrier's schema-owned fields (Range, AllowedClass, enum class, ...) from Host through
 	 * FPCGExProperty::SyncStructuralFromSchema, exactly as override rows are. A choice is a value under the host's
 	 * rules, never a schema of its own. True if any carrier changed.
 	 */
-	PCGEXPROPERTIES_API bool SyncChoiceCarriers(FPCGExPropertyChoices& InOut, FConstStructView Host);
-	/** Same, over a bare item list (a patch's). */
-	PCGEXPROPERTIES_API bool SyncChoiceCarriers(TArray<FPCGExPropertyChoice>& Items, FConstStructView Host);
+	PCGEXPROPERTIES_API bool SyncChoiceCarriers(TArrayView<FPCGExPropertyChoice> Items, FConstStructView Host);
 
 	/**
-	 * Rebuild New's Choices from Old's after a retype: labels, ids, lock and the host's pick always carry; a value
-	 * carries when both types project to a legacy attribute type and New accepts the converted read, else the new
-	 * carrier keeps its default. New's own list is replaced. True if New received any choice.
+	 * Replace the list a DECLARATION authors (Host is a schema's own property) with Edited: ids settled, every carrier
+	 * made a plain value of Host's type, and Host's Value follows the choice it stood on. True if Host changed.
+	 */
+	PCGEXPROPERTIES_API bool CommitDeclaredChoices(FStructView Host, FPCGExPropertyChoices Edited);
+
+	/** Store Edited as Row's patch after the same clean-up, minus the data its Mode does not read. True if Row changed. */
+	PCGEXPROPERTIES_API bool CommitChoicesPatch(FPCGExPropertyOverrideEntry& Row, FPCGExPropertyChoicesPatch Edited);
+
+	/**
+	 * Give New the choices Old had before a retype: labels and ids always; a value where both types convert through a
+	 * legacy attribute type, else the new carrier keeps its default; the lock only where values convert; Old's pick
+	 * only onto a New still holding its type's default. Nothing when New arrives with a list of its own (a paste).
+	 * True if New changed.
 	 */
 	PCGEXPROPERTIES_API bool CarryChoicesAcrossRetype(FConstStructView Old, FStructView New);
 

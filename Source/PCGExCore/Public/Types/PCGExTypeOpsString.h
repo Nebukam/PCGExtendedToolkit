@@ -95,7 +95,8 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TTo, FName>)
 			{
-				return FName(*Value);
+				// FName asserts on NAME_SIZE characters or more; a string that long is no name.
+				return Value.Len() < NAME_SIZE ? FName(*Value) : FName();
 			}
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>)
 			{
@@ -464,7 +465,8 @@ namespace PCGExTypeOps
 			}
 			else if constexpr (std::is_same_v<TFrom, FString>)
 			{
-				return FName(*Value);
+				// Same guard as the String ops' own conversion to FName.
+				return Value.Len() < NAME_SIZE ? FName(*Value) : FName();
 			}
 			else if constexpr (std::is_same_v<TFrom, FName>)
 			{

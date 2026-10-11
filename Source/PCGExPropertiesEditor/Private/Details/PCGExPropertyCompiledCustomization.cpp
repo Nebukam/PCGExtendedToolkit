@@ -10,9 +10,6 @@
 #include "PCGExProperty.h"
 #include "PropertyHandle.h"
 #include "Details/PCGExPropertyChoicesCustomization.h"
-#include "Widgets/SPCGExPropertyChoicePicker.h"
-#include "Widgets/SPCGExPropertyChoicesEditor.h"
-#include "Widgets/Layout/SBox.h"
 
 TSharedRef<IPropertyTypeCustomization> FPCGExPropertyCompiledCustomization::MakeInstance()
 {
@@ -35,41 +32,24 @@ void FPCGExPropertyCompiledCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// Resolve the outer property's USTRUCT name once; needed for inline-widget lookup
-	// and for deciding which auxiliary meta fields (AllowedClass / Range) to show.
+	// Resolve the outer property's USTRUCT once; needed for inline-widget lookup and for how its Value row is laid out.
 	const FStructProperty* OuterStructProp = CastField<FStructProperty>(PropertyHandle->GetProperty());
-	FName OuterStructName = NAME_None;
-	if (OuterStructProp && OuterStructProp->Struct)
-	{
-		OuterStructName = OuterStructProp->Struct->GetFName();
-	}
+	const UScriptStruct* OuterStruct = OuterStructProp ? OuterStructProp->Struct.Get() : nullptr;
+	const FName OuterStructName = OuterStruct ? OuterStruct->GetFName() : NAME_None;
+	const FProperty* ValueProperty = PCGExProperties::FindValueProperty(OuterStruct);
 
-	// The schema's own default follows the lock too. Single-object edits only: a multi-select has no one host.
-	FStructView Host;
+	// The schema's own default follows the lock too. The arrow is the one entry point to choice authoring: its menu
+	// opens the popover over the real Choices handle. Locked schemas (values-only hosts) get no entry.
+	FPCGExChoiceRowArgs Choices;
+	Choices.Host = FPCGExPropertyHostRef(PropertyHandle, EPCGExPropertyHostKind::Property);
+	if (!PCGExPropertyChoicesUI::IsUnderReadOnlySchema(PropertyHandle))
 	{
-		TArray<void*> RawData;
-		PropertyHandle->AccessRawData(RawData);
-		if (OuterStructProp && OuterStructProp->Struct && RawData.Num() == 1 && RawData[0])
-		{
-			Host = FStructView(OuterStructProp->Struct, static_cast<uint8*>(RawData[0]));
-		}
+		Choices.EditChoices = PCGExPropertyChoicesUI::MakeDeclarationEditor(
+			PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices)), Choices.Host);
 	}
-	bool bLocked = false;
-	const bool bHasChoices = Host.IsValid() && FPCGExInlineWidgetRegistry::HasChoices(Host, &bLocked);
-
-	// The arrow is the one entry point to choice authoring: its menu opens the popover over the real Choices handle.
-	// Locked schemas (values-only hosts) get no entry, and no Choices row renders here: the popover owns it.
-	FOnGetContent EditChoices;
-	const TSharedPtr<IPropertyHandle> ChoicesHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices));
-	if (Host.IsValid() && ChoicesHandle.IsValid() && !FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(PropertyHandle))
-	{
-		EditChoices = FOnGetContent::CreateLambda([Host, ChoicesHandle]() -> TSharedRef<SWidget>
-		{
-			FPCGExChoicesEditContext Context;
-			Context.Host = Host;
-			return SNew(SPCGExPropertyChoicesEditor).RealHandle(ChoicesHandle).Context(Context).bPatch(false);
-		});
-	}
+	// A value editor that also sets the type's structure (an enum's class, a struct's type, an entry's collection)
+	// cannot give way to the picker: nothing else on this row edits that structure.
+	Choices.bKeepEditorWhenLocked = OuterStruct && OuterStruct->HasMetaData(TEXT("PCGExStructuralValue"));
 
 	// Iterate all children and render in declaration order, skipping internal fields.
 	// "Value" gets the registered Edit-mode inline widget when available; all other
@@ -88,73 +68,51 @@ void FPCGExPropertyCompiledCustomization::CustomizeChildren(
 		}
 
 		// Identity caches and the recorded pick are not editable; nothing to render for them.
+		// Choices has no row of its own: the popover is its editor.
 		const FProperty* ChildProperty = ChildHandle->GetProperty();
-		if (!ChildProperty || !ChildProperty->HasAnyPropertyFlags(CPF_Edit))
-		{
-			continue;
-		}
-		const FName ChildName = ChildProperty->GetFName();
-		if (ChildName == GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices))
+		if (!ChildProperty || !ChildProperty->HasAnyPropertyFlags(CPF_Edit)
+			|| ChildProperty->GetFName() == GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices))
 		{
 			continue;
 		}
 
-		if (ChildName == TEXT("Value"))
+		if (ChildProperty != ValueProperty)
 		{
-			const TSharedRef<IPropertyHandle> ValueHandle = ChildHandle.ToSharedRef();
-
-			if (bHasChoices && bLocked)
-			{
-				FPCGExInlineWidgetRegistry::HookUnbindOnFreeEdit(ValueHandle, Host);
-				ChildBuilder.AddProperty(ValueHandle).CustomWidget(/*bShowChildren=*/false)
-				            .NameContent()
-					[
-						ValueHandle->CreatePropertyNameWidget()
-					]
-					.ValueContent()
-					.MinDesiredWidth(250.0f)
-					.MaxDesiredWidth(3000.0f)
-					[
-						SNew(SPCGExPropertyChoicePicker, Host, ValueHandle).Locked(true).OnGetEditContent(EditChoices)
-					];
-				continue;
-			}
-
-			if (const FPCGExMakeInlineWidgetFn* Factory = FPCGExInlineWidgetRegistry::Find(OuterStructName, EPCGExInlineWidgetMode::Edit))
-			{
-				TSharedRef<SWidget> ValueWidget = (*Factory)(ValueHandle);
-				if (bHasChoices || EditChoices.IsBound())
-				{
-					ValueWidget = FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(ValueWidget, Host, ValueHandle, EditChoices);
-				}
-				IDetailPropertyRow& Row = ChildBuilder.AddProperty(ValueHandle);
-				Row.CustomWidget(/*bShowChildren=*/false)
-				   .NameContent()
-					[
-						ValueHandle->CreatePropertyNameWidget()
-					]
-					.ValueContent()
-					.MinDesiredWidth(250.0f)
-					.MaxDesiredWidth(3000.0f)
-					[
-						ValueWidget
-					];
-				continue;
-			}
-
-			// Default editor (may expand); the quick pick / authoring entry gets its own row under it.
-			ChildBuilder.AddProperty(ValueHandle);
-			if (bHasChoices)
-			{
-				FPCGExInlineWidgetRegistry::HookUnbindOnFreeEdit(ValueHandle, Host);
-			}
-			if (bHasChoices || EditChoices.IsBound())
-			{
-				FPCGExInlineWidgetRegistry::AddChoicesRow(ChildBuilder, Host, ValueHandle, TAttribute<bool>(true), EditChoices);
-			}
+			ChildBuilder.AddProperty(ChildHandle.ToSharedRef());
 			continue;
 		}
 
-		ChildBuilder.AddProperty(ChildHandle.ToSharedRef());
+		const TSharedRef<IPropertyHandle> ValueHandle = ChildHandle.ToSharedRef();
+		const TSharedRef<FPCGExChoiceRowState> State = MakeShared<FPCGExChoiceRowState>(Choices.Host);
+		const FPCGExMakeInlineWidgetFn* Factory = FPCGExInlineWidgetRegistry::Find(OuterStructName, EPCGExInlineWidgetMode::Edit);
+
+		// One row: the editor, with the arrow in the same cell. The same layout a consumer row of this type gets.
+		if (Factory || OuterStruct->HasMetaData(TEXT("PCGExInlineValue")))
+		{
+			// Widths are fixed when the row is built, like AddCompactValueRow's.
+			const bool bWide = Factory != nullptr || State->Get().bLocked;
+			ChildBuilder.AddProperty(ValueHandle).CustomWidget(/*bShowChildren=*/false)
+			            .NameContent()
+				[
+					ValueHandle->CreatePropertyNameWidget()
+				]
+				.ValueContent()
+				.MinDesiredWidth(bWide ? FPCGExInlineWidgetRegistry::WideValueMinWidth : FPCGExInlineWidgetRegistry::NarrowValueMinWidth)
+				.MaxDesiredWidth(bWide ? FPCGExInlineWidgetRegistry::WideValueMaxWidth : FPCGExInlineWidgetRegistry::NarrowValueMaxWidth)
+				[
+					FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
+						Factory ? (*Factory)(ValueHandle) : ValueHandle->CreatePropertyValueWidget(),
+						State, ValueHandle, TAttribute<bool>(true), Choices)
+				];
+			continue;
+		}
+
+		// An editor that may expand: the choices get their own row under it, which stands in for it while locked.
+		IDetailPropertyRow& ValueRow = ChildBuilder.AddProperty(ValueHandle);
+		if (!Choices.bKeepEditorWhenLocked)
+		{
+			ValueRow.Visibility(FPCGExInlineWidgetRegistry::VisibleUnlessLocked(State));
+		}
+		FPCGExInlineWidgetRegistry::AddChoicesRow(ChildBuilder, State, ValueHandle, TAttribute<bool>(true), Choices.EditChoices);
 	}
 }

@@ -7,44 +7,48 @@
 
 #include "PCGExProperty.h"
 #include "PCGExPropertyRowHost.h"
+#include "PCGExPropertyRowMatching.h"
 #include "PCGExPropertySchemaAsset.h"
-#include "UObject/UObjectIterator.h"
 
 namespace PCGExPropertyChoicesAlign
 {
-	FResult AlignHostRows(UObject* Host, const int32 HeaderId, const FName PropertyName)
+	const FPCGExPropertyResolved* FindByName(const TConstArrayView<FPCGExPropertyResolved> Resolved, const FName PropertyName)
+	{
+		return Resolved.FindByPredicate([PropertyName](const FPCGExPropertyResolved& Entry) { return Entry.Source->Name == PropertyName; });
+	}
+
+	/** The choice rows should land on: the one Default stands on, else the first that fits Declaration. */
+	const FPCGExPropertyChoice* PickTarget(const FConstStructView Default, const FConstStructView Declaration, const FPCGExPropertyChoices& Choices)
+	{
+		const int32 OnDefault = PCGExProperties::ResolveSelectedChoice(Default, Choices);
+		if (OnDefault != INDEX_NONE)
+		{
+			return &Choices.Items[OnDefault];
+		}
+		return Choices.Items.FindByPredicate([&Declaration](const FPCGExPropertyChoice& Choice)
+		{
+			return PCGExProperties::IsChoiceCompatible(Declaration, Choice);
+		});
+	}
+
+	FResult AlignHostRows(UObject* Host, const FName PropertyName, const UPCGExPropertySchemaAsset* DeclaringAsset)
 	{
 		FResult Result;
 		IPCGExPropertyRowHost* RowHost = Cast<IPCGExPropertyRowHost>(Host);
 		const FPCGExPropertySchemaCollection* Schema = RowHost ? RowHost->EDITOR_GetRowSchema() : nullptr;
-		if (!Schema)
+		if (!Schema || PropertyName.IsNone())
 		{
 			return Result;
 		}
 
+		IPCGExPropertyRowHost::FLayerChain Chain;
+		RowHost->EDITOR_GetRowSchemaFallbackChain(Chain);
+
+		// Names are unique in a resolved list, so a host that shadows the declaration resolves the name to its own.
 		TArray<FPCGExPropertyResolved> Resolved;
-		Schema->Resolve(Resolved);
-		const FPCGExPropertyResolved* Found = nullptr;
-		for (const FPCGExPropertyResolved& Entry : Resolved)
-		{
-			if (Entry.Source && HeaderId != 0 && Entry.Source->HeaderId == HeaderId)
-			{
-				Found = &Entry;
-				break;
-			}
-		}
-		if (!Found && !PropertyName.IsNone())
-		{
-			for (const FPCGExPropertyResolved& Entry : Resolved)
-			{
-				if (Entry.Source && Entry.Source->Name == PropertyName)
-				{
-					Found = &Entry;
-					break;
-				}
-			}
-		}
-		if (!Found)
+		Schema->Resolve(Resolved, MakeArrayView(Chain));
+		const FPCGExPropertyResolved* Found = FindByName(Resolved, PropertyName);
+		if (!Found || (DeclaringAsset && Found->OwningAsset != DeclaringAsset))
 		{
 			return Result;
 		}
@@ -55,72 +59,113 @@ namespace PCGExPropertyChoicesAlign
 		{
 			return Result;
 		}
+		Result.HostsVisited = 1;
 
-		// The effective default when it is itself a choice, else the first one.
-		int32 TargetIndex = PCGExProperties::FindMatchingChoice(FConstStructView(Found->GetEffectiveProperty()), Choices);
-		if (TargetIndex == INDEX_NONE)
-		{
-			TargetIndex = 0;
-		}
-		const FPCGExPropertyChoice& Target = Choices.Items[TargetIndex];
-		const FName Name = Found->Source->Name;
-		const int32 Id = Found->Source->HeaderId;
+		const FInstancedStruct& Declaration = Found->Source->Property;
+		const int32 HeaderId = Found->Source->HeaderId;
 
-		bool bModified = false;
-		RowHost->EDITOR_ForEachPropertyRows([&](FPCGExPropertyOverrides& Row)
+		// Enabled rows of this property that stand on none of its choices and that Target can replace.
+		TArray<FPCGExPropertyOverrideEntry*, TInlineAllocator<16>> Pending;
+		auto Gather = [&](FPCGExPropertyOverrides& Rows, const FPCGExPropertyChoice& Target)
 		{
-			for (FPCGExPropertyOverrideEntry& Entry : Row.Overrides)
+			for (int32 i = 0; i < Rows.Overrides.Num(); ++i)
 			{
-				const bool bMatches = (Id != 0 && Entry.HeaderId == Id) || Entry.GetPropertyName() == Name;
-				if (!bMatches || !Entry.bEnabled || !Entry.Value.IsValid())
+				FPCGExPropertyOverrideEntry& Row = Rows.Overrides[i];
+				if (!Row.bEnabled || Row.Value.GetScriptStruct() != Declaration.GetScriptStruct())
 				{
 					continue;
 				}
-				if (PCGExProperties::ResolveSelectedChoice(FConstStructView(Entry.Value), Choices) != INDEX_NONE)
+				// Cheap filter first; the shared matcher then decides, as it does for every row sync.
+				const bool bCandidate = Row.GetPropertyName() == PropertyName || (HeaderId != 0 && Row.HeaderId == HeaderId);
+				if (!bCandidate || PCGExPropertyOverridesSync::FindProperty(Rows.Overrides, i, Resolved) != Found)
 				{
 					continue;
 				}
-				if (!bModified)
+				if (PCGExProperties::ResolveSelectedChoice(Row.Value, Choices) == INDEX_NONE && PCGExProperties::IsChoiceCompatible(Row.Value, Target))
 				{
-					Host->Modify();
-					bModified = true;
-				}
-				if (PCGExProperties::ApplyChoice(FStructView(Entry.Value), Target))
-				{
-					++Result.RowsAligned;
+					Pending.Add(&Row);
 				}
 			}
-		});
+		};
 
-		if (bModified)
+		auto Apply = [&](const FPCGExPropertyChoice& Target)
 		{
-			RowHost->EDITOR_NotifyRowsAligned();
+			if (Pending.IsEmpty())
+			{
+				return;
+			}
+			if (Result.RowsAligned == 0)
+			{
+				Host->Modify();
+			}
+			for (FPCGExPropertyOverrideEntry* Row : Pending)
+			{
+				Result.RowsAligned += PCGExProperties::ApplyChoice(Row->Value, Target) ? 1 : 0;
+			}
+			Pending.Reset();
+		};
+
+		// The schema's own import layer first: its row is the default every other row falls back to, and it falls
+		// back itself to what the schema resolves to without it.
+		if (Found->OwningAsset)
+		{
+			TArray<FPCGExPropertyResolved> Inherited;
+			Schema->Resolve(Inherited, MakeArrayView(Chain), /*bIncludeOwnOverrides=*/false);
+			const FPCGExPropertyResolved* InheritedEntry = FindByName(Inherited, PropertyName);
+			const FPCGExPropertyChoice* Target = InheritedEntry && InheritedEntry->OwningAsset == Found->OwningAsset
+				? PickTarget(InheritedEntry->GetEffectiveProperty(), Declaration, Choices)
+				: nullptr;
+			if (Target)
+			{
+				RowHost->EDITOR_ForEachPropertyRows([&](FPCGExPropertyOverrides& Rows, const bool bIsImportLayer)
+				{
+					if (bIsImportLayer)
+					{
+						Gather(Rows, *Target);
+					}
+				});
+				Apply(*Target);
+			}
+		}
+
+		// Found points into the layer just written, so this default is the aligned one.
+		if (const FPCGExPropertyChoice* Target = PickTarget(Found->GetEffectiveProperty(), Declaration, Choices))
+		{
+			RowHost->EDITOR_ForEachPropertyRows([&](FPCGExPropertyOverrides& Rows, const bool bIsImportLayer)
+			{
+				if (!bIsImportLayer)
+				{
+					Gather(Rows, *Target);
+				}
+			});
+			Apply(*Target);
+		}
+
+		if (Result.RowsAligned > 0)
+		{
+			RowHost->EDITOR_NotifyRowsChanged();
 			Result.HostsTouched = 1;
 		}
 		return Result;
 	}
 
-	FResult AlignImporters(UPCGExPropertySchemaAsset* Asset, const int32 HeaderId, const FName PropertyName)
+	FResult AlignImporters(UPCGExPropertySchemaAsset* Through, const FName PropertyName, const UPCGExPropertySchemaAsset* DeclaringAsset)
 	{
 		FResult Result;
-		if (!Asset)
+		if (!Through)
 		{
 			return Result;
 		}
-		for (TObjectIterator<UObject> It; It; ++It)
+
+		TArray<TWeakObjectPtr<UObject>> Hosts;
+		PCGExPropertyRowHost::GetLoadedImporters(Through, Hosts);
+		for (const TWeakObjectPtr<UObject>& Host : Hosts)
 		{
-			UObject* Object = *It;
-			if (!IsValid(Object) || Object->IsTemplate() || !Object->GetClass()->ImplementsInterface(UPCGExPropertyRowHost::StaticClass()))
+			// Weak: a host's notify can run anything, including what destroys a later host.
+			if (UObject* Live = Host.Get())
 			{
-				continue;
+				Result += AlignHostRows(Live, PropertyName, DeclaringAsset ? DeclaringAsset : Through);
 			}
-			const IPCGExPropertyRowHost* RowHost = Cast<IPCGExPropertyRowHost>(Object);
-			const FPCGExPropertySchemaCollection* Schema = RowHost ? RowHost->EDITOR_GetRowSchema() : nullptr;
-			if (!Schema || !Schema->ImportsAssetTransitive(Asset))
-			{
-				continue;
-			}
-			Result += AlignHostRows(Object, HeaderId, PropertyName);
 		}
 		return Result;
 	}

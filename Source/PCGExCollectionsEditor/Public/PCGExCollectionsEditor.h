@@ -12,7 +12,6 @@
 
 class UPackage;
 class UPCGExAssetCollection;
-class UPCGExPropertySchemaAsset;
 
 class FPCGExCollectionsEditorModule final : public IPCGExEditorModuleInterface
 {
@@ -30,7 +29,6 @@ private:
 	FDelegateHandle OnAssetLoadedHandle;
 	FDelegateHandle OnPostEngineInitHandle;
 	FDelegateHandle OnPackageSavedHandle;
-	FDelegateHandle OnAnySchemaAssetChangedHandle;
 	bool bThumbnailRendererRegistered = false;
 
 	/** Select-as-unit latch tracker + viewport action bar for the stock assembly root. */
@@ -75,10 +73,6 @@ private:
 	void FlushPendingSourceRestages();
 	void RestagePendingSources();
 	void FlushPendingStaleChecks();
-
-	/** Reconciles every loaded collection importing the changed schema asset (any depth), so
-	 *  propagation never depends on a details customization being alive to relay the broadcast. */
-	void OnAnySchemaAssetChanged(UPCGExPropertySchemaAsset* Asset);
 
 	void OnPackageSaved(const FString& PackageFilename, UPackage* Package, FObjectPostSaveContext Context);
 	void FlushPendingExternalPackageSaves();

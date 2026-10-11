@@ -5,14 +5,18 @@
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
+#include "Details/PCGExPropertyChoicesEditTargets.h"
+#include "Details/PCGExRawPropertyEdit.h"
 #include "Framework/Commands/UIAction.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Framework/Notifications/NotificationManager.h"
 #include "IDetailChildrenBuilder.h"
+#include "IDetailsView.h"
 #include "IPropertyUtilities.h"
 #include "InstancedStructDetails.h"
 #include "PCGExInlineWidgetRegistry.h"
 #include "PCGExProperty.h"
-#include "Framework/Notifications/NotificationManager.h"
+#include "PCGExPropertyChoicesAlign.h"
 #include "PCGExPropertyRowHost.h"
 #include "PCGExPropertySchemaAsset.h"
 #include "PropertyHandle.h"
@@ -20,136 +24,89 @@
 #include "Styling/AppStyle.h"
 #include "Styling/StyleColors.h"
 #include "Textures/SlateIcon.h"
-#include "PCGExPropertyChoicesAlign.h"
-#include "Widgets/SBoxPanel.h"
+#include "UObject/StructOnScope.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/SPCGExPropertyChoicesEditor.h"
 #include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExPropertyChoicesCustomization"
 
 namespace PCGExPropertyChoicesCustomization
 {
-	/** The object the handle edits: the popover's context first, else the handle's single outer. */
-	TWeakObjectPtr<UObject> ResolveOwner(const TSharedRef<IPropertyHandle>& Handle);
-
-	/** The align lever as a small combo: this host's rows, or every loaded importer of a schema asset. */
-	TSharedRef<SWidget> MakeAlignButton(const TWeakObjectPtr<UObject>& Owner, FStructView Host);
-
-	/** Editor toast summarizing an align run. */
-	void NotifyAlignResult(const PCGExPropertyChoicesAlign::FResult& Result);
-
-	/** The popover's action row, full width, right-aligned: [Add ...] [Align v]. */
-	void AddActionsRow(
-		IDetailChildrenBuilder& ChildBuilder,
-		const TWeakObjectPtr<UObject>& Owner,
-		FStructView Host,
-		const FText& AddLabel,
-		const FText& AddToolTip,
-		FOnClicked OnAdd);
-	/** Raw data of the nearest ancestor handle whose struct is exactly Struct; null when none or multi-object. */
-	template <typename T>
-	T* ResolveAncestorRaw(const TSharedRef<IPropertyHandle>& Handle, const UScriptStruct* Struct)
+	/** The nearest ancestor handle whose struct is exactly Struct; null when there is none. */
+	TSharedPtr<IPropertyHandle> FindAncestor(const TSharedRef<IPropertyHandle>& Handle, const UScriptStruct* Struct)
 	{
 		for (TSharedPtr<IPropertyHandle> Parent = Handle->GetParentHandle(); Parent.IsValid(); Parent = Parent->GetParentHandle())
 		{
 			const FStructProperty* StructProperty = CastField<FStructProperty>(Parent->GetProperty());
-			if (!StructProperty || StructProperty->Struct != Struct)
+			if (StructProperty && StructProperty->Struct == Struct)
 			{
-				continue;
+				return Parent;
 			}
-			TArray<void*> RawData;
-			Parent->AccessRawData(RawData);
-			return RawData.Num() == 1 && RawData[0] ? static_cast<T*>(RawData[0]) : nullptr;
 		}
 		return nullptr;
 	}
 
-	FStructView ViewOf(FInstancedStruct& Instance)
+	/** The layers Collection resolves through below its own, when Owner is the row host that collection belongs to. */
+	void GetFallbackChain(UObject* Owner, const FPCGExPropertySchemaCollection* Collection, IPCGExPropertyRowHost::FLayerChain& OutChain)
 	{
-		const UScriptStruct* Type = Instance.GetScriptStruct();
-		return Type && Type->IsChildOf(FPCGExProperty::StaticStruct()) ? FStructView(Instance) : FStructView();
+		const IPCGExPropertyRowHost* RowHost = Cast<IPCGExPropertyRowHost>(Owner);
+		if (RowHost && RowHost->EDITOR_GetRowSchema() == Collection)
+		{
+			RowHost->EDITOR_GetRowSchemaFallbackChain(OutChain);
+		}
 	}
 
-	TMap<const void*, FPCGExChoicesEditContext>& GetEditContexts()
+	/** The imported entry named PropertyName in a resolved view; null for a local or an unknown name. */
+	const FPCGExPropertyResolved* FindImported(const TArray<FPCGExPropertyResolved>& Resolved, const FName PropertyName)
 	{
-		static TMap<const void*, FPCGExChoicesEditContext> Contexts;
-		return Contexts;
+		return Resolved.FindByPredicate([PropertyName](const FPCGExPropertyResolved& Candidate)
+		{
+			return Candidate.OwningAsset && Candidate.Source->Name == PropertyName;
+		});
 	}
 
-	// The edit context of the choices (or patch) struct Handle is, or sits under: a scratch copy in the popover has no
-	// ancestors to walk, so the popover registers its context under the copy's address.
-	const FPCGExChoicesEditContext* FindEditContext(const TSharedRef<IPropertyHandle>& Handle)
+	/** "Choice N" for the lowest N neither list uses: a count would repeat after a delete or clash with an inherited label. */
+	FString MakeUniqueLabel(const TArray<FPCGExPropertyChoice>& Own, const TArray<FPCGExPropertyChoice>* Inherited = nullptr)
 	{
-		TArray<void*> RawData;
-		Handle->AccessRawData(RawData);
-		if (RawData.Num() == 1 && RawData[0])
+		for (int32 Number = 1; ; ++Number)
 		{
-			if (const FPCGExChoicesEditContext* Own = FPCGExChoicesEditScope::Find(RawData[0]))
+			const FString Candidate = FString::Printf(TEXT("Choice %d"), Number);
+			auto Uses = [&Candidate](const FPCGExPropertyChoice& Choice)
 			{
-				return Own;
+				return Choice.Label.Equals(Candidate, ESearchCase::IgnoreCase);
+			};
+			if (!Own.ContainsByPredicate(Uses) && !(Inherited && Inherited->ContainsByPredicate(Uses)))
+			{
+				return Candidate;
 			}
 		}
-		if (const void* Choices = ResolveAncestorRaw<void>(Handle, FPCGExPropertyChoices::StaticStruct()))
-		{
-			return FPCGExChoicesEditScope::Find(Choices);
-		}
-		if (const void* Patch = ResolveAncestorRaw<void>(Handle, FPCGExPropertyChoicesPatch::StaticStruct()))
-		{
-			return FPCGExChoicesEditScope::Find(Patch);
-		}
-		return nullptr;
 	}
 
-	// The property struct instance Handle sits in: the nearest ancestor that is a property-derived struct row, the
-	// FInstancedStruct holding one (a struct row made from a provider may expose no FProperty), or an override entry,
-	// whose Value is the host of its patch's items. Single-object edits only.
-	FStructView ResolveHost(const TSharedRef<IPropertyHandle>& Handle)
-	{
-		for (TSharedPtr<IPropertyHandle> Parent = Handle->GetParentHandle(); Parent.IsValid(); Parent = Parent->GetParentHandle())
-		{
-			const FStructProperty* StructProperty = CastField<FStructProperty>(Parent->GetProperty());
-			if (!StructProperty || !StructProperty->Struct)
-			{
-				continue;
-			}
-
-			const bool bPropertyRow = StructProperty->Struct->IsChildOf(FPCGExProperty::StaticStruct());
-			const bool bInstancedStruct = StructProperty->Struct == FInstancedStruct::StaticStruct();
-			const bool bOverrideEntry = StructProperty->Struct == FPCGExPropertyOverrideEntry::StaticStruct();
-			if (!bPropertyRow && !bInstancedStruct && !bOverrideEntry)
-			{
-				continue;
-			}
-
-			TArray<void*> RawData;
-			Parent->AccessRawData(RawData);
-			if (RawData.Num() != 1 || !RawData[0])
-			{
-				return FStructView();
-			}
-			if (bPropertyRow)
-			{
-				return FStructView(StructProperty->Struct, static_cast<uint8*>(RawData[0]));
-			}
-			if (bOverrideEntry)
-			{
-				return ViewOf(static_cast<FPCGExPropertyOverrideEntry*>(RawData[0])->Value);
-			}
-			return ViewOf(*static_cast<FInstancedStruct*>(RawData[0]));
-		}
-
-		const FPCGExChoicesEditContext* Context = FindEditContext(Handle);
-		return Context ? Context->Host : FStructView();
-	}
-
+	/** Editor toast saying what an align run reached, including when that was nothing. */
 	void NotifyAlignResult(const PCGExPropertyChoicesAlign::FResult& Result)
 	{
-		FNotificationInfo Info(Result.RowsAligned > 0
-			? FText::Format(LOCTEXT("Aligned", "Aligned {0} row(s) across {1} host(s)."), FText::AsNumber(Result.RowsAligned), FText::AsNumber(Result.HostsTouched))
-			: LOCTEXT("NothingToAlign", "Every row already sits on a choice."));
+		FText Message;
+		if (Result.RowsAligned > 0)
+		{
+			Message = FText::Format(
+				LOCTEXT("Aligned", "Aligned {0} row(s) in {1} of the {2} host(s) checked."),
+				FText::AsNumber(Result.RowsAligned), FText::AsNumber(Result.HostsTouched), FText::AsNumber(Result.HostsVisited));
+		}
+		else if (Result.HostsVisited > 0)
+		{
+			Message = FText::Format(LOCTEXT("NothingToAlign", "No row needed aligning: {0} host(s) checked."), FText::AsNumber(Result.HostsVisited));
+		}
+		else
+		{
+			Message = LOCTEXT("NothingVisited", "Nothing to align: no loaded host resolves this property with choices.");
+		}
+
+		FNotificationInfo Info(Message);
 		Info.ExpireDuration = 4.0f;
 		Info.bUseSuccessFailIcons = true;
 		if (const TSharedPtr<SNotificationItem> Item = FSlateNotificationManager::Get().AddNotification(Info))
@@ -158,516 +115,683 @@ namespace PCGExPropertyChoicesCustomization
 		}
 	}
 
-	void AddActionsRow(
-		IDetailChildrenBuilder& ChildBuilder,
-		const TWeakObjectPtr<UObject>& Owner,
-		const FStructView Host,
-		const FText& AddLabel,
-		const FText& AddToolTip,
-		FOnClicked OnAdd)
+	// By value: CreateStatic binds payloads to parameters of their decayed type, a reference does not match.
+	void RunAlign(const TWeakPtr<FPCGExChoicesEditSession> WeakSession, const bool bImporters)
 	{
-		ChildBuilder.AddCustomRow(LOCTEXT("ChoicesActionsFilter", "Actions"))
-		            .WholeRowContent()
-			[
-				SNew(SBox)
-				.Padding(FMargin(0, 2, 0, 2))
-				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0f)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 4, 0)
-					[
-						SNew(SButton)
-						.Text(AddLabel)
-						.ToolTipText(AddToolTip)
-						.OnClicked(OnAdd)
-					]
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					[
-						MakeAlignButton(Owner, Host)
-					]
-				]
-			];
-	}
-
-	TWeakObjectPtr<UObject> ResolveOwner(const TSharedRef<IPropertyHandle>& Handle)
-	{
-		if (const FPCGExChoicesEditContext* Context = FindEditContext(Handle))
+		const TSharedPtr<FPCGExChoicesEditSession> Session = WeakSession.Pin();
+		if (!Session.IsValid() || !Session->IsValid())
 		{
-			return Context->Owner;
+			return;
 		}
-		TArray<UObject*> Outers;
-		Handle->GetOuterObjects(Outers);
-		return Outers.Num() == 1 ? Outers[0] : nullptr;
+
+		UObject* Owner = Session->GetOwner();
+		const FName PropertyName = Session->GetPropertyName();
+		const UPCGExPropertySchemaAsset* DeclaringAsset = Session->GetDeclaringAsset();
+
+		const FScopedTransaction Transaction(bImporters
+			? LOCTEXT("AlignImportersTransaction", "Align Importers to Choices")
+			: LOCTEXT("AlignHostRowsTransaction", "Align Rows to Choices"));
+		NotifyAlignResult(bImporters
+			? PCGExPropertyChoicesAlign::AlignImporters(Cast<UPCGExPropertySchemaAsset>(Owner), PropertyName, DeclaringAsset)
+			: PCGExPropertyChoicesAlign::AlignHostRows(Owner, PropertyName, Session->IsPatch() ? DeclaringAsset : nullptr));
 	}
 
-	TSharedRef<SWidget> MakeAlignButton(const TWeakObjectPtr<UObject>& Owner, const FStructView Host)
+	/** The align lever as a small combo: this host's rows, or every loaded importer of a schema asset. */
+	TSharedRef<SWidget> MakeAlignButton(const TWeakPtr<FPCGExChoicesEditSession>& WeakSession)
 	{
-		const FPCGExProperty* Property = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
-		const int32 HeaderId = Property ? Property->HeaderId : 0;
-		const FName PropertyName = Property ? Property->PropertyName : NAME_None;
-
 		return SNew(SComboButton)
 			.ComboButtonStyle(FAppStyle::Get(), "SimpleComboButton")
 			.HasDownArrow(true)
-			.ToolTipText(LOCTEXT("AlignToolTip", "Snap rows whose value is none of the choices onto the default choice (or the first). Rows already on a choice are left alone."))
+			.ToolTipText(LOCTEXT("AlignToolTip", "Snap rows whose value is none of the choices onto the default choice (or the first that fits). Rows already on a choice are left alone."))
 			.ButtonContent()
 			[
 				SNew(STextBlock)
 				.Text(LOCTEXT("AlignLabel", "Align"))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
-			.OnGetMenuContent_Lambda([Owner, HeaderId, PropertyName]() -> TSharedRef<SWidget>
+			.OnGetMenuContent_Lambda([WeakSession]() -> TSharedRef<SWidget>
 			{
-				UObject* OwnerObject = Owner.Get();
-				const bool bHostRows = OwnerObject && OwnerObject->GetClass()->ImplementsInterface(UPCGExPropertyRowHost::StaticClass());
-				const bool bAsset = OwnerObject && OwnerObject->IsA<UPCGExPropertySchemaAsset>();
+				const TSharedPtr<FPCGExChoicesEditSession> Session = WeakSession.Pin();
+				UObject* Owner = Session.IsValid() && Session->IsValid() ? Session->GetOwner() : nullptr;
+				const bool bAsset = Owner && Owner->IsA<UPCGExPropertySchemaAsset>();
+				const bool bRowHost = Owner && Owner->GetClass()->ImplementsInterface(UPCGExPropertyRowHost::StaticClass());
+				// A schema asset holds no row of a property it declares itself: only its importers do.
+				const bool bHostRows = bRowHost && !(bAsset && !Session->IsPatch());
 
-				FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection*/ true, nullptr);
+				// bCloseSelfOnly: the default dismisses every open menu, and this one lives inside the popover.
+				FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection*/ true, nullptr, nullptr, /*bInCloseSelfOnly*/ true);
 				MenuBuilder.AddMenuEntry(
 					LOCTEXT("AlignHostRows", "Align this host's rows"),
-					LOCTEXT("AlignHostRowsToolTip", "Every enabled row of this collection, node or component whose value is not one of the choices."),
+					LOCTEXT("AlignHostRowsToolTip", "Every enabled row of this collection, node, component or asset whose value is not one of the choices, its own import override included."),
 					FSlateIcon(),
 					FUIAction(
-						FExecuteAction::CreateLambda([Owner, HeaderId, PropertyName]()
-						{
-							FScopedTransaction Transaction(LOCTEXT("AlignHostRowsTransaction", "Align Rows to Choices"));
-							PCGExPropertyChoicesCustomization::NotifyAlignResult(PCGExPropertyChoicesAlign::AlignHostRows(Owner.Get(), HeaderId, PropertyName));
-						}),
+						FExecuteAction::CreateStatic(&RunAlign, WeakSession, false),
 						FCanExecuteAction::CreateLambda([bHostRows]() { return bHostRows; })));
 				MenuBuilder.AddMenuEntry(
 					LOCTEXT("AlignImporters", "Align all loaded importers"),
-					LOCTEXT("AlignImportersToolTip", "Same, across every loaded collection, node or component importing this schema asset. Unloaded assets are not visited."),
+					LOCTEXT("AlignImportersToolTip", "Same, in every loaded collection, node, component or schema asset importing this asset. Unloaded assets and Blueprint templates are not visited."),
 					FSlateIcon(),
 					FUIAction(
-						FExecuteAction::CreateLambda([Owner, HeaderId, PropertyName]()
-						{
-							FScopedTransaction Transaction(LOCTEXT("AlignImportersTransaction", "Align Importers to Choices"));
-							PCGExPropertyChoicesCustomization::NotifyAlignResult(PCGExPropertyChoicesAlign::AlignImporters(Cast<UPCGExPropertySchemaAsset>(Owner.Get()), HeaderId, PropertyName));
-						}),
+						FExecuteAction::CreateStatic(&RunAlign, WeakSession, true),
 						FCanExecuteAction::CreateLambda([bAsset]() { return bAsset; })));
 				return MenuBuilder.MakeWidget();
 			});
 	}
 }
 
-#pragma region FPCGExChoicesEditScope
+#pragma region FPCGExChoicesEditSession
 
-FPCGExChoicesEditScope::FPCGExChoicesEditScope(const void* InKey, const FPCGExChoicesEditContext& InContext)
-	: Key(InKey)
+TSharedRef<FPCGExChoicesEditSession> FPCGExChoicesEditSession::MakeForDeclaration(const TSharedRef<IPropertyHandle>& ChoicesHandle, const FPCGExPropertyHostRef& Host)
 {
-	if (Key)
+	const TSharedRef<FPCGExChoicesEditSession> Session = MakeShareable(new FPCGExChoicesEditSession());
+	Session->bPatch = false;
+	Session->TargetHandle = ChoicesHandle;
+	Session->Host = Host;
+
+	Session->Scratch = MakeShared<FStructOnScope>(FPCGExPropertyChoicesEditTarget::StaticStruct());
+	Session->ScratchMember = &reinterpret_cast<FPCGExPropertyChoicesEditTarget*>(Session->Scratch->GetStructMemory())->Choices;
+
+	TArray<UObject*> Outers;
+	ChoicesHandle->GetOuterObjects(Outers);
+	Session->Owner = Outers.Num() == 1 ? Outers[0] : nullptr;
+
+	Session->PullFromReal();
+	return Session;
+}
+
+TSharedRef<FPCGExChoicesEditSession> FPCGExChoicesEditSession::MakeForPatch(const TSharedRef<IPropertyHandle>& EntryHandle, const FPCGExPropertyHostRef& Host)
+{
+	const TSharedRef<FPCGExChoicesEditSession> Session = MakeShareable(new FPCGExChoicesEditSession());
+	Session->bPatch = true;
+	Session->TargetHandle = EntryHandle;
+	Session->Host = Host;
+	Session->CollectionHandle = PCGExPropertyChoicesCustomization::FindAncestor(EntryHandle, FPCGExPropertySchemaCollection::StaticStruct());
+
+	Session->Scratch = MakeShared<FStructOnScope>(FPCGExPropertyChoicesPatchEditTarget::StaticStruct());
+	Session->ScratchMember = &reinterpret_cast<FPCGExPropertyChoicesPatchEditTarget*>(Session->Scratch->GetStructMemory())->Patch;
+
+	TArray<UObject*> Outers;
+	EntryHandle->GetOuterObjects(Outers);
+	Session->Owner = Outers.Num() == 1 ? Outers[0] : nullptr;
+
+	Session->PullFromReal();
+	return Session;
+}
+
+void* FPCGExChoicesEditSession::GetTargetRaw() const
+{
+	return FPCGExPropertyHostRef::GetSingleRawData(TargetHandle);
+}
+
+FPCGExPropertySchemaCollection* FPCGExChoicesEditSession::ResolveCollection() const
+{
+	return static_cast<FPCGExPropertySchemaCollection*>(FPCGExPropertyHostRef::GetSingleRawData(CollectionHandle));
+}
+
+bool FPCGExChoicesEditSession::IsValid() const
+{
+	const void* Raw = GetTargetRaw();
+	const FStructView HostView = Host.Resolve();
+	const FPCGExProperty* Property = HostView.GetPtr<FPCGExProperty>();
+	if (!Raw || !Property)
 	{
-		PCGExPropertyChoicesCustomization::GetEditContexts().Add(Key, InContext);
+		return false;
+	}
+	// Both handles have to agree on what they reach: one left behind by a rebuild fails here.
+	return bPatch
+		? static_cast<const FPCGExPropertyOverrideEntry*>(Raw)->Value.GetMemory() == HostView.GetMemory()
+		: Raw == &Property->Choices;
+}
+
+FStructView FPCGExChoicesEditSession::ResolveHost() const
+{
+	return IsValid() ? Host.Resolve() : FStructView();
+}
+
+FPCGExPropertyChoices* FPCGExChoicesEditSession::GetScratchChoices() const
+{
+	return bPatch ? nullptr : static_cast<FPCGExPropertyChoices*>(ScratchMember);
+}
+
+FPCGExPropertyChoicesPatch* FPCGExChoicesEditSession::GetScratchPatch() const
+{
+	return bPatch ? static_cast<FPCGExPropertyChoicesPatch*>(ScratchMember) : nullptr;
+}
+
+FName FPCGExChoicesEditSession::GetPropertyName() const
+{
+	const FPCGExProperty* Property = ResolveHost().GetPtr<FPCGExProperty>();
+	return Property ? Property->PropertyName : NAME_None;
+}
+
+bool FPCGExChoicesEditSession::GetInheritedChoices(FPCGExPropertyChoices& Out) const
+{
+	Out = FPCGExPropertyChoices();
+	const FPCGExPropertySchemaCollection* Collection = bPatch && IsValid() ? ResolveCollection() : nullptr;
+	if (!Collection)
+	{
+		return false;
+	}
+
+	IPCGExPropertyRowHost::FLayerChain Chain;
+	PCGExPropertyChoicesCustomization::GetFallbackChain(Owner.Get(), Collection, Chain);
+
+	// Without this collection's own layer: its patch is the very thing being edited.
+	TArray<FPCGExPropertyResolved> Resolved;
+	Collection->Resolve(Resolved, MakeArrayView(Chain), /*bIncludeOwnOverrides=*/false);
+	const FPCGExPropertyResolved* Imported = PCGExPropertyChoicesCustomization::FindImported(Resolved, GetPropertyName());
+	if (!Imported)
+	{
+		return false;
+	}
+	Imported->GetEffectiveChoices(Out);
+	return true;
+}
+
+const UPCGExPropertySchemaAsset* FPCGExChoicesEditSession::GetDeclaringAsset() const
+{
+	if (!bPatch)
+	{
+		return Cast<UPCGExPropertySchemaAsset>(Owner.Get());
+	}
+	const FPCGExPropertySchemaCollection* Collection = IsValid() ? ResolveCollection() : nullptr;
+	if (!Collection)
+	{
+		return nullptr;
+	}
+	TArray<FPCGExPropertyResolved> Resolved;
+	Collection->Resolve(Resolved);
+	const FPCGExPropertyResolved* Imported = PCGExPropertyChoicesCustomization::FindImported(Resolved, GetPropertyName());
+	return Imported ? Imported->OwningAsset : nullptr;
+}
+
+bool FPCGExChoicesEditSession::ScratchEqualsReal() const
+{
+	const void* Raw = GetTargetRaw();
+	if (!Raw)
+	{
+		return true;
+	}
+	if (!bPatch)
+	{
+		return *GetScratchChoices() == *static_cast<const FPCGExPropertyChoices*>(Raw);
+	}
+	const FPCGExPropertyChoicesPatch* Stored = static_cast<const FPCGExPropertyOverrideEntry*>(Raw)->GetChoicesPatch();
+	return Stored ? *GetScratchPatch() == *Stored : GetScratchPatch()->IsEmpty();
+}
+
+void FPCGExChoicesEditSession::WriteReal(void* Raw) const
+{
+	if (!bPatch)
+	{
+		PCGExProperties::CommitDeclaredChoices(Host.Resolve(), *GetScratchChoices());
+		return;
+	}
+
+	PCGExProperties::CommitChoicesPatch(*static_cast<FPCGExPropertyOverrideEntry*>(Raw), *GetScratchPatch());
+
+	// Before the bracket's post-change notify: the host syncs its consumer rows there, and they resolve through
+	// the import rows this patch just changed the list of.
+	if (FPCGExPropertySchemaCollection* Collection = ResolveCollection())
+	{
+		IPCGExPropertyRowHost::FLayerChain Chain;
+		PCGExPropertyChoicesCustomization::GetFallbackChain(Owner.Get(), Collection, Chain);
+		Collection->SyncImportOverridesInPlace(MakeArrayView(Chain));
 	}
 }
 
-FPCGExChoicesEditScope::~FPCGExChoicesEditScope()
+bool FPCGExChoicesEditSession::Commit(const FText& Description)
 {
-	if (Key)
+	if (bCommitting || !IsValid())
 	{
-		PCGExPropertyChoicesCustomization::GetEditContexts().Remove(Key);
+		return false;
 	}
+	// The engine raises finished-changing for edits that changed nothing: writing those would dirty the host and
+	// run its whole post-edit path.
+	if (ScratchEqualsReal())
+	{
+		return false;
+	}
+
+	TGuardValue<bool> Guard(bCommitting, true);
+	// The host's notifies can close the popover, which owns this.
+	const TSharedRef<FPCGExChoicesEditSession> KeepAlive = AsShared();
+
+	FPCGExRawPropertyEdit Edit(TargetHandle.ToSharedRef());
+	Edit.Commit(Description, [this](void* Raw) { WriteReal(Raw); });
+
+	// The commit settles ids and carriers, and the host may have its own say: what the view shows has to be that.
+	if (PullFromReal())
+	{
+		OnScratchChanged.Broadcast();
+	}
+	return true;
 }
 
-const FPCGExChoicesEditContext* FPCGExChoicesEditScope::Find(const void* InKey)
+void FPCGExChoicesEditSession::CommitAction(const FText& Description)
 {
-	return InKey ? PCGExPropertyChoicesCustomization::GetEditContexts().Find(InKey) : nullptr;
+	Commit(Description);
+	OnScratchChanged.Broadcast();
+}
+
+bool FPCGExChoicesEditSession::PullFromReal()
+{
+	const void* Raw = IsValid() ? GetTargetRaw() : nullptr;
+	if (!Raw || ScratchEqualsReal())
+	{
+		return false;
+	}
+	if (!bPatch)
+	{
+		*GetScratchChoices() = *static_cast<const FPCGExPropertyChoices*>(Raw);
+		return true;
+	}
+	const FPCGExPropertyChoicesPatch* Stored = static_cast<const FPCGExPropertyOverrideEntry*>(Raw)->GetChoicesPatch();
+	*GetScratchPatch() = Stored ? *Stored : FPCGExPropertyChoicesPatch();
+	return true;
 }
 
 #pragma endregion
 
-#pragma region FPCGExPropertyChoicesCustomization
+#pragma region Customizations
 
-TSharedRef<IPropertyTypeCustomization> FPCGExPropertyChoicesCustomization::MakeInstance()
+namespace PCGExPropertyChoicesCustomization
 {
-	return MakeShareable(new FPCGExPropertyChoicesCustomization());
-}
-
-bool FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(const TSharedRef<IPropertyHandle>& Handle)
-{
-	for (TSharedPtr<IPropertyHandle> Parent = Handle->GetParentHandle(); Parent.IsValid(); Parent = Parent->GetParentHandle())
+	/** What the three session-bound customizations share: the session, the rebuild, the actions row, the element rows. */
+	class FBase : public IPropertyTypeCustomization
 	{
-		if (Parent->HasMetaData(TEXT("ReadOnlySchema")))
+	public:
+		explicit FBase(const TSharedRef<FPCGExChoicesEditSession>& InSession)
+			: WeakSession(InSession)
 		{
-			return true;
 		}
-	}
-	return false;
-}
 
-void FPCGExPropertyChoicesCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	ChoicesHandlePtr = PropertyHandle;
-	WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
-	bReadOnly = IsUnderReadOnlySchema(PropertyHandle);
-	ItemsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoices, Items));
-	const TSharedPtr<IPropertyHandle> LockedHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoices, bLocked));
+	protected:
+		/** The session while it can still reach the real data; null afterwards, and every callback then does nothing. */
+		TSharedPtr<FPCGExChoicesEditSession> GetSession() const
+		{
+			const TSharedPtr<FPCGExChoicesEditSession> Session = WeakSession.Pin();
+			return Session.IsValid() && Session->IsValid() ? Session : nullptr;
+		}
 
-	if (bReadOnly || !ItemsHandle.IsValid() || !LockedHandle.IsValid())
+		void RequestRebuild()
+		{
+			if (const TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
+			{
+				Utils->RequestForceRefresh();
+			}
+		}
+
+		/** Full width, right-aligned: [Add Current Value] [Align v]. The header keeps the state and stays readable. */
+		void AddActionsRow(IDetailChildrenBuilder& ChildBuilder, const FText& AddToolTip, FOnClicked OnAdd) const
+		{
+			ChildBuilder.AddCustomRow(LOCTEXT("ChoicesActionsFilter", "Actions"))
+			            .WholeRowContent()
+				[
+					SNew(SBox)
+					.Padding(FMargin(0, 2, 0, 2))
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.Padding(0, 0, 4, 0)
+						[
+							SNew(SButton)
+							.Text(LOCTEXT("AddCurrentValue", "Add Current Value"))
+							.ToolTipText(AddToolTip)
+							.OnClicked(OnAdd)
+						]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						[
+							MakeAlignButton(WeakSession)
+						]
+					]
+				];
+		}
+
+		/** Elements as direct children (no "Items" level): each keeps the engine's insert / delete / duplicate buttons. */
+		static void AddElementRows(IDetailChildrenBuilder& ChildBuilder, const TSharedPtr<IPropertyHandle>& ItemsHandle)
+		{
+			uint32 NumItems = 0;
+			ItemsHandle->GetNumChildren(NumItems);
+			for (uint32 i = 0; i < NumItems; ++i)
+			{
+				if (const TSharedPtr<IPropertyHandle> Element = ItemsHandle->GetChildHandle(i))
+				{
+					ChildBuilder.AddProperty(Element.ToSharedRef());
+				}
+			}
+		}
+
+		TWeakPtr<FPCGExChoicesEditSession> WeakSession;
+		TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
+	};
+
+	/** FPCGExPropertyChoices in the popover. Header: [Locked] [N choices]; children: the actions row, then one row per choice. */
+	class FChoicesCustomization final : public FBase
 	{
-		HeaderRow.Visibility(EVisibility::Collapsed);
-		return;
-	}
+	public:
+		using FBase::FBase;
 
-	// Rows are added per element below; the engine re-lays-out on a count change but never re-runs this
-	// customization, so a shape change needs the deferred full rebuild.
-	if (const TSharedPtr<IPropertyHandleArray> ItemsArray = ItemsHandle->AsArray())
+		virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
+			ItemsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoices, Items));
+			const TSharedPtr<IPropertyHandle> LockedHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoices, bLocked));
+			if (!ItemsHandle.IsValid() || !LockedHandle.IsValid())
+			{
+				HeaderRow.Visibility(EVisibility::Collapsed);
+				return;
+			}
+
+			// Rows are added per element below; the engine re-lays-out on a count change but never re-runs this
+			// customization, so a shape change needs the deferred full rebuild.
+			if (const TSharedPtr<IPropertyHandleArray> ItemsArray = ItemsHandle->AsArray())
+			{
+				ItemsArray->SetOnNumElementsChanged(FSimpleDelegate::CreateSP(this, &FChoicesCustomization::RequestRebuild));
+			}
+
+			HeaderRow
+				.NameContent()
+				[
+					PropertyHandle->CreatePropertyNameWidget()
+				]
+				.ValueContent()
+				.MinDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMinWidth)
+				.MaxDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMaxWidth)
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0, 0, 4, 0)
+					[
+						LockedHandle->CreatePropertyValueWidget()
+					]
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("LockedLabel", "Locked"))
+						.ToolTipText(LockedHandle->GetToolTipText())
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(12, 0, 0, 0)
+					[
+						SNew(STextBlock)
+						.Text(this, &FChoicesCustomization::GetCountText)
+						.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+						.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+					]
+				];
+		}
+
+		virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			if (!ItemsHandle.IsValid())
+			{
+				return;
+			}
+			AddActionsRow(
+				ChildBuilder,
+				LOCTEXT("AddCurrentValueToolTip", "Add the property's current value as a new choice."),
+				FOnClicked::CreateSP(this, &FChoicesCustomization::OnAddCurrentValue));
+			AddElementRows(ChildBuilder, ItemsHandle);
+		}
+
+	private:
+		FText GetCountText() const
+		{
+			uint32 NumItems = 0;
+			if (ItemsHandle.IsValid())
+			{
+				ItemsHandle->GetNumChildren(NumItems);
+			}
+			return NumItems == 1
+				? LOCTEXT("OneChoice", "1 choice")
+				: FText::Format(LOCTEXT("ChoiceCount", "{0} choices"), FText::AsNumber(static_cast<int32>(NumItems)));
+		}
+
+		FReply OnAddCurrentValue()
+		{
+			const TSharedPtr<FPCGExChoicesEditSession> Session = GetSession();
+			FPCGExPropertyChoices* Choices = Session.IsValid() ? Session->GetScratchChoices() : nullptr;
+			if (Choices)
+			{
+				Choices->Items.Add(PCGExProperties::MakeChoiceFromValue(Session->ResolveHost(), MakeUniqueLabel(Choices->Items)));
+				Session->CommitAction(LOCTEXT("AddChoice", "Add Choice"));
+			}
+			return FReply::Handled();
+		}
+
+		TSharedPtr<IPropertyHandle> ItemsHandle;
+	};
+
+	/**
+	 * One choice as one row: the Label editor as the name, the carrier's own Value editor as the value (Compact
+	 * factory, else the default widget). A carrier of a complex type keeps a preview in the header and expands to its
+	 * editor. A carrier the host type no longer accepts shows why instead of an editor.
+	 */
+	class FChoiceCustomization final : public FBase
 	{
-		ItemsArray->SetOnNumElementsChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertyChoicesCustomization::OnNumItemsChanged));
-	}
+	public:
+		using FBase::FBase;
 
-	HeaderRow
-		.NameContent()
-		[
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		.MinDesiredWidth(250.0f)
-		.MaxDesiredWidth(3000.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0, 0, 4, 0)
-			[
-				LockedHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("LockedLabel", "Locked"))
-				.ToolTipText(LockedHandle->GetToolTipText())
+		virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			const TSharedPtr<IPropertyHandle> LabelHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoice, Label));
+			CarrierHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoice, Value));
+			if (!LabelHandle.IsValid() || !CarrierHandle.IsValid())
+			{
+				HeaderRow.NameContent()[PropertyHandle->CreatePropertyNameWidget()];
+				return;
+			}
+
+			const TSharedPtr<FPCGExChoicesEditSession> Session = GetSession();
+			const FStructView Host = Session.IsValid() ? Session->ResolveHost() : FStructView();
+			const FPCGExPropertyChoice* Choice = static_cast<const FPCGExPropertyChoice*>(FPCGExPropertyHostRef::GetSingleRawData(PropertyHandle));
+			const UScriptStruct* CarrierType = Choice ? Choice->Value.GetScriptStruct() : nullptr;
+			const bool bCompatible = CarrierType && Host.IsValid() && PCGExProperties::IsChoiceCompatible(Host, *Choice);
+
+			// An empty carrier only lives until the commit that follows its insertion gives it one.
+			TSharedRef<SWidget> ValueWidget = SNew(STextBlock)
+				.Text(CarrierType
+					      ? FText::Format(LOCTEXT("IncompatibleCarrier", "No longer matches the property ({0})"), CarrierType->GetDisplayNameText())
+					      : LOCTEXT("EmptyCarrier", "Empty choice"))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(12, 0, 0, 0)
-			[
-				SNew(STextBlock)
-				.Text(this, &FPCGExPropertyChoicesCustomization::GetCountText)
-				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			]
-		];
-}
+				.ColorAndOpacity(FStyleColors::Warning);
 
-void FPCGExPropertyChoicesCustomization::CustomizeChildren(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	if (bReadOnly || !ItemsHandle.IsValid())
-	{
-		return;
-	}
-
-	// Actions on their own full-width row: the header keeps the state (lock, count) and stays readable.
-	PCGExPropertyChoicesCustomization::AddActionsRow(
-		ChildBuilder,
-		PCGExPropertyChoicesCustomization::ResolveOwner(PropertyHandle),
-		PCGExPropertyChoicesCustomization::ResolveHost(PropertyHandle),
-		LOCTEXT("AddCurrentValue", "Add Current Value"),
-		LOCTEXT("AddCurrentValueToolTip", "Add the property's current value as a new choice."),
-		FOnClicked::CreateSP(this, &FPCGExPropertyChoicesCustomization::OnAddCurrentValue));
-
-	// Elements as direct children (no "Items" level): each keeps the engine's insert / delete / duplicate buttons.
-	uint32 NumItems = 0;
-	ItemsHandle->GetNumChildren(NumItems);
-	for (uint32 i = 0; i < NumItems; ++i)
-	{
-		if (const TSharedPtr<IPropertyHandle> Element = ItemsHandle->GetChildHandle(i))
-		{
-			ChildBuilder.AddProperty(Element.ToSharedRef());
-		}
-	}
-}
-
-FText FPCGExPropertyChoicesCustomization::GetCountText() const
-{
-	uint32 NumItems = 0;
-	if (ItemsHandle.IsValid())
-	{
-		ItemsHandle->GetNumChildren(NumItems);
-	}
-	return NumItems == 1
-		? LOCTEXT("OneChoice", "1 choice")
-		: FText::Format(LOCTEXT("ChoiceCount", "{0} choices"), FText::AsNumber(static_cast<int32>(NumItems)));
-}
-
-FReply FPCGExPropertyChoicesCustomization::OnAddCurrentValue()
-{
-	const TSharedPtr<IPropertyHandle> ChoicesHandle = ChoicesHandlePtr.Pin();
-	if (!ChoicesHandle.IsValid() || !ItemsHandle.IsValid())
-	{
-		return FReply::Handled();
-	}
-
-	const FStructView Host = PCGExPropertyChoicesCustomization::ResolveHost(ChoicesHandle.ToSharedRef());
-	TArray<void*> RawData;
-	ItemsHandle->AccessRawData(RawData);
-	if (!Host.IsValid() || RawData.Num() != 1 || !RawData[0])
-	{
-		return FReply::Handled();
-	}
-
-	TArray<FPCGExPropertyChoice>* Items = static_cast<TArray<FPCGExPropertyChoice>*>(RawData[0]);
-	const FName Label(*FString::Printf(TEXT("Choice %d"), Items->Num() + 1));
-
-	// Raw add inside the handle's notify bracket: the owner is Modify()'d by NotifyPreChange, so undo restores the
-	// whole array, and NotifyPostChange routes the host's structural sync. The rebuild re-aliases every row.
-	FScopedTransaction Transaction(LOCTEXT("AddChoice", "Add Choice"));
-	ItemsHandle->NotifyPreChange();
-	Items->Add(PCGExProperties::MakeChoiceFromValue(FConstStructView(Host), Label));
-	ItemsHandle->NotifyPostChange(EPropertyChangeType::ArrayAdd);
-	ItemsHandle->NotifyFinishedChangingProperties();
-
-	OnNumItemsChanged();
-	return FReply::Handled();
-}
-
-void FPCGExPropertyChoicesCustomization::OnNumItemsChanged()
-{
-	if (const TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
-	{
-		Utils->RequestForceRefresh();
-	}
-}
-
-#pragma endregion
-
-#pragma region FPCGExPropertyChoiceCustomization
-
-TSharedRef<IPropertyTypeCustomization> FPCGExPropertyChoiceCustomization::MakeInstance()
-{
-	return MakeShareable(new FPCGExPropertyChoiceCustomization());
-}
-
-void FPCGExPropertyChoiceCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	const TSharedPtr<IPropertyHandle> LabelHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoice, Label));
-	CarrierHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoice, Value));
-	if (!LabelHandle.IsValid() || !CarrierHandle.IsValid())
-	{
-		HeaderRow.NameContent()[PropertyHandle->CreatePropertyNameWidget()];
-		return;
-	}
-
-	TArray<void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	const FPCGExPropertyChoice* Choice = (RawData.Num() == 1 && RawData[0]) ? static_cast<const FPCGExPropertyChoice*>(RawData[0]) : nullptr;
-	const FStructView Host = PCGExPropertyChoicesCustomization::ResolveHost(PropertyHandle);
-	const UScriptStruct* CarrierType = Choice ? Choice->Value.GetScriptStruct() : nullptr;
-	const bool bCompatible = Choice && CarrierType && Host.IsValid() && PCGExProperties::IsChoiceCompatible(FConstStructView(Host), *Choice);
-
-	TSharedRef<SWidget> ValueWidget = SNew(STextBlock)
-		.Text(CarrierType
-			      ? FText::Format(LOCTEXT("IncompatibleCarrier", "No longer matches the property ({0})"), CarrierType->GetDisplayNameText())
-			      : LOCTEXT("EmptyCarrier", "Empty choice"))
-		.Font(IDetailLayoutBuilder::GetDetailFont())
-		.ColorAndOpacity(FStyleColors::Warning);
-
-	if (bCompatible)
-	{
-		// The carrier's fields as real child nodes: edits route through the engine's notify chain like any other row.
-		CarrierProvider = MakeShared<FInstancedStructProvider>(CarrierHandle);
-		CarrierHandle->RemoveChildren();
-		for (const TSharedPtr<IPropertyHandle>& Field : CarrierHandle->AddChildStructure(CarrierProvider.ToSharedRef()))
-		{
-			if (Field.IsValid() && Field->GetProperty() && Field->GetProperty()->GetFName() == TEXT("Value"))
+			if (bCompatible)
 			{
-				CarrierValueHandle = Field;
-				break;
-			}
-		}
-
-		bInlineCarrier = CarrierType->HasMetaData(TEXT("PCGExInlineValue"));
-		if (CarrierValueHandle.IsValid())
-		{
-			if (bInlineCarrier)
-			{
-				const FPCGExMakeInlineWidgetFn* Factory = FPCGExInlineWidgetRegistry::Find(CarrierType->GetFName(), EPCGExInlineWidgetMode::Compact);
-				ValueWidget = Factory ? (*Factory)(CarrierValueHandle.ToSharedRef()) : CarrierValueHandle->CreatePropertyValueWidget();
-			}
-			else
-			{
-				// Complex carriers expand to their editor; the header shows a live preview.
-				const TWeakPtr<IPropertyHandle> WeakCarrier = CarrierHandle;
-				ValueWidget = SNew(STextBlock)
-					.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-					.Text_Lambda([WeakCarrier]() -> FText
+				// The carrier's fields as real child nodes: edits route through the engine's notify chain like any other row.
+				CarrierProvider = MakeShared<FInstancedStructProvider>(CarrierHandle);
+				CarrierHandle->RemoveChildren();
+				const FProperty* ValueProperty = PCGExProperties::FindValueProperty(CarrierType);
+				for (const TSharedPtr<IPropertyHandle>& Field : CarrierHandle->AddChildStructure(CarrierProvider.ToSharedRef()))
+				{
+					if (Field.IsValid() && Field->GetProperty() == ValueProperty)
 					{
-						TArray<void*> CarrierRaw;
-						if (const TSharedPtr<IPropertyHandle> Pinned = WeakCarrier.Pin())
-						{
-							Pinned->AccessRawData(CarrierRaw);
-						}
-						if (CarrierRaw.Num() != 1 || !CarrierRaw[0])
-						{
-							return FText::GetEmpty();
-						}
-						return PCGExProperties::GetValuePreviewText(FConstStructView(*static_cast<const FInstancedStruct*>(CarrierRaw[0])));
-					});
+						CarrierValueHandle = Field;
+						break;
+					}
+				}
+
+				bInlineCarrier = CarrierType->HasMetaData(TEXT("PCGExInlineValue"));
+				if (CarrierValueHandle.IsValid())
+				{
+					if (bInlineCarrier)
+					{
+						const FPCGExMakeInlineWidgetFn* Factory = FPCGExInlineWidgetRegistry::Find(CarrierType->GetFName(), EPCGExInlineWidgetMode::Compact);
+						ValueWidget = Factory ? (*Factory)(CarrierValueHandle.ToSharedRef()) : CarrierValueHandle->CreatePropertyValueWidget();
+					}
+					else
+					{
+						// Complex carriers expand to their editor; the header shows a live preview.
+						const TWeakPtr<IPropertyHandle> WeakCarrier = CarrierHandle;
+						ValueWidget = SNew(STextBlock)
+							.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+							.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+							.Text_Lambda([WeakCarrier]() -> FText
+							{
+								const FInstancedStruct* Carrier = static_cast<const FInstancedStruct*>(FPCGExPropertyHostRef::GetSingleRawData(WeakCarrier.Pin()));
+								return Carrier ? PCGExProperties::GetValuePreviewText(*Carrier) : FText::GetEmpty();
+							});
+					}
+				}
+			}
+
+			HeaderRow
+				.NameContent()
+				[
+					LabelHandle->CreatePropertyValueWidget()
+				]
+				.ValueContent()
+				.MinDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMinWidth)
+				.MaxDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMaxWidth)
+				[
+					ValueWidget
+				];
+		}
+
+		virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			if (!bInlineCarrier && CarrierValueHandle.IsValid())
+			{
+				ChildBuilder.AddProperty(CarrierValueHandle.ToSharedRef());
 			}
 		}
-	}
 
-	HeaderRow
-		.NameContent()
-		[
-			LabelHandle->CreatePropertyValueWidget()
-		]
-		.ValueContent()
-		.MinDesiredWidth(250.0f)
-		.MaxDesiredWidth(3000.0f)
-		[
-			ValueWidget
-		];
-}
+	private:
+		/** FPCGExPropertyChoice::Value, the carrier FInstancedStruct. */
+		TSharedPtr<IPropertyHandle> CarrierHandle;
+		/** Keeps the carrier's child-structure nodes alive for the row's lifetime. */
+		TSharedPtr<FInstancedStructProvider> CarrierProvider;
+		/** The carrier's own "Value" field. */
+		TSharedPtr<IPropertyHandle> CarrierValueHandle;
+		bool bInlineCarrier = false;
+	};
 
-void FPCGExPropertyChoiceCustomization::CustomizeChildren(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	if (!bInlineCarrier && CarrierValueHandle.IsValid())
+	/**
+	 * FPCGExPropertyChoicesPatch in the popover: this importer's rewrite of the choices it inherits. Header: [Mode]
+	 * [Lock] [N effective]. Children: the actions row, the inherited choices (read-only, with Override / Remove /
+	 * Restore; not shown under Replace), then this patch's own items (none under Inherit). An action on an inherited
+	 * choice turns Inherit into Modify within the same commit.
+	 */
+	class FPatchCustomization final : public FBase
 	{
-		ChildBuilder.AddProperty(CarrierValueHandle.ToSharedRef());
-	}
-}
+	public:
+		using FBase::FBase;
 
-#pragma endregion
+		virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
+			const TSharedPtr<IPropertyHandle> ModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Mode));
+			const TSharedPtr<IPropertyHandle> LockHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Lock));
+			ItemsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Items));
+			if (!ModeHandle.IsValid() || !LockHandle.IsValid() || !ItemsHandle.IsValid())
+			{
+				HeaderRow.Visibility(EVisibility::Collapsed);
+				return;
+			}
 
-#pragma region FPCGExPropertyChoicesPatchCustomization
+			// Mode decides which rows exist, and so does the number of items.
+			ModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPatchCustomization::RequestRebuild));
+			if (const TSharedPtr<IPropertyHandleArray> ItemsArray = ItemsHandle->AsArray())
+			{
+				ItemsArray->SetOnNumElementsChanged(FSimpleDelegate::CreateSP(this, &FPatchCustomization::RequestRebuild));
+			}
 
-TSharedRef<IPropertyTypeCustomization> FPCGExPropertyChoicesPatchCustomization::MakeInstance()
-{
-	return MakeShareable(new FPCGExPropertyChoicesPatchCustomization());
-}
+			HeaderRow
+				.NameContent()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("PatchLabel", "Choices"))
+					.ToolTipText(PropertyHandle->GetToolTipText())
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+				.ValueContent()
+				.MinDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMinWidth)
+				.MaxDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMaxWidth)
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					[
+						ModeHandle->CreatePropertyValueWidget()
+					]
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(8, 0, 0, 0)
+					[
+						LockHandle->CreatePropertyValueWidget()
+					]
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(12, 0, 0, 0)
+					[
+						SNew(STextBlock)
+						.Text(this, &FPatchCustomization::GetCountText)
+						.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+						.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+					]
+				];
+		}
 
-void FPCGExPropertyChoicesPatchCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	PatchHandlePtr = PropertyHandle;
-	WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
-	bReadOnly = FPCGExPropertyChoicesCustomization::IsUnderReadOnlySchema(PropertyHandle);
-	ModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Mode));
-	LockHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Lock));
-	ItemsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, Items));
-	RemovedIdsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertyChoicesPatch, RemovedIds));
+		virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			const TSharedPtr<FPCGExChoicesEditSession> Session = GetSession();
+			const FPCGExPropertyChoicesPatch* Patch = Session.IsValid() ? Session->GetScratchPatch() : nullptr;
+			if (!Patch || !ItemsHandle.IsValid())
+			{
+				return;
+			}
 
-	if (bReadOnly || !ModeHandle.IsValid() || !LockHandle.IsValid() || !ItemsHandle.IsValid() || !RemovedIdsHandle.IsValid())
-	{
-		HeaderRow.Visibility(EVisibility::Collapsed);
-		return;
-	}
+			AddActionsRow(
+				ChildBuilder,
+				LOCTEXT("PatchAddCurrentValueToolTip", "Add this row's current value as a new choice of this importer."),
+				FOnClicked::CreateSP(this, &FPatchCustomization::OnAddCurrentValue));
 
-	// Every committed edit under the patch re-mirrors the import rows; what changes the row set rebuilds the panel.
-	PropertyHandle->SetOnChildPropertyValueChangedWithData(
-		TDelegate<void(const FPropertyChangedEvent&)>::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::OnPatchChanged));
-	ModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::RequestRebuild));
-	LockHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::RequestRebuild));
-	if (const TSharedPtr<IPropertyHandleArray> ItemsArray = ItemsHandle->AsArray())
-	{
-		ItemsArray->SetOnNumElementsChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::RequestRebuild));
-	}
-	if (const TSharedPtr<IPropertyHandleArray> RemovedArray = RemovedIdsHandle->AsArray())
-	{
-		RemovedArray->SetOnNumElementsChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::RequestRebuild));
-	}
+			// Inherited choices, except those this patch already overrides (their own row stands for them).
+			if (Patch->Mode != EPCGExChoicesPatchMode::Replace)
+			{
+				FPCGExPropertyChoices Inherited;
+				Session->GetInheritedChoices(Inherited);
+				for (const FPCGExPropertyChoice& Choice : Inherited.Items)
+				{
+					const FGuid Id = Choice.Id;
+					if (!Patch->Items.ContainsByPredicate([&Id](const FPCGExPropertyChoice& Item) { return Item.Id == Id; }))
+					{
+						AddInheritedRow(ChildBuilder, Choice, Patch->RemovedIds.Contains(Id));
+					}
+				}
+			}
 
-	HeaderRow
-		.NameContent()
-		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("PatchLabel", "Choices"))
-			.ToolTipText(PropertyHandle->GetToolTipText())
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		.ValueContent()
-		.MinDesiredWidth(250.0f)
-		.MaxDesiredWidth(3000.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			[
-				ModeHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(8, 0, 0, 0)
-			[
-				LockHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(12, 0, 0, 0)
-			[
-				SNew(STextBlock)
-				.Text(this, &FPCGExPropertyChoicesPatchCustomization::GetCountText)
-				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			]
-		];
-}
+			// This importer's own items: a stored patch holds none under Inherit.
+			if (Patch->Mode != EPCGExChoicesPatchMode::Inherit)
+			{
+				AddElementRows(ChildBuilder, ItemsHandle);
+			}
+		}
 
-void FPCGExPropertyChoicesPatchCustomization::CustomizeChildren(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	const FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	if (bReadOnly || !Patch || !ItemsHandle.IsValid())
-	{
-		return;
-	}
-
-	PCGExPropertyChoicesCustomization::AddActionsRow(
-		ChildBuilder,
-		PCGExPropertyChoicesCustomization::ResolveOwner(PropertyHandle),
-		GetHost(),
-		LOCTEXT("PatchAddCurrentValue", "Add Current Value"),
-		LOCTEXT("PatchAddCurrentValueToolTip", "Add this row's current value as a new choice of this importer."),
-		FOnClicked::CreateSP(this, &FPCGExPropertyChoicesPatchCustomization::OnAddCurrentValue));
-
-	// Inherited choices, except those this patch already overrides (their Items row stands for them).
-	if (Patch->Mode != EPCGExChoicesPatchMode::Replace)
-	{
-		FPCGExPropertyChoices Inherited;
-		GetInheritedChoices(Inherited);
-		for (const FPCGExPropertyChoice& Choice : Inherited.Items)
+	private:
+		void AddInheritedRow(IDetailChildrenBuilder& ChildBuilder, const FPCGExPropertyChoice& Choice, const bool bRemoved)
 		{
 			const FGuid Id = Choice.Id;
-			if (Patch->Items.ContainsByPredicate([&Id](const FPCGExPropertyChoice& Item) { return Item.Id == Id; }))
-			{
-				continue;
-			}
-			const bool bRemoved = Patch->RemovedIds.Contains(Id);
-			const FText Label = Choice.Label.IsNone() ? LOCTEXT("UnnamedInherited", "(unnamed)") : FText::FromName(Choice.Label);
+			const FText Label = FPCGExChoiceRowState::LabelOf(Choice);
 
-			TSharedRef<SHorizontalBox> Actions = SNew(SHorizontalBox);
+			const TSharedRef<SHorizontalBox> Actions = SNew(SHorizontalBox);
 			if (bRemoved)
 			{
 				Actions->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(4, 0, 0, 0)
@@ -675,7 +799,7 @@ void FPCGExPropertyChoicesPatchCustomization::CustomizeChildren(
 					SNew(SButton)
 					.Text(LOCTEXT("RestoreChoice", "Restore"))
 					.ToolTipText(LOCTEXT("RestoreChoiceToolTip", "Stop removing this inherited choice."))
-					.OnClicked(this, &FPCGExPropertyChoicesPatchCustomization::OnRestoreInherited, Id)
+					.OnClicked(this, &FPatchCustomization::OnRestoreInherited, Id)
 				];
 			}
 			else
@@ -685,14 +809,14 @@ void FPCGExPropertyChoicesPatchCustomization::CustomizeChildren(
 					SNew(SButton)
 					.Text(LOCTEXT("OverrideChoice", "Override"))
 					.ToolTipText(LOCTEXT("OverrideChoiceToolTip", "Edit this inherited choice here: label and value, same identity."))
-					.OnClicked(this, &FPCGExPropertyChoicesPatchCustomization::OnOverrideInherited, Id)
+					.OnClicked(this, &FPatchCustomization::OnOverrideInherited, Id)
 				];
 				Actions->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(4, 0, 0, 0)
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("RemoveChoice", "Remove"))
 					.ToolTipText(LOCTEXT("RemoveChoiceToolTip", "Drop this inherited choice for this importer and everything below it."))
-					.OnClicked(this, &FPCGExPropertyChoicesPatchCustomization::OnRemoveInherited, Id)
+					.OnClicked(this, &FPatchCustomization::OnRemoveInherited, Id)
 				];
 			}
 
@@ -721,8 +845,8 @@ void FPCGExPropertyChoicesPatchCustomization::CustomizeChildren(
 					]
 				]
 				.ValueContent()
-				.MinDesiredWidth(250.0f)
-				.MaxDesiredWidth(3000.0f)
+				.MinDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMinWidth)
+				.MaxDesiredWidth(FPCGExInlineWidgetRegistry::WideValueMaxWidth)
 				[
 					SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
@@ -742,232 +866,164 @@ void FPCGExPropertyChoicesPatchCustomization::CustomizeChildren(
 					]
 				];
 		}
-	}
 
-	// This importer's own items: a rewrite only applies outside Inherit.
-	if (Patch->Mode != EPCGExChoicesPatchMode::Inherit)
-	{
-		uint32 NumItems = 0;
-		ItemsHandle->GetNumChildren(NumItems);
-		for (uint32 i = 0; i < NumItems; ++i)
+		FText GetCountText() const
 		{
-			if (const TSharedPtr<IPropertyHandle> Element = ItemsHandle->GetChildHandle(i))
+			// The row's own mirror: the effective list, as every consumer of this importer sees it.
+			const TSharedPtr<FPCGExChoicesEditSession> Session = GetSession();
+			const FPCGExProperty* Property = Session.IsValid() ? Session->ResolveHost().GetPtr<FPCGExProperty>() : nullptr;
+			const int32 Num = Property ? Property->Choices.Items.Num() : 0;
+			return Num == 1
+				? LOCTEXT("OneEffectiveChoice", "1 effective")
+				: FText::Format(LOCTEXT("EffectiveChoiceCount", "{0} effective"), FText::AsNumber(Num));
+		}
+
+		/** One edit of the scratch patch, committed once. Inherit rewrites nothing, so any edit of the list leaves it. */
+		template <typename TEdit>
+		FReply EditPatch(const FText& Description, TEdit&& Edit)
+		{
+			const TSharedPtr<FPCGExChoicesEditSession> Session = GetSession();
+			if (FPCGExPropertyChoicesPatch* Patch = Session.IsValid() ? Session->GetScratchPatch() : nullptr)
 			{
-				ChildBuilder.AddProperty(Element.ToSharedRef());
+				if (Edit(*Session, *Patch))
+				{
+					if (Patch->Mode == EPCGExChoicesPatchMode::Inherit)
+					{
+						Patch->Mode = EPCGExChoicesPatchMode::Modify;
+					}
+					Session->CommitAction(Description);
+				}
 			}
+			return FReply::Handled();
 		}
-	}
-}
 
-FPCGExPropertyChoicesPatch* FPCGExPropertyChoicesPatchCustomization::GetPatch() const
-{
-	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	if (!PatchHandle.IsValid())
-	{
-		return nullptr;
-	}
-	TArray<void*> RawData;
-	PatchHandle->AccessRawData(RawData);
-	return RawData.Num() == 1 && RawData[0] ? static_cast<FPCGExPropertyChoicesPatch*>(RawData[0]) : nullptr;
-}
-
-FStructView FPCGExPropertyChoicesPatchCustomization::GetHost() const
-{
-	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	if (!PatchHandle.IsValid())
-	{
-		return FStructView();
-	}
-	if (const FPCGExChoicesEditContext* Context = PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
-	{
-		return Context->Host;
-	}
-	FPCGExPropertyOverrideEntry* Entry = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct());
-	return Entry ? PCGExPropertyChoicesCustomization::ViewOf(Entry->Value) : FStructView();
-}
-
-void FPCGExPropertyChoicesPatchCustomization::GetInheritedChoices(FPCGExPropertyChoices& Out) const
-{
-	Out = FPCGExPropertyChoices();
-	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	if (!PatchHandle.IsValid())
-	{
-		return;
-	}
-
-	// In the popover the patch is a scratch copy: the context says where the real one lives.
-	const FPCGExPropertySchemaCollection* Collection = nullptr;
-	FName EntryName = NAME_None;
-	const FPCGExPropertyChoicesPatch* RealPatch = nullptr;
-	if (const FPCGExChoicesEditContext* Context = PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
-	{
-		Collection = Context->Collection;
-		EntryName = Context->EntryName;
-		RealPatch = Context->RealPatch;
-	}
-	else if (const FPCGExPropertyOverrideEntry* Entry = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertyOverrideEntry>(PatchHandle.ToSharedRef(), FPCGExPropertyOverrideEntry::StaticStruct()))
-	{
-		Collection = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct());
-		EntryName = Entry->GetPropertyName();
-		RealPatch = &Entry->ChoicesPatch;
-	}
-	if (!Collection)
-	{
-		return;
-	}
-
-	TArray<FPCGExPropertyResolved> Resolved;
-	Collection->Resolve(Resolved);
-	for (const FPCGExPropertyResolved& Candidate : Resolved)
-	{
-		if (Candidate.OwningAsset && Candidate.Source && Candidate.Source->Name == EntryName)
+		FReply OnAddCurrentValue()
 		{
-			Candidate.GetEffectiveChoices(Out, RealPatch);
-			return;
+			return EditPatch(LOCTEXT("PatchAddChoice", "Add Choice"), [](const FPCGExChoicesEditSession& Session, FPCGExPropertyChoicesPatch& Patch)
+			{
+				FPCGExPropertyChoices Inherited;
+				Session.GetInheritedChoices(Inherited);
+				Patch.Items.Add(PCGExProperties::MakeChoiceFromValue(Session.ResolveHost(), MakeUniqueLabel(Patch.Items, &Inherited.Items)));
+				return true;
+			});
+		}
+
+		FReply OnOverrideInherited(const FGuid ChoiceId)
+		{
+			return EditPatch(LOCTEXT("PatchOverrideChoice", "Override Choice"), [&ChoiceId](const FPCGExChoicesEditSession& Session, FPCGExPropertyChoicesPatch& Patch)
+			{
+				FPCGExPropertyChoices Inherited;
+				Session.GetInheritedChoices(Inherited);
+				const int32 Index = PCGExProperties::FindChoiceById(Inherited, ChoiceId);
+				if (Index == INDEX_NONE)
+				{
+					return false;
+				}
+				// Same Id: the item replaces the inherited choice rather than sitting beside it.
+				Patch.Items.Add(Inherited.Items[Index]);
+				return true;
+			});
+		}
+
+		FReply OnRemoveInherited(const FGuid ChoiceId)
+		{
+			return EditPatch(LOCTEXT("PatchRemoveChoice", "Remove Choice"), [&ChoiceId](const FPCGExChoicesEditSession&, FPCGExPropertyChoicesPatch& Patch)
+			{
+				if (Patch.RemovedIds.Contains(ChoiceId))
+				{
+					return false;
+				}
+				Patch.RemovedIds.Add(ChoiceId);
+				return true;
+			});
+		}
+
+		FReply OnRestoreInherited(const FGuid ChoiceId)
+		{
+			return EditPatch(LOCTEXT("PatchRestoreChoice", "Restore Choice"), [&ChoiceId](const FPCGExChoicesEditSession&, FPCGExPropertyChoicesPatch& Patch)
+			{
+				return Patch.RemovedIds.Remove(ChoiceId) > 0;
+			});
+		}
+
+		TSharedPtr<IPropertyHandle> ItemsHandle;
+	};
+
+	/** No row at all: outside the popover the choices structs are data, not something to edit in place. */
+	class FHiddenCustomization final : public IPropertyTypeCustomization
+	{
+	public:
+		virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+			HeaderRow.Visibility(EVisibility::Collapsed);
+		}
+
+		virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override
+		{
+		}
+	};
+}
+
+#pragma endregion
+
+#pragma region PCGExPropertyChoicesUI
+
+bool PCGExPropertyChoicesUI::IsUnderReadOnlySchema(const TSharedRef<IPropertyHandle>& Handle)
+{
+	// HasMetaData covers both compile-time meta=(ReadOnlySchema) and the per-instance flag set through
+	// SetInstanceMetaData, which is how a values-only host locks its schema.
+	for (TSharedPtr<IPropertyHandle> Parent = Handle->GetParentHandle(); Parent.IsValid(); Parent = Parent->GetParentHandle())
+	{
+		if (Parent->HasMetaData(TEXT("ReadOnlySchema")))
+		{
+			return true;
 		}
 	}
+	return false;
 }
 
-FText FPCGExPropertyChoicesPatchCustomization::GetCountText() const
+FOnGetContent PCGExPropertyChoicesUI::MakeDeclarationEditor(const TSharedPtr<IPropertyHandle>& ChoicesHandle, const FPCGExPropertyHostRef& Host)
 {
-	const FStructView Host = GetHost();
-	const FPCGExProperty* Property = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
-	const int32 Num = Property ? Property->Choices.Items.Num() : 0;
-	return Num == 1
-		? LOCTEXT("OneEffectiveChoice", "1 effective")
-		: FText::Format(LOCTEXT("EffectiveChoiceCount", "{0} effective"), FText::AsNumber(Num));
+	if (!ChoicesHandle.IsValid() || !Host.IsSet())
+	{
+		return FOnGetContent();
+	}
+	return FOnGetContent::CreateLambda([ChoicesHandle, Host]() -> TSharedRef<SWidget>
+	{
+		return SNew(SPCGExPropertyChoicesEditor).Session(FPCGExChoicesEditSession::MakeForDeclaration(ChoicesHandle.ToSharedRef(), Host));
+	});
 }
 
-void FPCGExPropertyChoicesPatchCustomization::EnsureModifyMode()
+FOnGetContent PCGExPropertyChoicesUI::MakePatchEditor(const TSharedPtr<IPropertyHandle>& EntryHandle, const FPCGExPropertyHostRef& Host)
 {
-	FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	if (!Patch || !ModeHandle.IsValid() || Patch->Mode != EPCGExChoicesPatchMode::Inherit)
+	if (!EntryHandle.IsValid() || !Host.IsSet())
 	{
-		return;
+		return FOnGetContent();
 	}
-	ModeHandle->NotifyPreChange();
-	Patch->Mode = EPCGExChoicesPatchMode::Modify;
-	ModeHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
-	ModeHandle->NotifyFinishedChangingProperties();
+	return FOnGetContent::CreateLambda([EntryHandle, Host]() -> TSharedRef<SWidget>
+	{
+		return SNew(SPCGExPropertyChoicesEditor).Session(FPCGExChoicesEditSession::MakeForPatch(EntryHandle.ToSharedRef(), Host));
+	});
 }
 
-FReply FPCGExPropertyChoicesPatchCustomization::OnAddCurrentValue()
+void PCGExPropertyChoicesUI::RegisterSessionLayouts(IDetailsView& View, const TSharedRef<FPCGExChoicesEditSession>& Session)
 {
-	FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	const FStructView Host = GetHost();
-	if (!Patch || !Host.IsValid() || !ItemsHandle.IsValid())
-	{
-		return FReply::Handled();
-	}
+	using namespace PCGExPropertyChoicesCustomization;
 
-	FScopedTransaction Transaction(LOCTEXT("PatchAddChoice", "Add Choice"));
-	EnsureModifyMode();
-	const FName Label(*FString::Printf(TEXT("Choice %d"), Patch->Items.Num() + 1));
-	ItemsHandle->NotifyPreChange();
-	Patch->Items.Add(PCGExProperties::MakeChoiceFromValue(FConstStructView(Host), Label));
-	ItemsHandle->NotifyPostChange(EPropertyChangeType::ArrayAdd);
-	ItemsHandle->NotifyFinishedChangingProperties();
-	RequestRebuild();
-	return FReply::Handled();
+	View.RegisterInstancedCustomPropertyTypeLayout(
+		FPCGExPropertyChoices::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateLambda([Session]() -> TSharedRef<IPropertyTypeCustomization> { return MakeShared<FChoicesCustomization>(Session); }));
+	View.RegisterInstancedCustomPropertyTypeLayout(
+		FPCGExPropertyChoice::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateLambda([Session]() -> TSharedRef<IPropertyTypeCustomization> { return MakeShared<FChoiceCustomization>(Session); }));
+	View.RegisterInstancedCustomPropertyTypeLayout(
+		FPCGExPropertyChoicesPatch::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateLambda([Session]() -> TSharedRef<IPropertyTypeCustomization> { return MakeShared<FPatchCustomization>(Session); }));
 }
 
-FReply FPCGExPropertyChoicesPatchCustomization::OnOverrideInherited(const FGuid ChoiceId)
+TSharedRef<IPropertyTypeCustomization> PCGExPropertyChoicesUI::MakeHiddenCustomization()
 {
-	FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	FPCGExPropertyChoices Inherited;
-	GetInheritedChoices(Inherited);
-	const int32 Index = PCGExProperties::FindChoiceById(Inherited, ChoiceId);
-	if (!Patch || Index == INDEX_NONE || !ItemsHandle.IsValid())
-	{
-		return FReply::Handled();
-	}
-
-	// Same Id: the item replaces the inherited choice rather than sitting beside it.
-	FScopedTransaction Transaction(LOCTEXT("PatchOverrideChoice", "Override Choice"));
-	EnsureModifyMode();
-	ItemsHandle->NotifyPreChange();
-	Patch->Items.Add(Inherited.Items[Index]);
-	ItemsHandle->NotifyPostChange(EPropertyChangeType::ArrayAdd);
-	ItemsHandle->NotifyFinishedChangingProperties();
-	RequestRebuild();
-	return FReply::Handled();
-}
-
-FReply FPCGExPropertyChoicesPatchCustomization::OnRemoveInherited(const FGuid ChoiceId)
-{
-	FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	if (!Patch || !RemovedIdsHandle.IsValid() || Patch->RemovedIds.Contains(ChoiceId))
-	{
-		return FReply::Handled();
-	}
-
-	FScopedTransaction Transaction(LOCTEXT("PatchRemoveChoice", "Remove Choice"));
-	EnsureModifyMode();
-	RemovedIdsHandle->NotifyPreChange();
-	Patch->RemovedIds.Add(ChoiceId);
-	RemovedIdsHandle->NotifyPostChange(EPropertyChangeType::ArrayAdd);
-	RemovedIdsHandle->NotifyFinishedChangingProperties();
-	RequestRebuild();
-	return FReply::Handled();
-}
-
-FReply FPCGExPropertyChoicesPatchCustomization::OnRestoreInherited(const FGuid ChoiceId)
-{
-	FPCGExPropertyChoicesPatch* Patch = GetPatch();
-	if (!Patch || !RemovedIdsHandle.IsValid() || !Patch->RemovedIds.Contains(ChoiceId))
-	{
-		return FReply::Handled();
-	}
-
-	FScopedTransaction Transaction(LOCTEXT("PatchRestoreChoice", "Restore Choice"));
-	RemovedIdsHandle->NotifyPreChange();
-	Patch->RemovedIds.Remove(ChoiceId);
-	RemovedIdsHandle->NotifyPostChange(EPropertyChangeType::ArrayRemove);
-	RemovedIdsHandle->NotifyFinishedChangingProperties();
-	RequestRebuild();
-	return FReply::Handled();
-}
-
-void FPCGExPropertyChoicesPatchCustomization::OnPatchChanged(const FPropertyChangedEvent& InEvent)
-{
-	if (InEvent.ChangeType == EPropertyChangeType::Interactive)
-	{
-		return;
-	}
-	// Duplicating an item copies its Id; two items with one Id would collapse on Apply.
-	if (FPCGExPropertyChoicesPatch* Patch = GetPatch())
-	{
-		Patch->NormalizeIds();
-	}
-	SyncImportRowsInPlace();
-}
-
-void FPCGExPropertyChoicesPatchCustomization::SyncImportRowsInPlace()
-{
-	// The host's own post-edit path re-syncs its consumer rows; this collection's import rows are only reconciled by
-	// the schema customization on shape changes, so their mirror is refreshed here, in place (no reshape). In the
-	// popover the edited patch is a scratch copy: the editor syncs after it commits, not before.
-	const TSharedPtr<IPropertyHandle> PatchHandle = PatchHandlePtr.Pin();
-	if (!PatchHandle.IsValid() || PCGExPropertyChoicesCustomization::FindEditContext(PatchHandle.ToSharedRef()))
-	{
-		return;
-	}
-	FPCGExPropertySchemaCollection* Collection = PCGExPropertyChoicesCustomization::ResolveAncestorRaw<FPCGExPropertySchemaCollection>(PatchHandle.ToSharedRef(), FPCGExPropertySchemaCollection::StaticStruct());
-	if (!Collection)
-	{
-		return;
-	}
-	TArray<FPCGExPropertyResolved> Resolved;
-	Collection->Resolve(Resolved);
-	Collection->ImportOverrides.SyncInPlace(Resolved);
-}
-
-void FPCGExPropertyChoicesPatchCustomization::RequestRebuild()
-{
-	if (const TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
-	{
-		Utils->RequestForceRefresh();
-	}
+	return MakeShared<PCGExPropertyChoicesCustomization::FHiddenCustomization>();
 }
 
 #pragma endregion

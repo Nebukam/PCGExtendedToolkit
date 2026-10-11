@@ -4,49 +4,43 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Widgets/SCompoundWidget.h"
 
-class IPropertyHandle;
+class FPCGExChoicesEditSession;
+class FTransactionObjectEvent;
 class IStructureDetailsView;
-class FStructOnScope;
 struct FPropertyChangedEvent;
 
 /**
- * Popover body editing a property's Choices, or an import row's choices patch. Edits land on a scratch copy; every
- * finished change commits the copy through the real handle in one transaction (undo, dirty, and the host's own
- * post-edit path, which re-mirrors every row), then the copy is refreshed from what the host made of it.
+ * Popover body editing a property's Choices, or an import row's choices patch. Its details view shows the session's
+ * scratch copy; every finished change is one FPCGExChoicesEditSession::Commit. The popover closes itself as soon as
+ * the session can no longer reach what it edits.
  */
 class SPCGExPropertyChoicesEditor : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SPCGExPropertyChoicesEditor)
-			: _bPatch(false)
 		{
 		}
 
-		/** The real FPCGExPropertyChoices (or FPCGExPropertyChoicesPatch) handle the copy commits through. */
-		SLATE_ARGUMENT(TSharedPtr<IPropertyHandle>, RealHandle)
-		SLATE_ARGUMENT(FPCGExChoicesEditContext, Context)
-		SLATE_ARGUMENT(bool, bPatch)
+		SLATE_ARGUMENT(TSharedPtr<FPCGExChoicesEditSession>, Session)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
+	virtual ~SPCGExPropertyChoicesEditor() override;
 
 private:
-	void* GetRealData() const;
 	void OnFinishedChanging(const FPropertyChangedEvent& InEvent);
-	void RefreshScratchFromReal();
+	void OnObjectTransacted(UObject* Object, const FTransactionObjectEvent& Event);
 
-	TSharedPtr<IPropertyHandle> RealHandle;
-	FPCGExChoicesEditContext Context;
-	bool bPatch = false;
+	/** Rebuild the view's rows on the next tick; calls made before then fold into one. */
+	void RequestRebuild();
+	EActiveTimerReturnType CheckSession(double InCurrentTime, float InDeltaTime);
+	void Dismiss();
 
-	const UScriptStruct* MemberStruct = nullptr;
-	TSharedPtr<FStructOnScope> Scratch;
-	/** The edited struct inside the scratch root; the registry key. */
-	void* ScratchMember = nullptr;
-	TUniquePtr<FPCGExChoicesEditScope> Scope;
+	TSharedPtr<FPCGExChoicesEditSession> Session;
 	TSharedPtr<IStructureDetailsView> View;
-	bool bCommitting = false;
+	FDelegateHandle TransactedHandle;
+	bool bRebuildPending = false;
+	bool bResyncPending = false;
 };

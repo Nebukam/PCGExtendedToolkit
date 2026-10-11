@@ -5,41 +5,41 @@
 
 #include "CoreMinimal.h"
 #include "Framework/SlateDelegates.h"
-#include "StructUtils/StructView.h"
+#include "Misc/Attribute.h"
 #include "Styling/SlateColor.h"
 #include "Widgets/SCompoundWidget.h"
 
+class FPCGExChoiceRowState;
 class IPropertyHandle;
 class SComboButton;
-struct FPCGExProperty;
 
 /**
- * Choice dropdown for a property row. Host aliases the property struct the row edits (same lifetime as the row's
- * struct-on-scope) and is re-read every paint, so a sync never leaves the widget stale. Locked: the button shows the
- * current choice, or "Custom" with the value's preview, and stands in for the value editor. Unlocked: a bare arrow
- * beside it. A pick goes through NotifyHandle's pre/post-change bracket, so the host's dirty and refresh hooks fire
- * exactly as for a typed edit. With OnGetEditContent bound the menu leads with "Edit Choices...", which opens that
- * content as a popover under the button: the one place every choice interaction starts from.
+ * Choice dropdown for a property row, driven by the row's shared state: it holds no pointer into the edited data.
+ * Locked: a full button (current choice or "Custom", plus the value preview) standing in for the value editor;
+ * unlocked: a bare arrow beside it. A pick is one FPCGExRawPropertyEdit commit on NotifyHandle, like a typed edit.
  */
 class SPCGExPropertyChoicePicker : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SPCGExPropertyChoicePicker)
 			: _Locked(false)
+			, _CanPick(true)
 		{
 		}
 
+		/** The full button (current choice + value preview) instead of the bare arrow. */
 		SLATE_ARGUMENT(bool, Locked)
+
+		/** Gates the choice entries only: "Edit Choices..." stays reachable on a row whose value override is off. */
+		SLATE_ATTRIBUTE(bool, CanPick)
+
+		/** Bound: the menu leads with "Edit Choices...", which opens this content as a popover under the button. */
 		SLATE_EVENT(FOnGetContent, OnGetEditContent)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, FStructView InHost, const TSharedRef<IPropertyHandle>& InNotifyHandle);
+	void Construct(const FArguments& InArgs, const TSharedRef<FPCGExChoiceRowState>& InState, const TSharedRef<IPropertyHandle>& InNotifyHandle);
 
 private:
-	const FPCGExProperty* GetHost() const;
-	int32 GetSelectedIndex() const;
-	/** Index of the choice the host is bound to (its live pick), INDEX_NONE for a custom value. */
-	int32 GetBoundIndex() const;
 	FText GetSelectionLabel() const;
 	FText GetSelectionPreview() const;
 	FSlateColor GetSelectionColor() const;
@@ -51,9 +51,10 @@ private:
 	/** Closes the menu, then pushes the edit content as a popover anchored under the button. */
 	void OpenEditor();
 
-	FStructView Host;
+	TSharedPtr<FPCGExChoiceRowState> State;
 	TSharedPtr<IPropertyHandle> NotifyHandle;
 	bool bLocked = false;
+	TAttribute<bool> CanPick;
 	FOnGetContent OnGetEditContent;
 	TSharedPtr<SComboButton> ComboButton;
 };

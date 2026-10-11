@@ -33,25 +33,27 @@ namespace PCGExPropertySchemaCollectionCustomization
 	// FPCGExPropertyOverrideEntryCustomization's BP-chain walk for ImportOverrides --
 	// keeping the two reset behaviours symmetric.
 	//
-	// Returns false (no reset target) when:
+	// Returns null (no reset target) when:
 	// - Live has no owning actor (data-asset / Tuple / etc -- not a BP-instance context).
 	// - Live isn't actually in a BP class chain (native-only / template / Instance-created).
 	// - No ancestor diverges from Live (entry is already at parent default).
-	bool TryGetLocalSchemaResetSource(
+	//
+	// Divergence is about the VALUE: the choice list an instance mirrors is not something it authored.
+	// A pointer, not a copy: the arrow's visibility asks every paint.
+	const FInstancedStruct* FindLocalSchemaResetSource(
 		const UPCGExPropertyCollectionComponent& Live,
-		int32 SchemaIndex,
-		FInstancedStruct& OutValue)
+		int32 SchemaIndex)
 	{
 		if (!Live.Properties.Schemas.IsValidIndex(SchemaIndex))
 		{
-			return false;
+			return nullptr;
 		}
 		const FInstancedStruct& LiveProp = Live.Properties.Schemas[SchemaIndex].Property;
 
 		const AActor* Owner = Live.GetOwner();
 		if (!Owner)
 		{
-			return false;
+			return nullptr;
 		}
 
 		for (UClass* Cls = Owner->GetClass(); Cls; Cls = Cls->GetSuperClass())
@@ -68,13 +70,12 @@ namespace PCGExPropertySchemaCollectionCustomization
 			}
 
 			const FInstancedStruct& AncestorProp = Template->Properties.Schemas[SchemaIndex].Property;
-			if (AncestorProp != LiveProp)
+			if (!PCGExProperties::ValuesIdentical(AncestorProp, LiveProp))
 			{
-				OutValue = AncestorProp;
-				return true;
+				return &AncestorProp;
 			}
 		}
-		return false;
+		return nullptr;
 	}
 }
 
@@ -459,7 +460,7 @@ void FPCGExPropertySchemaCollectionCustomization::ApplyLocalSchemaResetOverride(
 	// see -- one click resets the whole entry to the BP-chain parent's value.
 	//
 	// Reset target is resolved dynamically by walking Owner's BP class chain (see
-	// TryGetLocalSchemaResetSource). This mirrors the import-override reset behaviour
+	// FindLocalSchemaResetSource). This mirrors the import-override reset behaviour
 	// (MakeArchetypeResetOverride) and is the correct semantics when a child BP overrides a
 	// schema entry authored on a parent BP -- the previous "direct archetype only" behaviour
 	// missed the chain entirely for components inherited from parent classes.
@@ -469,12 +470,7 @@ void FPCGExPropertySchemaCollectionCustomization::ApplyLocalSchemaResetOverride(
 		[WeakLive, SchemaIndex](TSharedPtr<IPropertyHandle>) -> bool
 		{
 			const UPCGExPropertyCollectionComponent* Live = WeakLive.Get();
-			if (!Live)
-			{
-				return false;
-			}
-			FInstancedStruct Ignored;
-			return PCGExPropertySchemaCollectionCustomization::TryGetLocalSchemaResetSource(*Live, SchemaIndex, Ignored);
+			return Live && PCGExPropertySchemaCollectionCustomization::FindLocalSchemaResetSource(*Live, SchemaIndex) != nullptr;
 		});
 
 	auto Handler = FResetToDefaultHandler::CreateLambda(
@@ -486,15 +482,20 @@ void FPCGExPropertySchemaCollectionCustomization::ApplyLocalSchemaResetOverride(
 				return;
 			}
 
-			FInstancedStruct ResetValue;
-			if (!PCGExPropertySchemaCollectionCustomization::TryGetLocalSchemaResetSource(*Live, SchemaIndex, ResetValue))
+			const FInstancedStruct* ResetValue = PCGExPropertySchemaCollectionCustomization::FindLocalSchemaResetSource(*Live, SchemaIndex);
+			if (!ResetValue)
 			{
 				return;
 			}
 
+			// The value and its pick only. A source of another type means a stale instance: take it whole.
 			Live->Modify();
-			Live->Properties.Schemas[SchemaIndex].Property = ResetValue;
-			Live->Properties.Schemas[SchemaIndex].SyncPropertyName();
+			FPCGExPropertySchema& Schema = Live->Properties.Schemas[SchemaIndex];
+			if (!PCGExProperties::AdoptValue(Schema.Property, *ResetValue))
+			{
+				Schema.Property = *ResetValue;
+				Schema.SyncPropertyName();
+			}
 			if (Handle.IsValid())
 			{
 				Handle->NotifyPostChange(EPropertyChangeType::ValueSet);
@@ -551,8 +552,14 @@ bool FPCGExPropertySchemaCollectionCustomization::TryRenderFlatInline(
 		.Text(LabelText)
 		.Font(IDetailLayoutBuilder::GetDetailFont());
 
+	// Values-only: choices are picked here, never authored. Read through the schema's own Property handle, which
+	// follows the struct where Scope only aliases today's memory.
+	FPCGExChoiceRowArgs Choices;
+	Choices.Host = FPCGExPropertyHostRef(
+		ElementHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExPropertySchema, Property)), EPCGExPropertyHostKind::Instanced);
+
 	IDetailPropertyRow* Row = FPCGExInlineWidgetRegistry::AddCompactValueRow(
-		ChildBuilder, Scope.ToSharedRef(), InnerStruct, NameContent);
+		ChildBuilder, Scope.ToSharedRef(), InnerStruct, NameContent, TAttribute<bool>(true), Choices);
 	if (!Row)
 	{
 		return false;

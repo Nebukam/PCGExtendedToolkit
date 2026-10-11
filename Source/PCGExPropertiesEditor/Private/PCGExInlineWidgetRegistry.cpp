@@ -3,7 +3,6 @@
 
 #include "PCGExInlineWidgetRegistry.h"
 
-#include "Brushes/SlateRoundedBoxBrush.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
@@ -17,6 +16,7 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/SOverlay.h"
+#include "Widgets/SPCGExLabelPill.h"
 #include "Widgets/SPCGExPropertyChoicePicker.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -94,49 +94,57 @@ IDetailPropertyRow* FPCGExInlineWidgetRegistry::AddCompactValueRow(
 	UScriptStruct* InnerStruct,
 	TSharedRef<SWidget> NameContent,
 	TAttribute<bool> IsEnabled,
-	FOnGetContent EditChoices)
+	const FPCGExChoiceRowArgs& Choices)
 {
-	const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value"));
+	const FProperty* ValueProperty = PCGExProperties::FindValueProperty(InnerStruct);
 	if (!ValueProperty)
 	{
 		return nullptr;
 	}
 
-	IDetailPropertyRow& Row = *ChildBuilder.AddExternalStructureProperty(Scope, ValueProperty->GetFName());
+	IDetailPropertyRow* Row = ChildBuilder.AddExternalStructureProperty(Scope, ValueProperty->GetFName());
+	if (!Row)
+	{
+		return nullptr;
+	}
 
 	const FPCGExMakeInlineWidgetFn* Factory = Find(InnerStruct->GetFName(), EPCGExInlineWidgetMode::Compact);
-	TSharedPtr<IPropertyHandle> ValuePropertyHandle = Row.GetPropertyHandle();
+	const TSharedPtr<IPropertyHandle> ValuePropertyHandle = Row->GetPropertyHandle();
 	TSharedRef<SWidget> ValueWidget = SNullWidget::NullWidget;
-	bool bLocked = false;
+	bool bLockedNow = false;
 	if (ValuePropertyHandle.IsValid())
 	{
 		ValueWidget = Factory
 			? (*Factory)(ValuePropertyHandle.ToSharedRef())
 			: ValuePropertyHandle->CreatePropertyValueWidget();
 
-		const FStructView Host(InnerStruct, Scope->GetStructMemory());
-		if (HasChoices(Host, &bLocked) || EditChoices.IsBound())
+		if (Choices.Host.IsSet())
 		{
-			ValueWidget = WrapValueWidgetWithChoices(ValueWidget, Host, ValuePropertyHandle.ToSharedRef(), EditChoices);
+			const TSharedRef<FPCGExChoiceRowState> State = MakeShared<FPCGExChoiceRowState>(Choices.Host);
+			bLockedNow = State->Get().bLocked;
+			ValueWidget = WrapValueWidgetWithChoices(ValueWidget, State, ValuePropertyHandle.ToSharedRef(), IsEnabled, Choices);
+		}
+		else
+		{
+			ValueWidget = SNew(SBox).IsEnabled(IsEnabled)[ValueWidget];
 		}
 	}
 
-	const bool bWide = (Factory != nullptr) || bLocked;
-	Row.CustomWidget()
+	// A row's widths are fixed when it is built: a lock toggled later keeps them until the panel rebuilds.
+	const bool bWide = (Factory != nullptr) || bLockedNow;
+	Row->CustomWidget()
 	   .NameContent()
-		[NameContent]
-		.ValueContent()
-		.MinDesiredWidth(bWide ? 250.0f : 125.0f)
-		.MaxDesiredWidth(bWide ? 3000.0f : 600.0f)
 		[
-			SNew(SBox)
-			.IsEnabled(IsEnabled)
-			[
-				ValueWidget
-			]
+			NameContent
+		]
+		.ValueContent()
+		.MinDesiredWidth(bWide ? WideValueMinWidth : NarrowValueMinWidth)
+		.MaxDesiredWidth(bWide ? WideValueMaxWidth : NarrowValueMaxWidth)
+		[
+			ValueWidget
 		];
 
-	return &Row;
+	return Row;
 }
 
 void FPCGExInlineWidgetRegistry::AddComplexValueRows(
@@ -145,7 +153,7 @@ void FPCGExInlineWidgetRegistry::AddComplexValueRows(
 	UScriptStruct* InnerStruct,
 	TAttribute<bool> IsEnabled,
 	const TWeakObjectPtr<UObject>& WeakOwner,
-	FOnGetContent EditChoices)
+	const FPCGExChoiceRowArgs& Choices)
 {
 	// Types with a registered Compact factory but WITHOUT the PCGExInlineValue meta get their
 	// Value rendered through the factory as a FULL-WIDTH row (e.g. the Float Curve editor,
@@ -153,202 +161,142 @@ void FPCGExInlineWidgetRegistry::AddComplexValueRows(
 	// Types with the inline meta never reach this path, so existing rows are unaffected.
 	const FPCGExMakeInlineWidgetFn* ValueFactory = Find(InnerStruct->GetFName(), EPCGExInlineWidgetMode::Compact);
 
-	const FStructView Host(InnerStruct, Scope->GetStructMemory());
-	bool bLocked = false;
-	const bool bHasChoices = HasChoices(Host, &bLocked);
+	const FProperty* ValueProperty = PCGExProperties::FindValueProperty(InnerStruct);
+	const TSharedPtr<FPCGExChoiceRowState> State = Choices.Host.IsSet() ? MakeShared<FPCGExChoiceRowState>(Choices.Host).ToSharedPtr() : nullptr;
 
 	for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
 	{
 		const FProperty* Property = *It;
-		if (!Property)
-		{
-			continue;
-		}
 
 		// AddExternalStructureProperty returns null for a non-editable field (identity caches, the recorded pick).
-		if (!Property->HasAnyPropertyFlags(CPF_Edit))
+		if (!Property || !Property->HasAnyPropertyFlags(CPF_Edit))
 		{
 			continue;
 		}
 
-		// Choices is a read-only mirror on these rows; the schema-edit path owns its editor.
+		// Choices is a mirror on these rows: the Choices row below is its whole UI.
 		const FName PropName = Property->GetFName();
-		if (PropName == TEXT("OutputBuffer") || PropName == TEXT("Choices"))
+		if (PropName == TEXT("OutputBuffer") || PropName == GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices))
 		{
 			continue;
 		}
 
-		IDetailPropertyRow& PropRow = *ChildBuilder.AddExternalStructureProperty(Scope, PropName);
-		PropRow.IsEnabled(IsEnabled);
+		IDetailPropertyRow* PropRow = ChildBuilder.AddExternalStructureProperty(Scope, PropName);
+		if (!PropRow)
+		{
+			continue;
+		}
+		PropRow->IsEnabled(IsEnabled);
 
+		const TSharedPtr<IPropertyHandle> PropHandle = PropRow->GetPropertyHandle();
 		if (WeakOwner.IsValid())
 		{
-			PCGExEditorCustomizationUtils::HookOwnerChangeOnHandleChanged(PropRow.GetPropertyHandle(), WeakOwner);
+			PCGExEditorCustomizationUtils::HookOwnerChangeOnHandleChanged(PropHandle, WeakOwner);
 		}
 
-		if (PropName != TEXT("Value"))
+		if (Property != ValueProperty || !PropHandle.IsValid())
 		{
 			continue;
-		}
-		TSharedPtr<IPropertyHandle> ValueHandle = PropRow.GetPropertyHandle();
-		if (!ValueHandle.IsValid())
-		{
-			continue;
-		}
-
-		if (bHasChoices)
-		{
-			HookUnbindOnFreeEdit(ValueHandle.ToSharedRef(), Host);
-			if (bLocked)
-			{
-				// Locked: the picker stands in for the value editor, whatever its usual shape.
-				PropRow.CustomWidget(/*bShowChildren=*/false)
-				       .NameContent()
-					[
-						ValueHandle->CreatePropertyNameWidget()
-					]
-					.ValueContent()
-					.MinDesiredWidth(250.0f)
-					.MaxDesiredWidth(3000.0f)
-					[
-						SNew(SBox)
-						.IsEnabled(IsEnabled)
-						[
-							SNew(SPCGExPropertyChoicePicker, Host, ValueHandle.ToSharedRef())
-							.Locked(true)
-							.OnGetEditContent(EditChoices)
-						]
-					];
-				continue;
-			}
 		}
 
 		if (ValueFactory)
 		{
-			PropRow.CustomWidget(/*bShowChildren=*/false)
+			PropRow->CustomWidget(/*bShowChildren=*/false)
 			       .WholeRowContent()
 			[
 				SNew(SBox)
 				.IsEnabled(IsEnabled)
 				[
-					(*ValueFactory)(ValueHandle.ToSharedRef())
+					(*ValueFactory)(PropHandle.ToSharedRef())
 				]
 			];
 		}
 
-		// Unlocked: the value keeps its editor; a quick pick (or the authoring entry) sits right under it.
-		if (bHasChoices || EditChoices.IsBound())
+		if (State.IsValid())
 		{
-			AddChoicesRow(ChildBuilder, Host, ValueHandle.ToSharedRef(), IsEnabled, EditChoices);
+			// Locked: the Choices row stands in for the value editor, whatever its usual shape.
+			if (!Choices.bKeepEditorWhenLocked)
+			{
+				PropRow->Visibility(VisibleUnlessLocked(State.ToSharedRef()));
+			}
+			AddChoicesRow(ChildBuilder, State.ToSharedRef(), PropHandle.ToSharedRef(), IsEnabled, Choices.EditChoices);
 		}
 	}
 }
 
-bool FPCGExInlineWidgetRegistry::IsBoundToChoice(const FConstStructView Host)
+TAttribute<EVisibility> FPCGExInlineWidgetRegistry::VisibleUnlessLocked(const TSharedRef<FPCGExChoiceRowState>& State)
 {
-	const FPCGExProperty* Property = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
-	if (!Property)
+	return TAttribute<EVisibility>::CreateLambda([State]()
 	{
-		return false;
-	}
-	// The pick, not a value match: only a picked row follows its choice.
-	const int32 Chosen = PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId);
-	return Chosen != INDEX_NONE && PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]);
-}
-
-FText FPCGExInlineWidgetRegistry::GetBoundChoiceLabel(const FConstStructView Host)
-{
-	const FPCGExProperty* Property = Host.IsValid() ? Host.GetPtr<FPCGExProperty>() : nullptr;
-	const int32 Chosen = Property ? PCGExProperties::FindChoiceById(Property->Choices, Property->ChosenChoiceId) : INDEX_NONE;
-	if (Chosen == INDEX_NONE || !PCGExProperties::IsChoiceCompatible(Host, Property->Choices.Items[Chosen]))
-	{
-		return FText::GetEmpty();
-	}
-	const FName Label = Property->Choices.Items[Chosen].Label;
-	return Label.IsNone() ? NSLOCTEXT("FPCGExInlineWidgetRegistry", "UnnamedChoiceBadge", "(unnamed)") : FText::FromName(Label);
-}
-
-bool FPCGExInlineWidgetRegistry::HasChoices(const FConstStructView Host, bool* bOutLocked)
-{
-	const UScriptStruct* Struct = Host.GetScriptStruct();
-	const FPCGExProperty* Property = Struct && Struct->IsChildOf(FPCGExProperty::StaticStruct()) ? Host.GetPtr<FPCGExProperty>() : nullptr;
-	const bool bHasChoices = Property && !Property->Choices.Items.IsEmpty();
-	if (bOutLocked)
-	{
-		*bOutLocked = bHasChoices && Property->Choices.bLocked;
-	}
-	return bHasChoices;
+		return State->Get().bLocked ? EVisibility::Collapsed : EVisibility::Visible;
+	});
 }
 
 TSharedRef<SWidget> FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
 	TSharedRef<SWidget> ValueWidget,
-	const FStructView Host,
+	const TSharedRef<FPCGExChoiceRowState>& State,
 	const TSharedRef<IPropertyHandle>& NotifyHandle,
-	FOnGetContent EditChoices)
+	TAttribute<bool> IsEnabled,
+	const FPCGExChoiceRowArgs& Choices)
 {
-	bool bLocked = false;
-	const bool bHasChoices = HasChoices(Host, &bLocked);
-	if (!bHasChoices && !EditChoices.IsBound())
-	{
-		return ValueWidget;
-	}
-
-	if (bHasChoices)
-	{
-		HookUnbindOnFreeEdit(NotifyHandle, Host);
-	}
-	if (bLocked)
-	{
-		return SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(true).OnGetEditContent(EditChoices);
-	}
+	const bool bCanAuthor = Choices.EditChoices.IsBound();
+	const bool bKeepEditor = Choices.bKeepEditorWhenLocked;
 
 	// A bound value follows its choice and detaches on edit: dimmed, still editable. Custom stays full.
 	// SBorder's tint multiplies through its children; RenderOpacity is a fixed float, not an attribute.
-	const TAttribute<FLinearColor> BoundTint = TAttribute<FLinearColor>::Create([Host]() -> FLinearColor
+	const TAttribute<FLinearColor> BoundTint = TAttribute<FLinearColor>::CreateLambda([State]() -> FLinearColor
 	{
 		// Above the disabled-row look, so a bound row still reads as live.
-		return FLinearColor(1.0f, 1.0f, 1.0f, IsBoundToChoice(Host) ? 0.7f : 1.0f);
+		return FLinearColor(1.0f, 1.0f, 1.0f, State->Get().bBound ? 0.7f : 1.0f);
 	});
 
-	// The bound choice's label rides the value as a small pill (same recipe as Valency's "ANY" connector pill):
-	// labels carry meaning the number alone does not. Hit-test invisible, so the editor under it stays clickable.
-	static const FSlateRoundedBoxBrush BadgeBrush(FLinearColor::White, 4.0f);
-	const TSharedRef<SWidget> Badge = SNew(SBorder)
-		.BorderImage(&BadgeBrush)
-		.BorderBackgroundColor(FSlateColor(FLinearColor(0.08f, 0.08f, 0.08f)))
-		.Padding(FMargin(4, 0))
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
-		.Visibility_Lambda([Host]() { return IsBoundToChoice(Host) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-		[
-			SNew(STextBlock)
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 6))
-			.ColorAndOpacity(FSlateColor(FLinearColor(0.55f, 0.55f, 0.55f)))
-			.Text_Lambda([Host]() { return GetBoundChoiceLabel(Host); })
-		];
+	// The bound choice's label rides the value as a small pill: labels carry meaning the number alone does not.
+	// Hit-test invisible, so the editor under it stays clickable.
+	const TSharedRef<SWidget> Badge = SNew(SPCGExLabelPill)
+		.Visibility_Lambda([State]() { return State->Get().bBound ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+		.Label_Lambda([State]() { return State->Get().SelectedLabel; });
 
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.FillWidth(1.0f)
 		.VAlign(VAlign_Center)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
+			SNew(SBox)
+			.IsEnabled(IsEnabled)
+			.Visibility_Lambda([State, bKeepEditor]() { return State->Get().bLocked && !bKeepEditor ? EVisibility::Collapsed : EVisibility::Visible; })
 			[
-				SNew(SBorder)
-				.BorderImage(FAppStyle::GetBrush("NoBorder"))
-				.Padding(0)
-				.ColorAndOpacity(BoundTint)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
 				[
-					ValueWidget
+					SNew(SBorder)
+					.BorderImage(FAppStyle::GetBrush("NoBorder"))
+					.Padding(0)
+					.ColorAndOpacity(BoundTint)
+					[
+						ValueWidget
+					]
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(FMargin(0, 0, 6, 0))
+				[
+					Badge
 				]
 			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Right)
-			.VAlign(VAlign_Center)
-			.Padding(FMargin(0, 0, 6, 0))
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		.VAlign(VAlign_Center)
+		[
+			// Outside the enabled box: the menu leads to "Edit Choices...", which a disabled override must still reach.
+			SNew(SBox)
+			.Visibility_Lambda([State]() { return State->Get().bLocked ? EVisibility::Visible : EVisibility::Collapsed; })
 			[
-				Badge
+				SNew(SPCGExPropertyChoicePicker, State, NotifyHandle)
+				.Locked(true)
+				.CanPick(IsEnabled)
+				.OnGetEditContent(Choices.EditChoices)
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -356,24 +304,35 @@ TSharedRef<SWidget> FPCGExInlineWidgetRegistry::WrapValueWidgetWithChoices(
 		.VAlign(VAlign_Center)
 		.Padding(4, 0, 0, 0)
 		[
-			SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(false).OnGetEditContent(EditChoices)
+			SNew(SBox)
+			.Visibility_Lambda([State, bCanAuthor]()
+			{
+				const FPCGExChoiceRowState::FSnapshot& Snapshot = State->Get();
+				return !Snapshot.bLocked && (Snapshot.bHasChoices || bCanAuthor) ? EVisibility::Visible : EVisibility::Collapsed;
+			})
+			[
+				SNew(SPCGExPropertyChoicePicker, State, NotifyHandle)
+				.Locked(false)
+				.CanPick(IsEnabled)
+				.OnGetEditContent(Choices.EditChoices)
+			]
 		];
 }
 
 void FPCGExInlineWidgetRegistry::AddChoicesRow(
 	IDetailChildrenBuilder& ChildBuilder,
-	const FStructView Host,
+	const TSharedRef<FPCGExChoiceRowState>& State,
 	const TSharedRef<IPropertyHandle>& NotifyHandle,
 	TAttribute<bool> IsEnabled,
 	FOnGetContent EditChoices)
 {
-	bool bLocked = false;
-	if (!HasChoices(Host, &bLocked) && !EditChoices.IsBound())
-	{
-		return;
-	}
+	const bool bCanAuthor = EditChoices.IsBound();
 
 	ChildBuilder.AddCustomRow(LOCTEXT("ChoicesRowFilter", "Choices"))
+	            .Visibility(TAttribute<EVisibility>::CreateLambda([State, bCanAuthor]()
+	            {
+		            return State->Get().bHasChoices || bCanAuthor ? EVisibility::Visible : EVisibility::Collapsed;
+	            }))
 	            .NameContent()
 		[
 			SNew(STextBlock)
@@ -381,34 +340,37 @@ void FPCGExInlineWidgetRegistry::AddChoicesRow(
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
-		.MinDesiredWidth(250.0f)
-		.MaxDesiredWidth(3000.0f)
+		.MinDesiredWidth(WideValueMinWidth)
+		.MaxDesiredWidth(WideValueMaxWidth)
 		[
-			SNew(SBox)
-			.IsEnabled(IsEnabled)
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SPCGExPropertyChoicePicker, Host, NotifyHandle).Locked(bLocked).OnGetEditContent(EditChoices)
+				SNew(SBox)
+				.Visibility_Lambda([State]() { return State->Get().bLocked ? EVisibility::Visible : EVisibility::Collapsed; })
+				[
+					SNew(SPCGExPropertyChoicePicker, State, NotifyHandle)
+					.Locked(true)
+					.CanPick(IsEnabled)
+					.OnGetEditContent(EditChoices)
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(SBox)
+				.Visibility_Lambda([State]() { return State->Get().bLocked ? EVisibility::Collapsed : EVisibility::Visible; })
+				[
+					SNew(SPCGExPropertyChoicePicker, State, NotifyHandle)
+					.Locked(false)
+					.CanPick(IsEnabled)
+					.OnGetEditContent(EditChoices)
+				]
 			]
 		];
-}
-
-void FPCGExInlineWidgetRegistry::HookUnbindOnFreeEdit(const TSharedRef<IPropertyHandle>& Handle, const FStructView Host)
-{
-	// Multicast on the node, so it coexists with HookOwnerChangeOnHandleChanged. A pick re-applies an identical
-	// value and keeps its binding; anything else that commits through this handle is a free edit.
-	const TDelegate<void(const FPropertyChangedEvent&)> OnChanged =
-		TDelegate<void(const FPropertyChangedEvent&)>::CreateLambda(
-			[Host](const FPropertyChangedEvent& InEvent)
-			{
-				if (InEvent.ChangeType == EPropertyChangeType::Interactive)
-				{
-					return;
-				}
-				PCGExProperties::UnbindDivergedChoice(Host);
-			});
-
-	Handle->SetOnPropertyValueChangedWithData(OnChanged);
-	Handle->SetOnChildPropertyValueChangedWithData(OnChanged);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -169,8 +169,10 @@ public:
 #if WITH_EDITOR
 	//~Begin IPCGExPropertyRowHost: this component's own import overrides against Properties.
 	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
-	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides&)> Visitor) override;
-	virtual void EDITOR_NotifyRowsAligned() override;
+	virtual void EDITOR_GetRowSchemaFallbackChain(FLayerChain& OutChain) const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor) override;
+	virtual void EDITOR_NotifyRowsChanged() override;
+	virtual void EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset) override;
 	//~End IPCGExPropertyRowHost
 #endif
 

@@ -4,47 +4,37 @@
 #include "Widgets/SPCGExPropertyChoicesEditor.h"
 
 #include "DetailsViewArgs.h"
+#include "Details/PCGExPropertyChoicesCustomization.h"
+#include "Framework/Application/SlateApplication.h"
 #include "IDetailsView.h"
 #include "IStructureDetailsView.h"
+#include "Misc/TransactionObjectEvent.h"
 #include "Modules/ModuleManager.h"
-#include "PCGExProperty.h"
 #include "PropertyEditorModule.h"
-#include "PropertyHandle.h"
-#include "ScopedTransaction.h"
-#include "Details/PCGExPropertyChoicesEditTargets.h"
 #include "UObject/StructOnScope.h"
+#include "UObject/UObjectGlobals.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "SPCGExPropertyChoicesEditor"
 
 void SPCGExPropertyChoicesEditor::Construct(const FArguments& InArgs)
 {
-	RealHandle = InArgs._RealHandle;
-	Context = InArgs._Context;
-	bPatch = InArgs._bPatch;
-
-	const UScriptStruct* RootStruct = bPatch ? FPCGExPropertyChoicesPatchEditTarget::StaticStruct() : FPCGExPropertyChoicesEditTarget::StaticStruct();
-	const FProperty* MemberProperty = RootStruct->FindPropertyByName(bPatch ? TEXT("Patch") : TEXT("Choices"));
-	MemberStruct = bPatch ? FPCGExPropertyChoicesPatch::StaticStruct() : FPCGExPropertyChoices::StaticStruct();
-
-	Scratch = MakeShared<FStructOnScope>(RootStruct);
-	ScratchMember = MemberProperty ? MemberProperty->ContainerPtrToValuePtr<void>(Scratch->GetStructMemory()) : nullptr;
-	if (!ScratchMember)
+	Session = InArgs._Session;
+	if (!Session.IsValid() || !Session->IsValid())
 	{
+		// Several objects selected, or a row whose data moved since it was built.
+		ChildSlot
+		[
+			SNew(SBox)
+			.Padding(8.0f)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("CannotEdit", "Choices can only be edited on a single, up to date row."))
+			]
+		];
 		return;
 	}
-	if (bPatch && !Context.RealPatch)
-	{
-		Context.RealPatch = static_cast<const FPCGExPropertyChoicesPatch*>(GetRealData());
-	}
-	if (!Context.Owner.IsValid() && RealHandle.IsValid())
-	{
-		TArray<UObject*> Outers;
-		RealHandle->GetOuterObjects(Outers);
-		Context.Owner = Outers.Num() == 1 ? Outers[0] : nullptr;
-	}
-	RefreshScratchFromReal();
-	Scope = MakeUnique<FPCGExChoicesEditScope>(ScratchMember, Context);
 
 	FDetailsViewArgs DetailsArgs;
 	DetailsArgs.bAllowSearch = false;
@@ -53,9 +43,20 @@ void SPCGExPropertyChoicesEditor::Construct(const FArguments& InArgs)
 	DetailsArgs.bShowScrollBar = true;
 	DetailsArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
 
+	// Created empty: the session-bound layouts have to be on the view before it builds a row.
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	View = PropertyModule.CreateStructureDetailView(DetailsArgs, FStructureDetailsViewArgs(), Scratch);
+	View = PropertyModule.CreateStructureDetailView(DetailsArgs, FStructureDetailsViewArgs(), TSharedPtr<FStructOnScope>());
+	if (IDetailsView* DetailsView = View->GetDetailsView())
+	{
+		PCGExPropertyChoicesUI::RegisterSessionLayouts(*DetailsView, Session.ToSharedRef());
+	}
+	View->SetStructureData(Session->GetScratch());
 	View->GetOnFinishedChangingPropertiesDelegate().AddSP(this, &SPCGExPropertyChoicesEditor::OnFinishedChanging);
+
+	Session->OnScratchChanged.AddSP(this, &SPCGExPropertyChoicesEditor::RequestRebuild);
+	TransactedHandle = FCoreUObjectDelegates::OnObjectTransacted.AddSP(this, &SPCGExPropertyChoicesEditor::OnObjectTransacted);
+	// The opener's panel can rebuild under the popover for reasons nothing reports here.
+	RegisterActiveTimer(0.25f, FWidgetActiveTimerDelegate::CreateSP(this, &SPCGExPropertyChoicesEditor::CheckSession));
 
 	ChildSlot
 	[
@@ -69,63 +70,73 @@ void SPCGExPropertyChoicesEditor::Construct(const FArguments& InArgs)
 	];
 }
 
-void* SPCGExPropertyChoicesEditor::GetRealData() const
+SPCGExPropertyChoicesEditor::~SPCGExPropertyChoicesEditor()
 {
-	if (!RealHandle.IsValid())
-	{
-		return nullptr;
-	}
-	TArray<void*> RawData;
-	RealHandle->AccessRawData(RawData);
-	return RawData.Num() == 1 ? RawData[0] : nullptr;
-}
-
-void SPCGExPropertyChoicesEditor::RefreshScratchFromReal()
-{
-	if (void* Real = GetRealData())
-	{
-		MemberStruct->CopyScriptStruct(ScratchMember, Real);
-	}
+	FCoreUObjectDelegates::OnObjectTransacted.Remove(TransactedHandle);
 }
 
 void SPCGExPropertyChoicesEditor::OnFinishedChanging(const FPropertyChangedEvent& InEvent)
 {
-	void* Real = GetRealData();
-	if (bCommitting || !Real || !RealHandle.IsValid())
+	Session->Commit(LOCTEXT("EditChoices", "Edit Choices"));
+}
+
+void SPCGExPropertyChoicesEditor::OnObjectTransacted(UObject* Object, const FTransactionObjectEvent& Event)
+{
+	if (bResyncPending || Event.GetEventType() != ETransactionObjectEventType::UndoRedo || Object != Session->GetOwner())
 	{
 		return;
 	}
-	TGuardValue<bool> Guard(bCommitting, true);
 
-	// One transaction per finished edit: the owner is Modify'd by NotifyPreChange, the copy lands on the real
-	// struct, and NotifyPostChange runs the host's post-edit path so every row re-mirrors.
-	{
-		FScopedTransaction Transaction(bPatch ? LOCTEXT("EditChoicesPatch", "Edit Choices") : LOCTEXT("EditChoices", "Edit Choices"));
-		RealHandle->NotifyPreChange();
-		MemberStruct->CopyScriptStruct(Real, ScratchMember);
-		RealHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
-		RealHandle->NotifyFinishedChangingProperties();
-	}
-
-	// Import rows are only reconciled by the schema customization on shape changes: refresh their mirror here.
-	if (bPatch && Context.Collection)
-	{
-		TArray<FPCGExPropertyResolved> Resolved;
-		Context.Collection->Resolve(Resolved);
-		Context.Collection->ImportOverrides.SyncInPlace(Resolved);
-	}
-
-	// The host may have re-minted ids or re-synced carriers: take its version back, then rebuild the rows that
-	// alias the copy's element memory before anything paints.
-	RefreshScratchFromReal();
+	// Not now: the opener's own undo handler may be about to rebuild the panel the session's handles belong to.
+	bResyncPending = true;
 	RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateLambda([this](double, float) -> EActiveTimerReturnType
 	{
+		bResyncPending = false;
+		if (!Session->IsValid())
+		{
+			Dismiss();
+		}
+		else if (Session->PullFromReal())
+		{
+			RequestRebuild();
+		}
+		return EActiveTimerReturnType::Stop;
+	}));
+}
+
+void SPCGExPropertyChoicesEditor::RequestRebuild()
+{
+	if (bRebuildPending)
+	{
+		return;
+	}
+	// Rows alias the scratch's element memory: they are rebuilt before the next paint, outside whichever callback
+	// of theirs led here.
+	bRebuildPending = true;
+	RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateLambda([this](double, float) -> EActiveTimerReturnType
+	{
+		bRebuildPending = false;
 		if (View.IsValid() && View->GetDetailsView())
 		{
 			View->GetDetailsView()->ForceRefresh();
 		}
 		return EActiveTimerReturnType::Stop;
 	}));
+}
+
+EActiveTimerReturnType SPCGExPropertyChoicesEditor::CheckSession(double InCurrentTime, float InDeltaTime)
+{
+	if (Session->IsValid())
+	{
+		return EActiveTimerReturnType::Continue;
+	}
+	Dismiss();
+	return EActiveTimerReturnType::Stop;
+}
+
+void SPCGExPropertyChoicesEditor::Dismiss()
+{
+	FSlateApplication::Get().DismissMenuByWidget(AsShared());
 }
 
 #undef LOCTEXT_NAMESPACE

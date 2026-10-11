@@ -174,8 +174,22 @@ namespace PCGExPropertyInlineWidgets
 				}
 			}
 
+			// The drag in progress, if any: the editor transaction that spans it is open exactly while this is true.
+			const TSharedRef<bool> bDragging = MakeShared<bool>(false);
+			auto EndDrag = [bDragging]()
+			{
+				if (*bDragging)
+				{
+					*bDragging = false;
+					GEditor->EndTransaction();
+				}
+			};
+
 			return SNew(SNumericEntryBox<T>)
 				.AllowSpin(true)
+				// SSpinBox reports a wheel notch as a bare OnValueChanged, which is also what its echoes look like
+				// (see below): there is no telling them apart, so the wheel is off rather than half applied.
+				.AllowWheel(false)
 				.Font(FAppStyle::GetFontStyle(TEXT("PropertyWindow.NormalFont")))
 				.MinValue(MinBound)
 				.MaxValue(MaxBound)
@@ -191,21 +205,34 @@ namespace PCGExPropertyInlineWidgets
 					}
 					return TOptional<T>();
 				})
-				.OnValueChanged_Lambda([ValueHandle](T NewValue)
+				// Only inside a drag, as SPropertyEditorNumeric does: outside one SSpinBox raises this for things
+				// nobody did (a late flush after mouse-up or Escape, an echo of the bound value), and hosts
+				// drop Interactive changes anyway, so applying it would leave the value written and nothing synced.
+				.OnValueChanged_Lambda([ValueHandle, bDragging](T NewValue)
 				{
-					ValueHandle->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange);
+					if (*bDragging)
+					{
+						ValueHandle->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange);
+					}
 				})
-				.OnValueCommitted_Lambda([ValueHandle](T NewValue, ETextCommit::Type)
+				// SSpinBox commits right before it ends a drag, and can lose mouse capture without ever ending
+				// one: a commit closes the drag either way, so its transaction cannot stay open.
+				.OnValueCommitted_Lambda([ValueHandle, EndDrag](T NewValue, ETextCommit::Type)
 				{
 					ValueHandle->SetValue(NewValue, EPropertyValueSetFlags::DefaultFlags);
+					EndDrag();
 				})
-				.OnBeginSliderMovement_Lambda([]()
+				.OnBeginSliderMovement_Lambda([bDragging]()
 				{
-					GEditor->BeginTransaction(NSLOCTEXT("PCGExPropertyInlineWidgets", "SetNumericValue", "Set Value"));
+					if (!*bDragging)
+					{
+						*bDragging = true;
+						GEditor->BeginTransaction(NSLOCTEXT("PCGExPropertyInlineWidgets", "SetNumericValue", "Set Value"));
+					}
 				})
-				.OnEndSliderMovement_Lambda([](T)
+				.OnEndSliderMovement_Lambda([EndDrag](T)
 				{
-					GEditor->EndTransaction();
+					EndDrag();
 				});
 		}
 	}

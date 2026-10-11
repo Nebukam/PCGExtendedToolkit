@@ -16,7 +16,7 @@ namespace PCGExData
 
 // Intentionally not PCGExInlineValue: requires the AddComplexValueRows fallback path so the
 // editor customization can bypass the redundant FInstancedStruct wrapper row.
-USTRUCT(BlueprintType, DisplayName="Struct")
+USTRUCT(BlueprintType, meta=(PCGExStructuralValue), DisplayName="Struct")
 struct PCGEXPROPERTIES_API FPCGExProperty_Struct : public FPCGExProperty
 {
 	GENERATED_BODY()
