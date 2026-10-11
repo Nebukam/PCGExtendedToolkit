@@ -8,6 +8,7 @@
 #include "Elements/Utils/PCGExPartitionIdentifier.h"
 #include "Fonts/SlateFontInfo.h"
 #include "Styling/SlateColor.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -39,7 +40,7 @@ TSharedRef<SWidget> FPCGExPartitionGridCustomization::MakeSuffixWidget(const TSh
 		{
 			if (CommitType != ETextCommit::OnEnter && CommitType != ETextCommit::OnUserMovedFocus) { return; }
 			const FString Trimmed = NewText.ToString().TrimStartAndEnd();
-			SuffixHandle->SetValue(Trimmed.IsEmpty() ? NAME_None : FName(*Trimmed));
+			SuffixHandle->SetValue(PCGExTypeOps::MakeNameChecked(Trimmed));
 		});
 
 	// Placeholder shows only while the suffix is None AND the box isn't being edited (the live edit

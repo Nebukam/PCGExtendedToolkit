@@ -14,6 +14,7 @@
 #include "Details/PCGExRawPropertyEdit.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Styling/AppStyle.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "UObject/TextProperty.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -502,7 +503,7 @@ TSharedRef<SWidget> FPCGExInputShorthandSoftObjectPathCustomization::CreateValue
 
 					Edit.Commit(INVTEXT("Set Path"), [&NewPath](void* Raw)
 					{
-						static_cast<FSoftObjectPath*>(Raw)->SetPath(NewPath);
+						*static_cast<FSoftObjectPath*>(Raw) = PCGExTypeOps::MakePathChecked(NewPath);
 					});
 				})
 		];

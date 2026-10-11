@@ -5,8 +5,10 @@
 
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
+#include "PCGExInlineWidgetRegistry.h"
 #include "PCGExPropertyTypes.h"
 #include "PropertyHandle.h"
+#include "Details/PCGExPropertyChoicesCustomization.h"
 #include "Utils/PCGExWeightCurve.h"
 
 #include "Widgets/SPCGExPropertyCurveValueWidget.h"
@@ -40,12 +42,26 @@ void FPCGExPropertyFloatCurveCustomization::CustomizeChildren(TSharedRef<IProper
 		return;
 	}
 
+	// This layout stands in for the generic schema-edit one, so it has to offer the same way into the choices:
+	// without it a curve's choices could neither be authored nor, once a retype brought some, unlocked.
+	FPCGExChoiceRowArgs Choices;
+	Choices.Host = FPCGExPropertyHostRef(PropertyHandle, EPCGExPropertyHostKind::Property);
+	if (!PCGExPropertyChoicesUI::IsUnderReadOnlySchema(PropertyHandle))
+	{
+		Choices.EditChoices = PCGExPropertyChoicesUI::MakeDeclarationEditor(
+			PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExProperty, Choices)), Choices.Host);
+	}
+	const TSharedRef<FPCGExChoiceRowState> State = MakeShared<FPCGExChoiceRowState>(Choices.Host);
+
 	ChildBuilder.AddCustomRow(LOCTEXT("CurveEditorRow", "Curve Editor"))
+	            .Visibility(FPCGExInlineWidgetRegistry::VisibleUnlessLocked(State))
 	            .WholeRowContent()
 	[
 		SNew(SPCGExPropertyCurveValueWidget, ValueHandle.ToSharedRef())
 		.Clamps(FPCGExPropertyCurveClamps::FromProperty(PropertyHandle->GetProperty()))
 	];
+
+	FPCGExInlineWidgetRegistry::AddChoicesRow(ChildBuilder, State, ValueHandle.ToSharedRef(), TAttribute<bool>(true), Choices.EditChoices);
 }
 
 #pragma region FPCGExRuntimeFloatCurveCustomization

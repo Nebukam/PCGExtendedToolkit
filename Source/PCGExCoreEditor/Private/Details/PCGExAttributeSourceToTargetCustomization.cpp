@@ -10,6 +10,7 @@
 #include "Details/PCGExAttributesDetails.h"
 #include "Details/PCGExRawPropertyEdit.h"
 #include "Styling/SlateColor.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -71,13 +72,12 @@ void FPCGExAttributeSourceToTargetCustomization::CustomizeHeader(
 		return Details->Source.IsNone() ? FText::GetEmpty() : FText::FromString(TEXT("= ") + Details->Source.ToString());
 	};
 
-	// Commit writes both members in one transaction so the toggle and Target never disagree: a non-empty target
-	// enables the remap; clearing it disables it (so it never tries to rename to an empty name).
+	// Commit writes both members in one transaction so the toggle and Target never disagree: text that spells a
+	// name enables the remap; any other text disables it (so it never tries to rename to None).
 	auto OnTargetCommitted = [PropertyHandle](const FText& InText, ETextCommit::Type)
 	{
-		const FString Trimmed = InText.ToString().TrimStartAndEnd();
-		const bool bHasTarget = !Trimmed.IsEmpty();
-		const FName NewTarget = bHasTarget ? FName(*Trimmed) : NAME_None;
+		const FName NewTarget = PCGExTypeOps::MakeNameChecked(InText.ToString().TrimStartAndEnd());
+		const bool bHasTarget = !NewTarget.IsNone();
 
 		FPCGExRawPropertyEdit(PropertyHandle).Commit(LOCTEXT("SetAttributeRemap", "Set Attribute Remap"), [bHasTarget, NewTarget](void* RawData)
 		{

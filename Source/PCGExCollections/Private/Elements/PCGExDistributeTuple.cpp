@@ -48,62 +48,76 @@ void FPCGExDistributeTupleContext::RegisterAssetDependencies()
 }
 
 #if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExDistributeTupleSettings::EDITOR_GetRowSchema() const
+{
+	return &Composition;
+}
+
+void UPCGExDistributeTupleSettings::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor)
+{
+	Visitor(Composition.ImportOverrides, true);
+	for (FPCGExWeightedPropertyOverrides& Row : Values)
+	{
+		Visitor(Row, false);
+	}
+}
+
+void UPCGExDistributeTupleSettings::EDITOR_NotifyRowsChanged()
+{
+	// A value-level edit of Values: dirties the cache and refreshes the node, no schema sync.
+	FPropertyChangedEvent Event(FindFProperty<FProperty>(GetClass(), GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values)), EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
+
+void UPCGExDistributeTupleSettings::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset)
+{
+	bool bChanged = Composition.SyncImportOverridesInPlace();
+	if (Composition.ApplyToRows(Values))
+	{
+		bChanged = true;
+		// The rows may have been rebuilt, exactly as after an edit of Composition.
+		PCGExPropertyRowHost::BroadcastRowsRebuilt(this, GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values));
+	}
+	if (bChanged)
+	{
+		(void)MarkPackageDirty();
+	}
+	// Whatever the rows did: a disabled column outputs the asset's own default, which may be what changed.
+	EDITOR_NotifyRowsChanged();
+}
+
+void UPCGExDistributeTupleSettings::PostLoad()
+{
+	// An import can change while this graph is unloaded. Before Super, so the CRC it caches sees the healed rows.
+	bool bChanged = Composition.ReconcileImportOverridesAtLoad();
+	bChanged |= Composition.SyncRowsAtLoad(Values);
+	if (bChanged)
+	{
+		(void)MarkPackageDirty();
+	}
+
+	Super::PostLoad();
+}
+
 void UPCGExDistributeTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExDistributeTupleSettings::PostEditChangeProperty);
 
-	bool bNeedsSync = false;
-	bool bNeedsUIRefresh = false;
+	const PCGExPropertyRowHost::FEditKind Edit = PCGExPropertyRowHost::ClassifyEdit(
+		PropertyChangedEvent, GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Composition), GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values));
 
-	if (PropertyChangedEvent.MemberProperty)
+	if (Edit.bSyncRows)
 	{
-		FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
-		EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
-
-		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Composition))
-		{
-			bNeedsSync = true;
-			bNeedsUIRefresh = true;
-		}
-		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchema::StaticStruct())
-		{
-			bNeedsSync = true;
-			bNeedsUIRefresh = true;
-		}
-		else if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values) && (ChangeType == EPropertyChangeType::ArrayAdd || ChangeType == EPropertyChangeType::ArrayRemove || ChangeType == EPropertyChangeType::ArrayClear || ChangeType == EPropertyChangeType::ArrayMove))
-		{
-			bNeedsSync = true;
-		}
-	}
-
-	if (!bNeedsSync && !bNeedsUIRefresh)
-	{
-		DirtyCache();
-		Super::PostEditChangeProperty(PropertyChangedEvent);
-		return;
-	}
-
-	if (bNeedsSync)
-	{
-		// Remap rows before the SyncToSchema loop -- it aliases collided rows otherwise.
+		// Remap rows before the per-row SyncToSchema: it aliases collided rows otherwise.
 		Composition.SyncAllSchemasAndRemapRows(Values);
 		Composition.ReconcileImportOverrides();
-		TArray<FInstancedStruct> Schema = Composition.BuildSchema();
-		for (FPCGExWeightedPropertyOverrides& Row : Values)
-		{
-			Row.SyncToSchema(Schema);
-		}
-	}
+		Composition.ApplyToRows(Values);
 
-	(void)MarkPackageDirty();
+		(void)MarkPackageDirty();
 
-	if (bNeedsUIRefresh)
-	{
-		FProperty* ValuesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Values"));
-		if (ValuesProperty)
+		if (Edit.bSchemaChanged)
 		{
-			FPropertyChangedEvent RefreshEvent(ValuesProperty, EPropertyChangeType::ArrayClear);
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, RefreshEvent);
+			PCGExPropertyRowHost::BroadcastRowsRebuilt(this, GET_MEMBER_NAME_CHECKED(UPCGExDistributeTupleSettings, Values));
 		}
 	}
 
@@ -220,8 +234,7 @@ namespace PCGExDistributeTuple
 {
 	void CompileColumns(FPCGExDistributeTupleContext* Context, const UPCGExDistributeTupleSettings* Settings, const TArray<FPCGExPropertyResolved>& Resolved)
 	{
-		// ColIdx indexes Values[k].Overrides, which the SyncAllSchemas / ReconcileImportOverrides /
-		// ApplyToOverrides pipeline keeps parallel with Resolve() output.
+		// The edit and load syncs keep Values[k].Overrides parallel to Resolved; nothing below relies on it.
 		const int32 NumRows = Settings->Values.Num();
 
 		TSet<FName> WrittenNames;
@@ -277,10 +290,12 @@ namespace PCGExDistributeTuple
 			Column.OutputName = OutputName;
 			Column.EffectiveProperty = &EffectiveProperty;
 			Column.RowSources.SetNumUninitialized(NumRows);
+			// A cell is its row's enabled entry of this column's name and type, never the entry at ColIdx on position
+			// alone: WriteOutputFrom casts a row source to the column's type unchecked.
 			for (int32 RowIdx = 0; RowIdx < NumRows; ++RowIdx)
 			{
-				const FPCGExWeightedPropertyOverrides& Row = Settings->Values[RowIdx];
-				Column.RowSources[RowIdx] = Row.IsOverrideEnabled(ColIdx) ? Row.Overrides[ColIdx].GetProperty() : nullptr;
+				const FInstancedStruct* Cell = Settings->Values[RowIdx].FindEnabledSlot(Entry.Source->Name, EffectiveProperty.GetScriptStruct(), ColIdx);
+				Column.RowSources[RowIdx] = Cell ? Cell->GetPtr<FPCGExProperty>() : nullptr;
 			}
 		}
 	}

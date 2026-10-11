@@ -62,7 +62,8 @@ namespace PCGExProperties
 				const FName Name = P->PropertyName;
 				if (const FInstancedStruct* Existing = FirstSeen.Find(Name))
 				{
-					if (*Existing != Prop)
+					// Agreement is about the value: a pick or a mirrored choice list alone must not break it.
+					if (!PCGExProperties::ValuesIdentical(*Existing, Prop))
 					{
 						AllAgree[Name] = false;
 					}

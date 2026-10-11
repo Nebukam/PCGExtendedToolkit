@@ -59,7 +59,12 @@ namespace PCGExData
 		}
 		else
 		{
-			Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT(".")));
+			// None only when the text is too long to be a name: such a selector identifies no buffer.
+			Identifier.Name = PCGExTypeOps::MakeNameChecked(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT(".")));
+			if (Identifier.Name.IsNone())
+			{
+				return FPCGAttributeIdentifier(PCGExMetaHelpers::InvalidName, EPCGMetadataDomainFlag::Invalid);
+			}
 		}
 
 		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);

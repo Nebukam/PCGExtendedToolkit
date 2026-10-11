@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExProperty.h"
+#include "PCGExPropertyRowHost.h"
 #include "Engine/DataAsset.h"
 
 #include "PCGExPropertySchemaAsset.generated.h"
@@ -34,17 +35,28 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnPCGExSchemaAssetChanged, UPCGExPropertySc
  * - Walk order is depth-first: importing collection's locals first, then each
  *   ImportedSchemas entry expanded in array order (locals of the imported
  *   collection, then its own imports, etc.).
+ * - This asset's own ImportOverrides apply to what it imports, below the importer's own
+ *   overrides: an importer sees this asset's override unless it overrides the entry itself.
  * - Cycles are detected during resolution and skipped with a LogPCGEx warning.
  *   IsDataValid surfaces them in the editor as a Warning result.
  */
 
 // Property Schema
 UCLASS(BlueprintType, DisplayName="[PCGEx] Property Schema", meta=(ToolTip = "A composable and inheritable library of properties definition.", PCGExNodeLibraryDoc="staging/utilities/property-schema-asset"))
-class PCGEXPROPERTIES_API UPCGExPropertySchemaAsset : public UDataAsset
+class PCGEXPROPERTIES_API UPCGExPropertySchemaAsset : public UDataAsset, public IPCGExPropertyRowHost
 {
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
+	//~Begin IPCGExPropertyRowHost: this asset's import overrides, against Collection.
+	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor) override;
+	virtual void EDITOR_NotifyRowsChanged() override;
+	virtual void EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset) override;
+	//~End IPCGExPropertyRowHost
+#endif
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1, MultiLine))
 	FString Notes;
@@ -72,5 +84,13 @@ public:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+
+private:
+	/**
+	 * Tell everything that resolves through this asset that it changed, in dependency order: the loaded schema assets
+	 * importing it, then the panels showing an importer (OnSchemaAssetChanged), then every other loaded importer, and
+	 * last the class-wide delegate.
+	 */
+	void NotifyChanged();
 #endif
 };

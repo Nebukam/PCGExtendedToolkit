@@ -9,6 +9,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Types/PCGExTypeOpsString.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -73,7 +74,7 @@ bool PCGExPointFilter::FStringCompareFilter::Init(FPCGExContext* InContext, cons
 
 		// Direct MakeSettingValue bypasses the shorthand getter: seed the per-operand toggle and quiet by hand.
 		const FPCGExInputShorthandSelectorString& OperandBValue = TypedFilterFactory->Config.OperandBValue;
-		const TSharedPtr<PCGExDetails::TSettingValue<FName>> NameValue = PCGExDetails::MakeSettingValue<FName>(OperandBValue.Input, OperandBValue.Attribute, FName(OperandBValue.Constant));
+		const TSharedPtr<PCGExDetails::TSettingValue<FName>> NameValue = PCGExDetails::MakeSettingValue<FName>(OperandBValue.Input, OperandBValue.Attribute, PCGExTypeOps::MakeNameChecked(OperandBValue.Constant));
 		NameValue->bRegisterConsumable = OperandBValue.bCleanupAttribute;
 		NameValue->bQuiet = PCGEX_QUIET_HANDLING;
 		return InitSettingValue(OperandBName, NameValue, PointDataFacade, false);
@@ -124,7 +125,7 @@ bool PCGExPointFilter::FStringCompareFilter::Test(const TSharedPtr<PCGExData::FP
 	// Mirror the per-point path: equality uses FName so both domains agree (see Test(int32)).
 	if (PCGExCompare::IsStringEqualityComparison(TypedFilterFactory->Config.Comparison))
 	{
-		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FName(A), FName(B));
+		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, PCGExTypeOps::MakeNameChecked(A), PCGExTypeOps::MakeNameChecked(B));
 	}
 
 	return TypedFilterFactory->Config.bSwapOperands ? PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, B, A) : PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);

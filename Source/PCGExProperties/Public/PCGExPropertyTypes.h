@@ -825,7 +825,9 @@ public:
  * - OutputBuffer is TBuffer<int64> (enum values stored as integer)
  * - Output methods extract Value.Value (the int64) before writing
  */
-USTRUCT(BlueprintType, meta=(PCGExInlineValue), DisplayName="Enum")
+// PCGExStructuralValue: the value editor also sets the type's structure (here the enum class), so the row that
+// declares the property keeps that editor when its choices are locked.
+USTRUCT(BlueprintType, meta=(PCGExInlineValue, PCGExStructuralValue), DisplayName="Enum")
 struct PCGEXPROPERTIES_API FPCGExProperty_Enum : public FPCGExProperty
 {
 	GENERATED_BODY()
@@ -857,6 +859,11 @@ public:
 	{
 		return FName("Enum");
 	}
+
+	/** A choice must target the schema's enum class. */
+	virtual bool IsChoiceCompatible(const FPCGExProperty& Carrier) const override;
+	/** The enumerator's display name, not the raw integer. */
+	virtual bool GetValuePreviewText(FText& OutText) const override;
 
 	virtual FPCGMetadataAttributeBase* CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const override;
 	virtual void WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const override;

@@ -258,7 +258,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	// Comma tokens and schema names are never remapped: the typed string is the source, output keeps that name.
 	for (const FString& Token : PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedAttributeSelectors))
 	{
-		RouteMapping(FPCGExAttributeSourceToTargetDetails(FName(*Token)));
+		RouteMapping(FPCGExAttributeSourceToTargetDetails(PCGExTypeOps::MakeNameChecked(Token)));
 	}
 
 	// Schema assets contribute their property names as sources.

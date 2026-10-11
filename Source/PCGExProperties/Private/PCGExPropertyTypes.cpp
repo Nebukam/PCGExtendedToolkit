@@ -6,6 +6,7 @@
 #include "Metadata/PCGMetadata.h"
 #include "Misc/PackageName.h"
 #include "Types/PCGExTypeOps.h"
+#include "Types/PCGExTypeOpsString.h"
 
 // ============================================================================
 // PCGEX_PROPERTY_IMPL - Code generation macro for simple property types
@@ -293,7 +294,7 @@ bool FPCGExProperty_FloatCurve::TryWriteValue(EPCGMetadataTypes TargetType, void
 		*static_cast<FString*>(OutBuffer) = Path.ToString();
 		return true;
 	case EPCGMetadataTypes::Name:
-		*static_cast<FName*>(OutBuffer) = Path.IsNull() ? NAME_None : FName(*Path.ToString());
+		*static_cast<FName*>(OutBuffer) = Path.IsNull() ? NAME_None : PCGExTypeOps::MakeNameChecked(Path.ToString());
 		return true;
 	default:
 		return false;
@@ -327,7 +328,8 @@ bool FPCGExProperty_FloatCurve::TryReadValue(EPCGMetadataTypes SourceType, const
 			}
 
 			// Text can come from arbitrary attribute / data-table columns: only object-path-shaped text may reach a load.
-			if (!FPackageName::IsValidObjectPath(Text))
+			// FPackageName::IsValidObjectPath sets no length limit, and the path's package FName asserts at NAME_SIZE.
+			if (Text.Len() >= NAME_SIZE || !FPackageName::IsValidObjectPath(Text))
 			{
 				return false;
 			}
@@ -381,6 +383,21 @@ bool FPCGExProperty_Enum::SyncStructuralFromSchema(const FPCGExProperty& Schema)
 		return false;
 	}
 	Value.Class = Typed.Value.Class;
+	return true;
+}
+
+bool FPCGExProperty_Enum::IsChoiceCompatible(const FPCGExProperty& Carrier) const
+{
+	return static_cast<const FPCGExProperty_Enum&>(Carrier).Value.Class == Value.Class;
+}
+
+bool FPCGExProperty_Enum::GetValuePreviewText(FText& OutText) const
+{
+	if (!Value.IsValid())
+	{
+		return false;
+	}
+	OutText = Value.GetDisplayName();
 	return true;
 }
 

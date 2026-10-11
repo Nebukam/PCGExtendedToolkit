@@ -9,6 +9,7 @@
 #include "PCGExCoreSettingsCache.h"
 
 #include "PCGExProperty.h"
+#include "PCGExPropertyRowHost.h"
 #include "PCGSettings.h"
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
@@ -38,11 +39,22 @@ class FPCGMetadataAttributeBase;
 #pragma region Tuple Header and Body
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/keys/tuple"))
-class UPCGExTupleSettings : public UPCGExSettings
+class UPCGExTupleSettings : public UPCGExSettings, public IPCGExPropertyRowHost
 {
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
+	//~Begin IPCGExPropertyRowHost: Values against Composition.
+	virtual const FPCGExPropertySchemaCollection* EDITOR_GetRowSchema() const override;
+	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor) override;
+	virtual void EDITOR_NotifyRowsChanged() override;
+	virtual void EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset) override;
+	//~End IPCGExPropertyRowHost
+
+	virtual void PostLoad() override;
+#endif
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Tuple, "Tuple", "A Simple Tuple attribute.");

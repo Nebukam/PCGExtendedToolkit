@@ -20,66 +20,77 @@
 #define PCGEX_NAMESPACE Tuple
 
 #if WITH_EDITOR
+const FPCGExPropertySchemaCollection* UPCGExTupleSettings::EDITOR_GetRowSchema() const
+{
+	return &Composition;
+}
+
+void UPCGExTupleSettings::EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor)
+{
+	Visitor(Composition.ImportOverrides, true);
+	for (FPCGExPropertyOverrides& Row : Values)
+	{
+		Visitor(Row, false);
+	}
+}
+
+void UPCGExTupleSettings::EDITOR_NotifyRowsChanged()
+{
+	// A value-level edit of Values: dirties the cache and refreshes the node, no schema sync.
+	FPropertyChangedEvent Event(FindFProperty<FProperty>(GetClass(), GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values)), EPropertyChangeType::ValueSet);
+	PostEditChangeProperty(Event);
+}
+
+void UPCGExTupleSettings::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset)
+{
+	bool bChanged = Composition.SyncImportOverridesInPlace();
+	if (Composition.ApplyToRows(Values))
+	{
+		bChanged = true;
+		// The rows may have been rebuilt, exactly as after an edit of Composition.
+		PCGExPropertyRowHost::BroadcastRowsRebuilt(this, GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values));
+	}
+	if (bChanged)
+	{
+		(void)MarkPackageDirty();
+	}
+	// Whatever the rows did: a disabled column outputs the asset's own default, which may be what changed.
+	EDITOR_NotifyRowsChanged();
+}
+
+void UPCGExTupleSettings::PostLoad()
+{
+	// An import can change while this graph is unloaded. Before Super, so the CRC it caches sees the healed rows.
+	bool bChanged = Composition.ReconcileImportOverridesAtLoad();
+	bChanged |= Composition.SyncRowsAtLoad(Values);
+	if (bChanged)
+	{
+		(void)MarkPackageDirty();
+	}
+
+	Super::PostLoad();
+}
+
 void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::PostEditChangeProperty);
 
-	bool bNeedsSync = false;
-	bool bNeedsUIRefresh = false;
+	const PCGExPropertyRowHost::FEditKind Edit = PCGExPropertyRowHost::ClassifyEdit(
+		PropertyChangedEvent, GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Composition), GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values));
 
-	if (PropertyChangedEvent.MemberProperty)
+	if (Edit.bSyncRows)
 	{
-		FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
-		EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
-
-		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Composition))
-		{
-			bNeedsSync = true;
-			bNeedsUIRefresh = true;
-		}
-		// Also catch changes to Composition array elements (e.g., changing Property type or Name)
-		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchema::StaticStruct())
-		{
-			bNeedsSync = true;
-			bNeedsUIRefresh = true;
-		}
-		else if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values) && (ChangeType == EPropertyChangeType::ArrayAdd || ChangeType == EPropertyChangeType::ArrayRemove || ChangeType == EPropertyChangeType::ArrayClear || ChangeType == EPropertyChangeType::ArrayMove))
-		{
-			bNeedsSync = true;
-		}
-	}
-
-	if (!bNeedsSync && !bNeedsUIRefresh)
-	{
-		DirtyCache();
-		Super::PostEditChangeProperty(PropertyChangedEvent);
-		return; // Skip processing
-	}
-
-	// Sync composition schemas to values (only if we need to sync). Explicit three-step
-	// pipeline: canonicalize outer->inner identity on Schemas, align ImportOverrides with
-	// the imports tree, then apply the resolved schema to every row's Overrides array.
-	if (bNeedsSync)
-	{
-		// Remap rows before ApplyToOverrides -- it calls SyncToSchema per row, which aliases
-		// collided rows without the remap.
+		// Canonicalize outer->inner identity on Schemas (remapping rows first: SyncToSchema aliases collided rows
+		// without it), align ImportOverrides with the imports tree, then apply the resolved schema to every row.
 		Composition.SyncAllSchemasAndRemapRows(Values);
 		Composition.ReconcileImportOverrides();
-		Composition.ApplyToOverrides(Values);
-	}
+		Composition.ApplyToRows(Values);
 
-	(void)MarkPackageDirty();
+		(void)MarkPackageDirty();
 
-	// Force UI refresh BEFORE Super - this ensures details panel rebuilds customizations
-	if (bNeedsUIRefresh)
-	{
-		// Mark Values as changed to force full customization rebuild
-		FProperty* ValuesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Values"));
-		if (ValuesProperty)
+		if (Edit.bSchemaChanged)
 		{
-			// Use ArrayClear type to force aggressive rebuild
-			FPropertyChangedEvent RefreshEvent(ValuesProperty, EPropertyChangeType::ArrayClear);
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, RefreshEvent);
+			PCGExPropertyRowHost::BroadcastRowsRebuilt(this, GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values));
 		}
 	}
 
@@ -156,9 +167,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 
 	UPCGParamData* TupleData = Context->ManagedObjects->New<UPCGParamData>();
 
-	// ColCount must match Values[k].Overrides.Num() -- the SyncAllSchemas /
-	// ReconcileImportOverrides / ApplyToOverrides pipeline (PostEditChangeProperty) keeps
-	// them parallel.
+	// The edit and load syncs keep Values[k].Overrides parallel to these columns; nothing below relies on it.
 	TArray<FPCGExPropertyResolved> Resolved;
 	Settings->Composition.Resolve(Resolved);
 	const int32 ColCount = Resolved.Num();
@@ -208,16 +217,15 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 			continue;
 		}
 
+		// A cell is its row's enabled entry of this column's name and type, never the entry at i on position alone:
+		// WriteMetadataValue casts the attribute to the entry's own type unchecked.
+		const FName PropertyName = Resolved[i].Source->Name;
+		const UScriptStruct* PropertyType = Resolved[i].GetEffectiveProperty().GetScriptStruct();
+
 		for (int k = 0; k < Keys.Num(); k++)
 		{
-			const FPCGExPropertyOverrides& Row = Settings->Values[k];
-
-			if (!Row.IsOverrideEnabled(i))
-			{
-				continue;
-			}
-
-			if (const FPCGExProperty* Property = Row.Overrides[i].GetProperty())
+			const FInstancedStruct* Cell = Settings->Values[k].FindEnabledSlot(PropertyName, PropertyType, i);
+			if (const FPCGExProperty* Property = Cell ? Cell->GetPtr<FPCGExProperty>() : nullptr)
 			{
 				Property->WriteMetadataValue(Attribute, Keys[k]);
 				if (Settings->bOutputMap && !Property->GetOutputSidecarPin().IsNone())

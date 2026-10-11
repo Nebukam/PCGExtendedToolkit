@@ -10,6 +10,7 @@
 #include "PropertyHandle.h"
 #include "Details/PCGExDetailRowWidgets.h"
 #include "Helpers/PCGExMetaHelpers.h"
+#include "Types/PCGExTypeOpsString.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBox.h"
 
@@ -100,7 +101,7 @@ void FPCGExPropertyOutputConfigCustomization::CustomizeHeader(
 			return;
 		}
 		const FString Trimmed = InText.ToString().TrimStartAndEnd();
-		const FName NewValue = Trimmed.IsEmpty() ? NAME_None : FName(*Trimmed);
+		const FName NewValue = PCGExTypeOps::MakeNameChecked(Trimmed);
 		OutputAttributeNameHandle->SetValue(NewValue);
 	};
 

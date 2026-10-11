@@ -487,7 +487,8 @@ void UPCGExActorCollection::RebuildActorPropertiesFromComponents(
 					OverrideProp->HeaderId = SchemaProp->HeaderId;
 #endif
 					// The donor's schema-owned fields give way to the canonical ones here, not on a later sync.
-					Slot.SyncStructuralFields(CanonicalSchema[MergedIdx]);
+					// No follow: the value is the donor's, and a pick made against the donor's list must not rewrite it.
+					Slot.SyncStructuralFields(CanonicalSchema[MergedIdx], nullptr, /*bFollowPick=*/false);
 				}
 			}
 		}

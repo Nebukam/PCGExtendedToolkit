@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/StridedView.h"
 #include "Data/PCGExData.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Types/PCGExTypeTraits.h"
@@ -17,6 +18,7 @@ class UPCGExPropertySchemaAsset;
 struct FPCGExProperty;
 
 struct FPCGExPropertyResolved;
+struct FPCGExResolvedChoicesCache;
 
 /**
  * Entry in the property registry.
@@ -88,6 +90,143 @@ struct PCGEXPROPERTIES_API FPCGExHeaderIdRemap
 };
 
 /**
+ * One named favourite value of a property. Value is a CARRIER: an instance of the host property's own type whose
+ * Value field holds the choice; its other fields (identity, Choices) are meaningless and kept empty.
+ * Editor-only data, by use: only ever stored under WITH_EDITORONLY_DATA fields.
+ */
+USTRUCT()
+struct PCGEXPROPERTIES_API FPCGExPropertyChoice
+{
+	GENERATED_BODY()
+
+	/**
+	 * Stable identity: patches and rows bind to it, never to Label. Minted by MakeChoiceFromValue and by the
+	 * NormalizeIds passes (SyncAllSchemas, ReconcileImportOverrides, the choice commits), never by the constructor
+	 * -- see HeaderId.
+	 */
+	UPROPERTY()
+	FGuid Id;
+
+	/** Display text only; nothing binds to it. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FString Label;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, NoResetToDefault))
+	FInstancedStruct Value;
+
+	bool operator==(const FPCGExPropertyChoice& Other) const
+	{
+		// FString's own operator== ignores case, which would hide a case-only rename from the row mirrors.
+		return Id == Other.Id && Label.Equals(Other.Label, ESearchCase::CaseSensitive) && Value == Other.Value;
+	}
+
+	bool operator!=(const FPCGExPropertyChoice& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/**
+ * A property's favourite values and whether its editors are restricted to them. Authored on the schema, patched
+ * by importers (FPCGExPropertyChoicesPatch), mirrored read-only onto every override row. UI-only: nothing
+ * outside the details panel enforces the lock.
+ */
+USTRUCT()
+struct PCGEXPROPERTIES_API FPCGExPropertyChoices
+{
+	GENERATED_BODY()
+
+	/** Value editors show the choices alone; a value outside the list is kept and shown as custom, never coerced. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	bool bLocked = false;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(TitleProperty="{Label}"))
+	TArray<FPCGExPropertyChoice> Items;
+
+	/** Mint every unset Id and re-mint duplicates; the last holder keeps a shared Id. True if any changed. */
+	bool NormalizeIds();
+
+	bool operator==(const FPCGExPropertyChoices& Other) const
+	{
+		return bLocked == Other.bLocked && Items == Other.Items;
+	}
+
+	bool operator!=(const FPCGExPropertyChoices& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/** How an importer rewrites the choice list of a property it imports. */
+UENUM()
+enum class EPCGExChoicesPatchMode : uint8
+{
+	Inherit = 0 UMETA(Tooltip = "Keep the list as the imported schema defines it."),
+	Modify  = 1 UMETA(Tooltip = "Remove the listed choices, then add the patch's choices (one carrying an imported choice's identity replaces it)."),
+	Replace = 2 UMETA(Tooltip = "Discard the imported list and use the patch's choices alone."),
+};
+
+/** How an importer rewrites the lock of a property it imports. */
+UENUM()
+enum class EPCGExChoicesLock : uint8
+{
+	Inherit  = 0 UMETA(Tooltip = "Keep the imported lock state."),
+	Locked   = 1 UMETA(Tooltip = "Restrict value editors to the choices."),
+	Unlocked = 2 UMETA(Tooltip = "Allow any value."),
+};
+
+/**
+ * An importer's rewrite of an imported property's choices. Lives on the import override entry and applies whether
+ * or not that entry's value override is enabled; patches stack from the declaring asset up to the root importer.
+ */
+USTRUCT()
+struct PCGEXPROPERTIES_API FPCGExPropertyChoicesPatch
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExChoicesPatchMode Mode = EPCGExChoicesPatchMode::Inherit;
+
+	/** The patch's own choices; Mode decides how they combine with the imported list. */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(TitleProperty="{Label}"))
+	TArray<FPCGExPropertyChoice> Items;
+
+	/** Imported choices dropped by Id. EditAnywhere only so the details tree builds its node. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TArray<FGuid> RemovedIds;
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExChoicesLock Lock = EPCGExChoicesLock::Inherit;
+
+	/** True when applying this patch changes nothing. */
+	bool IsIdentity() const
+	{
+		return Mode == EPCGExChoicesPatchMode::Inherit && Lock == EPCGExChoicesLock::Inherit;
+	}
+
+	/** True when there is nothing worth storing: an identity patch that holds no list data either. */
+	bool IsEmpty() const
+	{
+		return IsIdentity() && Items.IsEmpty() && RemovedIds.IsEmpty();
+	}
+
+	/** FPCGExPropertyChoices::NormalizeIds over Items. */
+	bool NormalizeIds();
+
+	void Apply(FPCGExPropertyChoices& InOut) const;
+
+	bool operator==(const FPCGExPropertyChoicesPatch& Other) const
+	{
+		return Mode == Other.Mode && Lock == Other.Lock && RemovedIds == Other.RemovedIds && Items == Other.Items;
+	}
+
+	bool operator!=(const FPCGExPropertyChoicesPatch& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/**
  * Single property override entry.
  * Stores enabled state + typed value. PropertyName comes from the inner struct.
  *
@@ -114,6 +253,13 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 
 	UPROPERTY()
 	FName PropertyName = NAME_None;
+
+	/**
+	 * Only read on an ImportOverrides entry: this importer's rewrite of the imported property's choices, unset when it
+	 * rewrites nothing. EditAnywhere so the details tree builds its node; the entry customization decides where it shows.
+	 */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TInstancedStruct<FPCGExPropertyChoicesPatch> ChoicesPatch;
 #endif
 
 	/** Whether this override is active (false = use collection default) */
@@ -145,6 +291,15 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	// Copy inner FPCGExProperty identity (PropertyName, HeaderId) into the outer cache fields.
 	// Idempotent; safe to call any time Value has been assigned a non-default content.
 	void SeedOuterIdentityFromInner();
+
+	/** The choices patch this entry stores; null when it rewrites nothing. */
+	const FPCGExPropertyChoicesPatch* GetChoicesPatch() const
+	{
+		return ChoicesPatch.GetPtr();
+	}
+
+	/** Store Patch, or drop the storage when Patch is empty. True if the stored state changed. */
+	bool SetChoicesPatch(const FPCGExPropertyChoicesPatch& Patch);
 #endif
 
 	FName GetPropertyName() const;
@@ -155,12 +310,17 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	FPCGExProperty* GetPropertyMutable();
 
 	/**
-	 * Re-mirror Value's schema-owned fields from SchemaValue (FPCGExProperty::SyncStructuralFromSchema).
-	 * The checked way into that hook: nothing happens unless both hold the same property type.
+	 * Re-mirror Value's schema-owned fields from SchemaValue: the type's own (FPCGExProperty::SyncStructuralFromSchema),
+	 * then the base Choices list. Nothing happens unless both hold the same property type.
+	 * EffectiveChoices replaces the list read off SchemaValue; SyncInPlace passes it because its schema view is
+	 * not baked the way BuildSchema's is.
+	 *
+	 * A value that stood on its picked choice follows that choice's new value; any other value is left alone and
+	 * loses a pick it no longer matches. bFollowPick false never writes Value: for a value adopted from another host.
 	 *
 	 * @return True if any field changed.
 	 */
-	bool SyncStructuralFields(const FInstancedStruct& SchemaValue);
+	bool SyncStructuralFields(const FInstancedStruct& SchemaValue, const FPCGExPropertyChoices* EffectiveChoices = nullptr, bool bFollowPick = true);
 
 	bool IsValid() const
 	{
@@ -188,11 +348,15 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
  *   MySchema.ReconcileImportOverrides();                // align imports
  *   MySchema.ApplyToOverrides(MyRows);                  // apply to external rows
  *
- *   // At runtime, read values:
- *   for (int Col = 0; Col < MySchema.Num(); ++Col) {
- *       if (MyRows[RowIdx].IsOverrideEnabled(Col)) {
- *           const FPCGExProperty* Prop = MyRows[RowIdx].Overrides[Col].GetProperty();
- *           // Use Prop->Value...
+ *   // At runtime, read a row against the resolved schema by name and type, never by position alone
+ *   // (writers cast a value to its column's type unchecked):
+ *   TArray<FPCGExPropertyResolved> Columns;
+ *   MySchema.Resolve(Columns);
+ *   for (int Col = 0; Col < Columns.Num(); ++Col) {
+ *       const UScriptStruct* Type = Columns[Col].GetEffectiveProperty().GetScriptStruct();
+ *       if (const FInstancedStruct* Slot = MyRows[RowIdx].FindEnabledSlot(Columns[Col].Source->Name, Type, Col)) {
+ *           const FPCGExProperty* Prop = Slot->GetPtr<FPCGExProperty>();
+ *           // Use Prop...
  *       }
  *   }
  *
@@ -212,30 +376,35 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	 * Sync overrides to match schema - ensures parallel array structure.
 	 *
 	 * This is the core mechanism that keeps overrides aligned with their schema.
-	 * In the editor, it uses HeaderId for stable matching:
-	 * - Existing overrides matched by HeaderId preserve their bEnabled state
-	 * - Same-type matches also preserve the override value
-	 * - Type changes preserve bEnabled but reset the value to schema default
-	 * - New properties (no HeaderId match) are added as disabled
+	 * In the editor, each existing override is matched to the property it stands for: on HeaderId, or on the name
+	 * where it has no id or several share it. No override is handed to two properties.
+	 * - A matched override preserves its bEnabled state
+	 * - Same-type matches also preserve the override value (one standing on its picked choice follows that choice)
+	 * - Type changes preserve bEnabled but reset the value to schema default; a choices patch crosses the retype
+	 * - New properties (no match) are added as disabled
 	 *
 	 * At runtime (no editor data), overrides are rebuilt from schema defaults.
 	 *
-	 * @param Schema The schema to sync to (use FPCGExPropertySchemaCollection::BuildSchema())
-	 * @return       True if anything changed. Slow path (structural drift) returns true
-	 *               unconditionally; fast path returns true only if a PropertyName or
-	 *               structural field actually differed. Drives conditional MarkPackageDirty.
+	 * @param Schema       The schema to sync to (use FPCGExPropertySchemaCollection::BuildSchema())
+	 * @param bFollowPicks False when the values were just adopted from another host: see
+	 *                     FPCGExPropertyOverrideEntry::SyncStructuralFields.
+	 * @return             True if anything changed. Slow path (structural drift) returns true
+	 *                     unconditionally; fast path returns true only if a PropertyName or
+	 *                     structural field actually differed. Drives conditional MarkPackageDirty.
 	 */
-	bool SyncToSchema(const TArray<FInstancedStruct>& Schema);
+	bool SyncToSchema(const TArray<FInstancedStruct>& Schema, bool bFollowPicks = true);
 
 	/**
 	 * In-place counterpart of SyncToSchema. Each row is matched to a resolved property (HeaderId, then name),
-	 * takes that property's name and re-mirrors its schema-owned fields. Rows are never added, removed,
-	 * reordered or retyped, so unlike SyncToSchema this is safe against an incomplete schema, e.g. at load
-	 * with an import missing. A row whose type differs from its property's is left untouched.
+	 * takes that property's name and re-mirrors its schema-owned fields from the DECLARATION, never from an
+	 * override row standing in for it. Rows are never added, removed, reordered or retyped, so unlike
+	 * SyncToSchema this is safe against an incomplete schema (a load with an import missing) and under live
+	 * detail rows. A row whose type differs from its property's is left untouched.
 	 *
+	 * @param ChoicesCache Optional, see FPCGExResolvedChoicesCache.
 	 * @return True if any row changed.
 	 */
-	bool SyncInPlace(TConstArrayView<FPCGExPropertyResolved> Resolved);
+	bool SyncInPlace(TConstArrayView<FPCGExPropertyResolved> Resolved, FPCGExResolvedChoicesCache* ChoicesCache = nullptr);
 
 	/**
 	 * Apply HeaderId remaps from a schema dedup pass. Matches entries by (OldId, Name) --
@@ -275,11 +444,17 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	 */
 	FPCGExPropertyOverrideEntry* FindEntryMutableByName(FName PropertyName)
 	{
+		return const_cast<FPCGExPropertyOverrideEntry*>(AsConst(*this).FindEntryByName(PropertyName));
+	}
+
+	/** Read-only FindEntryMutableByName: the entry named PropertyName whatever its bEnabled, else nullptr. */
+	const FPCGExPropertyOverrideEntry* FindEntryByName(FName PropertyName) const
+	{
 		if (PropertyName.IsNone())
 		{
 			return nullptr;
 		}
-		for (FPCGExPropertyOverrideEntry& Entry : Overrides)
+		for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
 		{
 			if (Entry.GetPropertyName() == PropertyName)
 			{
@@ -307,8 +482,9 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	 * First ENABLED slot named PropertyName whose value derives from RequiredType. Scans the whole
 	 * array rather than stopping at the first name match, so a duplicate-named slot of the wrong type
 	 * never shadows a correct one behind it (GetOverride stops at the first). Null RequiredType = miss.
+	 * IndexHint is tried first: the index of the property in the schema these rows are kept parallel to.
 	 */
-	const FInstancedStruct* FindEnabledSlot(FName PropertyName, const UScriptStruct* RequiredType) const;
+	const FInstancedStruct* FindEnabledSlot(FName PropertyName, const UScriptStruct* RequiredType, int32 IndexHint = INDEX_NONE) const;
 
 	/**
 	 * Get typed property from enabled overrides by name.
@@ -363,6 +539,17 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, ShowOnlyInnerProperties, NoResetToDefault))
 	FInstancedStruct Property;
 
+#if WITH_EDITORONLY_DATA
+	/**
+	 * Property as it stood before a retype in progress, set by the editor's pre-change hook and consumed by
+	 * ConsumeRetype within the same edit. Not reflected: never saved, transacted or kept across a frame.
+	 */
+	FInstancedStruct RetypedFrom;
+
+	/** Carry RetypedFrom's choices onto Property when the type did change, then clear it. True if Property changed. */
+	bool ConsumeRetype();
+#endif
+
 	// Constructor and the three accessors below are implemented in .cpp: reaching through Property
 	// needs FPCGExProperty complete, and this header stays free of it.
 	FPCGExPropertySchema();
@@ -407,11 +594,28 @@ struct PCGEXPROPERTIES_API FPCGExPropertyResolved
 	int32 SourceIndex = INDEX_NONE;
 
 	/**
-	 * Non-null when the root collection's ImportOverrides supplies an enabled override for this entry's Name.
-	 * Points into ImportOverrides storage on the root collection; valid for the same lifetime as Source.
-	 * Only ever set for imported entries (OwningAsset != null) -- locals are edited in-place.
+	 * Non-null when some layer of the override chain supplies an enabled override for this entry's Name: the
+	 * root collection's ImportOverrides, a fallback layer, or the ImportOverrides of an asset between the root
+	 * and OwningAsset (nearest the root wins). Points into that layer's storage; valid for the same lifetime
+	 * as Source. Only ever set for imported entries (OwningAsset != null) -- locals are edited in-place.
+	 * Always of Source->Property's type: a layer whose row still holds another type is skipped, not served.
 	 */
 	const FInstancedStruct* OverrideValue = nullptr;
+
+#if WITH_EDITORONLY_DATA
+	/**
+	 * Non-identity choice patches found on the chain's entries for this Name, root-most first, enabled or not.
+	 * Point into the layers' storage, same lifetime as OverrideValue. Empty for locals.
+	 */
+	TArray<const FPCGExPropertyChoicesPatch*, TInlineAllocator<2>> ChoicePatches;
+
+	/**
+	 * The choices this entry's rows mirror: the declaration's list with ChoicePatches applied, deepest first, carriers
+	 * synced to the declaration. What an importer INHERITS before its own rewrite is the same call on a Resolve made
+	 * with bIncludeOwnOverrides false.
+	 */
+	void GetEffectiveChoices(FPCGExPropertyChoices& Out) const;
+#endif
 
 	FPCGExPropertyResolved() = default;
 
@@ -425,6 +629,21 @@ struct PCGEXPROPERTIES_API FPCGExPropertyResolved
 	{
 		return OverrideValue ? *OverrideValue : Source->Property;
 	}
+};
+
+/**
+ * Effective choice lists of one Resolve() result, each built on first use. Hand the same instance to every row
+ * container synced against that result (FPCGExPropertyOverrides::SyncInPlace). An empty shell outside the editor.
+ */
+struct PCGEXPROPERTIES_API FPCGExResolvedChoicesCache
+{
+#if WITH_EDITORONLY_DATA
+	const FPCGExPropertyChoices& Get(TConstArrayView<FPCGExPropertyResolved> Resolved, int32 Index);
+
+private:
+	TArray<FPCGExPropertyChoices> Lists;
+	TBitArray<> Built;
+#endif
 };
 
 /**
@@ -525,10 +744,17 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 * bIncludeOwnOverrides controls whether this collection's own ImportOverrides leads the
 	 * chain (default true). Set false to walk the chain WITHOUT the instance's own authoring --
 	 * used to extract "what value would surface if nothing was overridden?" (the CDO/asset view).
+	 *
+	 * Imported assets' own ImportOverrides are layered too: what asset B imports reads
+	 * [this collection, fallbacks..., B.ImportOverrides], so B's override of an entry it imports from A
+	 * is what an importer of B sees unless the importer overrides it itself. B's own locals never read B's layer.
 	 */
 	void Resolve(TArray<FPCGExPropertyResolved>& Out, TConstArrayView<const FPCGExPropertyOverrides*> FallbackChain = {}, bool bIncludeOwnOverrides = true) const;
 
-	/** Find schema by property name (walks locals first, then imported assets) */
+	/**
+	 * Find the DECLARATION of PropertyName (locals first, then imported assets). Ignores every override layer:
+	 * use GetPropertyByName for the effective value.
+	 */
 	const FPCGExPropertySchema* FindByName(FName PropertyName) const;
 
 	/**
@@ -551,15 +777,18 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	}
 
 	/**
-	 * Get the effective property by name, honoring the three-layer composition:
-	 *   local schemas -> ImportOverrides (if enabled) -> imported asset's default.
+	 * Get the effective property by name, honoring the same composition as Resolve:
+	 *   local schemas -> ImportOverrides (if enabled) -> each imported asset's own ImportOverrides, root-most
+	 *   first -> the declaring asset's default.
+	 * An override surfaces only for a name the import tree still declares.
 	 *
 	 * Read-only -- safe to call from any thread (see ReconcileImportOverrides contract).
 	 */
 	const FInstancedStruct* GetPropertyByName(FName PropertyName) const;
 
 	/** Build FInstancedStruct array for SyncToSchema calls. FallbackChain and bIncludeOwnOverrides
-	 *  have the same meaning as Resolve's. */
+	 *  have the same meaning as Resolve's. In the editor every copy carries its effective Choices
+	 *  (FPCGExPropertyResolved::GetEffectiveChoices), so rows synced from it mirror the patched list. */
 	TArray<FInstancedStruct> BuildSchema(TConstArrayView<const FPCGExPropertyOverrides*> FallbackChain = {}, bool bIncludeOwnOverrides = true) const;
 
 	/** Validate all LOCAL property names are unique (returns true if valid). Deliberately does not
@@ -567,7 +796,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 *  (see Resolve); a duplicate among locals is an authoring error. */
 	bool ValidateUniqueNames(TArray<FName>& OutDuplicates) const;
 
-	/** Get typed property by name */
+	/** Typed DECLARATION lookup (FindByName): ignores override layers. */
 	template <typename T>
 	const T* GetProperty(FName PropertyName) const
 	{
@@ -596,8 +825,19 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 * Editor-only: zero HeaderIds and copy-paste-introduced duplicates are reassigned;
 	 * first occurrence keeps its identity. Skipping the dedup leaves SyncToSchema's
 	 * HeaderId index aliasing the duplicates and silently dropping one side's overrides.
+	 * Ends with SyncDeclaredChoices.
 	 */
 	void SyncAllSchemas();
+
+	/**
+	 * Maintain every local declaration's choices: finish a retype in progress, mint choice ids, re-mirror the carriers'
+	 * schema-owned fields and drop a default's pick it no longer stands on. Never writes a value. For hosts whose
+	 * schema identity is not theirs to canonicalize (component instances); everyone else gets it from SyncAllSchemas.
+	 * No-op outside the editor.
+	 *
+	 * @return True if anything changed.
+	 */
+	bool SyncDeclaredChoices();
 
 	/**
 	 * Reports HeaderId reassignments via OutRemaps. Zero-bootstraps are NOT reported --
@@ -654,6 +894,70 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 */
 	void ApplyToOverrides(TArray<FPCGExPropertyOverrides>& OverridesArray) const;
 
+	/** ApplyToOverrides over rows of any type derived from FPCGExPropertyOverrides. True if any row changed. */
+	template <typename TRow>
+	bool ApplyToRows(TArray<TRow>& Rows) const
+	{
+		static_assert(TIsDerivedFrom<TRow, FPCGExPropertyOverrides>::Value,
+		              "ApplyToRows: TRow must derive from FPCGExPropertyOverrides.");
+		const TArray<FInstancedStruct> Schema = BuildSchema();
+		bool bChanged = false;
+		for (TRow& Row : Rows)
+		{
+			bChanged |= Row.SyncToSchema(Schema);
+		}
+		return bChanged;
+	}
+
+	/** FPCGExPropertyOverrides::SyncInPlace over such rows, one resolve and one choices cache for all of them. */
+	template <typename TRow>
+	bool SyncRowsInPlace(TArray<TRow>& Rows) const
+	{
+		static_assert(TIsDerivedFrom<TRow, FPCGExPropertyOverrides>::Value,
+		              "SyncRowsInPlace: TRow must derive from FPCGExPropertyOverrides.");
+		TArray<FPCGExPropertyResolved> Resolved;
+		Resolve(Resolved);
+		FPCGExResolvedChoicesCache ChoicesCache;
+		bool bChanged = false;
+		for (TRow& Row : Rows)
+		{
+			bChanged |= Row.SyncInPlace(Resolved, &ChoicesCache);
+		}
+		return bChanged;
+	}
+
+	/**
+	 * Load-time heal of the import layer: every imported asset post-loaded first (the engine does not order
+	 * referenced-asset PostLoads, and the reconcile reads identities their own PostLoad canonicalizes), then
+	 * ReconcileImportOverrides. Nothing can alias the layer at load, so the reshape is safe there. While an import
+	 * slot is empty anywhere in the tree (an asset that failed to load leaves one) the layer is only synced in place:
+	 * a reshape would drop that asset's rows, which is an edit's decision to make.
+	 *
+	 * @return True if ImportOverrides changed.
+	 */
+	bool ReconcileImportOverridesAtLoad();
+
+#if WITH_EDITOR
+	/**
+	 * Load-time heal of the value rows held against this collection; call it after ReconcileImportOverridesAtLoad.
+	 * A row sitting entry for entry on the resolved schema is synced in place; any other is rebuilt (SyncToSchema),
+	 * unless an import slot is empty anywhere in the tree: a rebuild would drop that asset's values.
+	 * Editor-only: SyncToSchema keeps no value outside the editor.
+	 *
+	 * @return True if any row changed.
+	 */
+	template <typename TRow>
+	bool SyncRowsAtLoad(TArray<TRow>& Rows) const
+	{
+		static_assert(TIsDerivedFrom<TRow, FPCGExPropertyOverrides>::Value,
+		              "SyncRowsAtLoad: TRow must derive from FPCGExPropertyOverrides.");
+		return SyncRowsAtLoad(MakeStridedViewOfBase<FPCGExPropertyOverrides, TRow>(MakeArrayView(Rows)));
+	}
+
+	/** SyncRowsAtLoad over rows of any layout derived from FPCGExPropertyOverrides. */
+	bool SyncRowsAtLoad(TStridedView<FPCGExPropertyOverrides> Rows) const;
+#endif
+
 	/**
 	 * Reconcile ImportOverrides against the current import tree.
 	 *
@@ -683,8 +987,21 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	 */
 	bool ReconcileImportOverrides();
 
-	/** Overload that accepts a precomputed Resolved view -- avoids re-walking the tree. */
+	/**
+	 * Overload that accepts a precomputed Resolved view -- avoids re-walking the tree. A host whose schema resolves
+	 * through fallback layers passes a view resolved with them, so its rows mirror the patches those layers carry.
+	 */
 	bool ReconcileImportOverrides(const TArray<FPCGExPropertyResolved>& Resolved);
+
+	/**
+	 * In-place counterpart of ReconcileImportOverrides: each import row takes its declaration's name, schema-owned
+	 * fields and effective choices (FPCGExPropertyOverrides::SyncInPlace against the imported entries). Never
+	 * reshapes ImportOverrides, so it is the one sync that may run on a collection whose panel is not the caller's.
+	 * FallbackChain as in Resolve. Game-thread only.
+	 *
+	 * @return True if any row changed.
+	 */
+	bool SyncImportOverridesInPlace(TConstArrayView<const FPCGExPropertyOverrides*> FallbackChain = {});
 
 #if WITH_EDITOR
 	/** True when Asset is reachable through ImportedSchemas (any depth, cycle-safe). The filter for

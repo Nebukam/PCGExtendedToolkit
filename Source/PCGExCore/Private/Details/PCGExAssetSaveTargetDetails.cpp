@@ -42,6 +42,16 @@ namespace PCGExAssetSave
 
 		const FString PackagePath = FPaths::Combine(InTarget.AssetPath, InTarget.AssetName);
 
+		// CreatePackage names the package with an FName of this path, which asserts at NAME_SIZE characters;
+		// FPackageName::IsValidObjectPath tests no length.
+		if (PackagePath.Len() >= NAME_SIZE)
+		{
+			OutError = FText::Format(
+				LOCTEXT("PackagePathTooLong", "Target path is {0} characters long; a package name holds {1} at most."),
+				FText::AsNumber(PackagePath.Len()), FText::AsNumber(NAME_SIZE - 1));
+			return false;
+		}
+
 		FText Reason;
 		if (!FPackageName::IsValidObjectPath(PackagePath, &Reason))
 		{

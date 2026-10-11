@@ -7,6 +7,7 @@
 #include "PCGExMatchAttrToAttr.h"
 #include "Core/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExInputShorthandsDetails.h"
+#include "Types/PCGExTypeOpsString.h"
 
 #include "PCGExMatchTagToAttr.generated.h"
 
@@ -125,7 +126,7 @@ public:
 #if WITH_EDITOR
 	virtual void PCGExApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	virtual void PCGExApplyDeprecation(UPCGNode* InOutNode) override;
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchTagToAttr, "Match : Tags × Attributes", "Compares attribute value on targets against tags on inputs", FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchTagToAttr, "Match : Tags × Attributes", "Compares attribute value on targets against tags on inputs", PCGExTypeOps::MakeNameChecked(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

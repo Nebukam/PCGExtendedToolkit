@@ -12,6 +12,7 @@
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "Types/PCGExTypeOpsString.h"
 
 class UPCGData;
 
@@ -57,12 +58,8 @@ namespace PCGExData::Helpers
 		return PCGAttributeAccessorHelpers::CreateAccessor(InData, Selector);
 	}
 
-	/** The path a string names; null at NAME_SIZE characters or more, where FSoftObjectPath's package FName would assert. */
-	template <typename T = FSoftObjectPath>
-	T MakePathChecked(const FString& InString)
-	{
-		return InString.Len() < NAME_SIZE ? T(InString) : T();
-	}
+	// Defined with the String -> path conversions it guards.
+	using PCGExTypeOps::MakePathChecked;
 
 	/** TAttributeBroadcaster isn't an option here -- its FAttributeProcessingInfos::Init gates
 	 *  attribute discovery on Cast<UPCGSpatialData>(InData), silently rejecting UPCGParamData. */

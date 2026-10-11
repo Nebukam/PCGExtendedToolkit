@@ -26,17 +26,6 @@ class FScriptArrayHelper;
 struct FPropertyChangedEvent;
 struct FPropertyAndParent;
 
-/** Flags describing what kind of structural change happened, so StructuralRefresh() can do the minimum work. */
-enum class EPCGExStructuralRefreshFlags : uint8
-{
-	None           = 0,
-	ClearSelection = 1 << 0,
-	// Reset selection state
-	ScrollToEnd = 1 << 1,
-	// Scroll to bottom after refresh
-};
-
-ENUM_CLASS_FLAGS(EPCGExStructuralRefreshFlags);
 
 /**
  * Grid/tile view of collection entries with categorized grouping.
@@ -283,8 +272,15 @@ private:
 	// Incremental layout refresh (tile reuse, no flash)
 	void IncrementalCategoryRefresh();
 
-	// Consolidated post-structural-change refresh (all add/dup/delete/undo ops go through here)
-	void StructuralRefresh(EPCGExStructuralRefreshFlags Flags = EPCGExStructuralRefreshFlags::None);
+	// Consolidated post-structural-change refresh (all add/dup/delete/undo ops go through here).
+	// Selection survives it: entries that are gone are pruned, the rest keep their tile and their panel.
+	void StructuralRefresh();
+
+	/** Drop selected indices that no longer name an entry. */
+	void PruneSelection();
+
+	/** Keyboard focus sits in this view, or in a menu opened from it. */
+	bool OwnsKeyboardFocus() const;
 
 	// Scroll tracking for pinned header
 	void OnScrolled(float ScrollOffset);
