@@ -19,7 +19,7 @@ namespace PCGExMatching::Helpers
 			Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
 		}
 
-		if (InDetails.Usage == EPCGExMatchingDetailsUsage::Cluster && InDetails.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+		if ((InDetails.Usage == EPCGExMatchingDetailsUsage::ClusterToPoint || InDetails.Usage == EPCGExMatchingDetailsUsage::PointToCluster) && InDetails.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 		{
 			FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(Labels::SourceMatchRulesEdgesLabel, FPCGExDataTypeInfoMatchRule::AsId());
 			PCGEX_PIN_TOOLTIP("Extra matching rules to determine which edges data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
@@ -30,7 +30,7 @@ namespace PCGExMatching::Helpers
 	void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 	{
 		const bool bShowAsAdvanced = !InDetails.WantsUnmatchedSplit();
-		if (InDetails.Usage == EPCGExMatchingDetailsUsage::Cluster)
+		if (InDetails.Usage == EPCGExMatchingDetailsUsage::ClusterToPoint)
 		{
 			{
 				FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(Labels::OutputUnmatchedVtxLabel, EPCGDataType::Point);

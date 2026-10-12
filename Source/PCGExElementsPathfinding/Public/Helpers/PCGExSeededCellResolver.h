@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMatchingCommon.h"
 
 struct FPCGExContext;
 struct FPCGExNodeSelectionDetails;
@@ -24,6 +25,11 @@ namespace PCGExData
 	class FFacade;
 }
 
+namespace PCGExMatching
+{
+	class FDataMatcher;
+}
+
 namespace PCGExClusters
 {
 	class FCluster;
@@ -36,6 +42,21 @@ namespace PCGExClusters
 namespace PCGExCells
 {
 	class FSeedOwnershipHandler;
+
+	/**
+	 * Per-seed eligibility for ONE cluster from a seed-matching block: the seed points are the matchable
+	 * side, the cluster's vtx/edges tagged data the candidates, combined per InMode as Copy Clusters To
+	 * Points does (Separated = InEdgesMatcher holds the edges rules). OutEligible is sized to the seeds.
+	 * @return false when matching is disabled (OutEligible then reads all-true and need not be applied).
+	 */
+	PCGEXELEMENTSPATHFINDING_API bool BuildSeedEligibility(
+		const TSharedPtr<PCGExMatching::FDataMatcher>& InVtxMatcher,
+		const TSharedPtr<PCGExMatching::FDataMatcher>& InEdgesMatcher,
+		EPCGExClusterComponentTagMatchMode InMode,
+		const TSharedPtr<PCGExData::FFacade>& InSeeds,
+		const TSharedRef<PCGExData::FFacade>& InVtxFacade,
+		const TSharedRef<PCGExData::FFacade>& InEdgesFacade,
+		TBitArray<>& OutEligible);
 
 	/**
 	 * Seed-to-cell resolution shared by the seeded cell finders: bounds gate, LocalTangent arbitration, per-cell
@@ -57,6 +78,8 @@ namespace PCGExCells
 			const FPCGExCellGrowthDetails* SeedGrowth = nullptr;
 			const FPCGExCellSeedMergeDetails* SeedMerge = nullptr;
 			bool bSoloClusterWorkload = false;
+			/** Optional per-seed eligibility for THIS cluster (BuildSeedEligibility), sized to the seeds; ANDed into the bounds gate. */
+			const TBitArray<>* SeedEligibility = nullptr;
 		};
 
 		/** Projects the seeds and resolves the per-seed cluster-bounds gate. */
@@ -107,7 +130,7 @@ namespace PCGExCells
 		/** Seed Picking's MaxDistance squared, as the cell-plane distance gate; < 0 when the gate is off. */
 		double MaxPlaneDistSq = -1.0;
 
-		/** Per-seed result of Seed Picking's cluster-bounds gate, precomputed once (all-true when the gate is off). */
+		/** Per-seed result of Seed Picking's cluster-bounds gate AND the seed-matching eligibility, precomputed once (all-true when both are off). */
 		TBitArray<> SeedInBounds;
 
 		TSharedPtr<PCGExClusters::FCellConstraints> Constraints;
