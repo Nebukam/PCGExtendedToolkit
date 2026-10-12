@@ -46,28 +46,28 @@ struct PCGEXMATCHING_API FPCGExMatchingDetails
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;
 
 	/** Which cluster component must match the tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage == EPCGExMatchingDetailsUsage::Cluster", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage == EPCGExMatchingDetailsUsage::ClusterToPoint || Usage == EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides, HideEditConditionToggle))
 	EPCGExClusterComponentTagMatchMode ClusterMatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
 
 	/** Whether to output unmatched data in a separate pin */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage != EPCGExMatchingDetailsUsage::Filter", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage != EPCGExMatchingDetailsUsage::Filter && Usage != EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides))
 	bool bSplitUnmatched = true;
 
 	/** If enabled, outputs data that got no valid matches.
 	 * Not all nodes support this options. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Output Unmatched", EditCondition="!bSplitUnmatched && Usage != EPCGExMatchingDetailsUsage::Filter", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Output Unmatched", EditCondition="!bSplitUnmatched && Usage != EPCGExMatchingDetailsUsage::Filter && Usage != EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides))
 	bool bOutputUnmatched = true;
 
 	/** If enabled, suppresses the warning thrown when an input has no valid target match.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Quiet Unmatched Warning", EditCondition="!bSplitUnmatched && Usage != EPCGExMatchingDetailsUsage::Filter", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Quiet Unmatched Warning", EditCondition="!bSplitUnmatched && Usage != EPCGExMatchingDetailsUsage::Filter && Usage != EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides))
 	bool bQuietUnmatchedTargetWarning = true;
 
 	/** Whether to limit the number of matches or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling && Usage != EPCGExMatchingDetailsUsage::Filter", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling && Usage != EPCGExMatchingDetailsUsage::Filter && Usage != EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides))
 	bool bLimitMatches = false;
 
 	/** Maximum number of matches allowed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling && Usage != EPCGExMatchingDetailsUsage::Filter", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling && Usage != EPCGExMatchingDetailsUsage::Filter && Usage != EPCGExMatchingDetailsUsage::PointToCluster", EditConditionHides))
 	FPCGExInputShorthandSelectorInteger32 LimitValue = FPCGExInputShorthandSelectorInteger32(FName("@Last"), 1, false);
 
 #pragma region DEPRECATED
@@ -90,7 +90,7 @@ struct PCGEXMATCHING_API FPCGExMatchingDetails
 
 	bool WantsUnmatchedSplit() const
 	{
-		return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched;
+		return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched && Usage != EPCGExMatchingDetailsUsage::PointToCluster;
 	}
 
 #if WITH_EDITOR

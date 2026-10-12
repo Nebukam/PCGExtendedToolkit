@@ -13,11 +13,62 @@
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExTaggedData.h"
 #include "Helpers/PCGExCellSeedOwnership.h"
+#include "Helpers/PCGExDataMatcher.h"
 #include "Math/PCGExProjectionDetails.h"
 
 namespace PCGExCells
 {
+	bool BuildSeedEligibility(
+		const TSharedPtr<PCGExMatching::FDataMatcher>& InVtxMatcher,
+		const TSharedPtr<PCGExMatching::FDataMatcher>& InEdgesMatcher,
+		const EPCGExClusterComponentTagMatchMode InMode,
+		const TSharedPtr<PCGExData::FFacade>& InSeeds,
+		const TSharedRef<PCGExData::FFacade>& InVtxFacade,
+		const TSharedRef<PCGExData::FFacade>& InEdgesFacade,
+		TBitArray<>& OutEligible)
+	{
+		const int32 NumSeeds = InSeeds->GetNum();
+		OutEligible.Init(true, NumSeeds);
+		if (!InVtxMatcher || !InEdgesMatcher || InVtxMatcher->MatchMode == EPCGExMapMatchMode::Disabled)
+		{
+			return false;
+		}
+
+		const FPCGExTaggedData VtxCandidate = InVtxFacade->Source->GetTaggedData();
+		const FPCGExTaggedData EdgesCandidate = InEdgesFacade->Source->GetTaggedData();
+		// Unlimited: the eligibility usage hides the match limit.
+		PCGExMatching::FScope Scope(NumSeeds, true);
+
+		for (int32 i = 0; i < NumSeeds; ++i)
+		{
+			const PCGExData::FConstPoint Seed = InSeeds->GetInPoint(i);
+			bool bMatch = true;
+			switch (InMode)
+			{
+			case EPCGExClusterComponentTagMatchMode::Vtx:
+				bMatch = InVtxMatcher->Test(Seed, VtxCandidate, Scope);
+				break;
+			case EPCGExClusterComponentTagMatchMode::Edges:
+				bMatch = InEdgesMatcher->Test(Seed, EdgesCandidate, Scope);
+				break;
+			case EPCGExClusterComponentTagMatchMode::Any:
+				bMatch = InVtxMatcher->Test(Seed, VtxCandidate, Scope) || InEdgesMatcher->Test(Seed, EdgesCandidate, Scope);
+				break;
+			case EPCGExClusterComponentTagMatchMode::Both:
+			case EPCGExClusterComponentTagMatchMode::Separated:
+				bMatch = InVtxMatcher->Test(Seed, VtxCandidate, Scope) && InEdgesMatcher->Test(Seed, EdgesCandidate, Scope);
+				break;
+			default:
+				ensureMsgf(false, TEXT("Unresolvable EPCGExClusterComponentTagMatchMode (%d)"), static_cast<int32>(InMode));
+				break;
+			}
+			OutEligible[i] = bMatch;
+		}
+		return true;
+	}
+
 	FSeededCellResolver::FSeededCellResolver(const FConfig& InConfig)
 		: Cluster(InConfig.Cluster)
 		  , SeedsDataFacade(InConfig.SeedsDataFacade)
@@ -42,6 +93,18 @@ namespace PCGExCells
 			for (int32 i = 0; i < NumSeeds; i++)
 			{
 				SeedInBounds[i] = SeedPicking->WithinBounds(Cluster->Bounds, SeedTransforms[i].GetLocation());
+			}
+		}
+
+		if (InConfig.SeedEligibility)
+		{
+			check(InConfig.SeedEligibility->Num() == NumSeeds);
+			for (int32 i = 0; i < NumSeeds; i++)
+			{
+				if (!(*InConfig.SeedEligibility)[i])
+				{
+					SeedInBounds[i] = false;
+				}
 			}
 		}
 

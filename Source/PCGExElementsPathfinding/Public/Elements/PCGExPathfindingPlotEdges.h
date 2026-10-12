@@ -95,7 +95,7 @@ public:
 
 	/** If enabled, allows you to filter out which plots get associated to which clusters */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Cluster);
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::ClusterToPoint);
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode==EPCGExPathfindingOutputMode::Paths", EditConditionHides))

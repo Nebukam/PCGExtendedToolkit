@@ -36,6 +36,8 @@ namespace PCGExGraphTask
 		VtxDupe->IOIndex = OutIOIndex;
 		VtxDupe->SetSortKey(OutIOIndex);
 
+		// A copy carries its root's tags (emplacing from raw data starts a fresh set); the pair tags are re-marked below.
+		VtxDupe->Tags->Reset(GraphBuilder->NodeDataFacade->Source->Tags);
 		PCGExDataId OutId;
 		PCGExClusters::Helpers::SetClusterVtx(VtxDupe, OutId);
 
@@ -69,6 +71,7 @@ namespace PCGExGraphTask
 
 			EdgeDupe->IOIndex = OutIOIndex;
 			EdgeDupe->SetSortKey(OutIOIndex, EdgeOrdinal++);
+			EdgeDupe->Tags->Reset(Edges->Tags);
 			PCGExClusters::Helpers::MarkClusterEdges(EdgeDupe, OutId);
 
 			if (AttributesToTags && PointIO)
