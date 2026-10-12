@@ -11,6 +11,7 @@
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Helpers/PCGExCellSeedOwnership.h"
 #include "Sorting/PCGExSortingCommon.h"
 
@@ -26,6 +27,11 @@ namespace PCGExClusters
 namespace PCGExCells
 {
 	class FSeededCellResolver;
+}
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
 }
 
 namespace PCGExFindContoursBounded
@@ -103,6 +109,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
 
+	/** Restrict each seed to the clusters it matches: the seed point is the per-point side, the cluster's vtx/edges tags
+	 *  and @Data the candidate. A Match : Tags × Attributes rule pairs a seed's Island attribute with an `island:` tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails SeedMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::PointToCluster);
+
 	/** How to determine seed ownership when multiple seeds compete for a cell. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCellSeedOwnership SeedOwnership = EPCGExCellSeedOwnership::SeedOrder;
@@ -160,6 +171,9 @@ struct FPCGExFindContoursBoundedContext final : FPCGExClustersProcessorContext
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 	TSharedPtr<PCGExCells::FSeedOwnershipHandler> SeedOwnership;
+	/** Seed matching over the seeds facade; EdgeSeedMatcher is MainSeedMatcher unless the rules are Separated. */
+	TSharedPtr<PCGExMatching::FDataMatcher> SeedMatcher;
+	TSharedPtr<PCGExMatching::FDataMatcher> EdgeSeedMatcher;
 
 	PCGExCellTriage::FOutputs Triage;
 
@@ -191,6 +205,8 @@ namespace PCGExFindContoursBounded
 	protected:
 		/** Seed-to-cell resolution; released once the claims are final. */
 		TSharedPtr<PCGExCells::FSeededCellResolver> Resolver;
+		/** Seed matching's per-seed eligibility for this cluster; read by the resolver's constructor only. */
+		TBitArray<> SeedEligible;
 		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 		TSharedPtr<PCGExClusters::FCell> WrapperCell;
 

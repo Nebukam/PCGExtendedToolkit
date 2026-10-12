@@ -14,6 +14,8 @@
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/Utils/PCGExDataForward.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExSeededCellResolver.h"
 #include "Math/Geo/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
@@ -28,6 +30,7 @@ TArray<FPCGPinProperties> UPCGExFindContoursBoundedSettings::InputPinProperties(
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seeds associated with the main input points", Required)
 	PCGEX_PIN_SPATIAL(PCGExCellTriage::Labels::SourceBounds, "Spatial data whose bounds will be used to triage cells", Required)
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SeedOwnership == EPCGExCellSeedOwnership::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(SeedMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -36,6 +39,10 @@ bool UPCGExFindContoursBoundedSettings::IsPinUsedByNodeExecution(const UPCGPin* 
 	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules)
 	{
 		return SeedOwnership == EPCGExCellSeedOwnership::BestCandidate;
+	}
+	if (InPin->Properties.Label == PCGExMatching::Labels::SourceMatchRulesLabel || InPin->Properties.Label == PCGExMatching::Labels::SourceMatchRulesEdgesLabel)
+	{
+		return SeedMatching.IsEnabled();
 	}
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
@@ -103,6 +110,25 @@ bool FPCGExFindContoursBoundedElement::Boot(FPCGExContext* InContext) const
 	if (!Context->SeedOwnership->Init(Context, Context->SeedsDataFacade))
 	{
 		return false;
+	}
+
+	Context->SeedMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+	Context->SeedMatcher->SetDetails(&Settings->SeedMatching);
+	if (!Context->SeedMatcher->Init(Context, {Context->SeedsDataFacade}, true))
+	{
+		return false;
+	}
+	if (Settings->SeedMatching.IsEnabled() && Settings->SeedMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+	{
+		Context->EdgeSeedMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		if (!Context->EdgeSeedMatcher->Init(Context, Context->SeedMatcher, PCGExMatching::Labels::SourceMatchRulesEdgesLabel, true))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		Context->EdgeSeedMatcher = Context->SeedMatcher;
 	}
 
 	if (!Context->Triage.Init(
@@ -227,6 +253,11 @@ namespace PCGExFindContoursBounded
 			true);
 		WrapperCell = CellsConstraints->WrapperCell;
 
+		// Seed matching: a seed may only claim cells of the clusters it matches.
+		const bool bHasEligibility = PCGExCells::BuildSeedEligibility(
+			Context->SeedMatcher, Context->EdgeSeedMatcher, Settings->SeedMatching.ClusterMatchMode,
+			Context->SeedsDataFacade, VtxDataFacade, EdgeDataFacade, SeedEligible);
+
 		PCGExCells::FSeededCellResolver::FConfig ResolverConfig;
 		ResolverConfig.Context = Context;
 		ResolverConfig.Cluster = Cluster;
@@ -237,6 +268,7 @@ namespace PCGExFindContoursBounded
 		ResolverConfig.SeedGrowth = &Context->SeedGrowth;
 		ResolverConfig.SeedMerge = &Context->SeedMerge;
 		ResolverConfig.bSoloClusterWorkload = bSoloClusterWorkload;
+		ResolverConfig.SeedEligibility = bHasEligibility ? &SeedEligible : nullptr;
 
 		Resolver = MakeShared<PCGExCells::FSeededCellResolver>(ResolverConfig);
 		Resolver->SetCells(MoveTemp(AllCells), MoveTemp(FailedCells), CellsConstraints.ToSharedRef(), Enumerator.ToSharedRef());

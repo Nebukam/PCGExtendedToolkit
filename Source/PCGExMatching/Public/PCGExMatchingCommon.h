@@ -39,9 +39,11 @@ UENUM()
 enum class EPCGExMatchingDetailsUsage : uint8
 {
 	Default  = 0,
-	Cluster  = 1,
+	ClusterToPoint  = 1,
 	Sampling = 2,
 	Filter   = 3,
+	/** Per-point eligibility against cluster vtx/edges: Cluster's match mode with Filter's hidden outputs and limit. */
+	PointToCluster = 4,
 };
 
 namespace PCGExMatching::Labels
