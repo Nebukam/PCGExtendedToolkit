@@ -82,7 +82,7 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 	/** Optional: a placed actor to capture the property delta from (its class must match Actor). During
 	 *  UpdateStaging the delta is computed from that instance vs its CDO. Its level must not be World
 	 *  Partition: a closed partitioned level cannot be read. */
-	UPROPERTY(EditAnywhere, Category = "Settings|Delta", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = "Settings|Delta", meta=(EditCondition="!bIsSubCollection", EditConditionHides, DisallowedClasses="/Script/UnrealEd.GroupActor"))
 	TSoftObjectPtr<AActor> DeltaSourceActor;
 
 	/** LEGACY delta-source pair (level + actor name). Folded into DeltaSourceActor by OnHostPostLoad. */

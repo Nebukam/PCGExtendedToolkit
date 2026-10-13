@@ -5,6 +5,7 @@
 
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"

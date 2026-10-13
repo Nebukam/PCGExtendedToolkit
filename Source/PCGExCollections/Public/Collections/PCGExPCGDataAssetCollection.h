@@ -91,7 +91,7 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 
 	/** Root actor whose attached subtree is exported (used when Source == Actor). Its level must not be
 	 *  World Partition: a closed partitioned level cannot be read. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="Source == EPCGExDataAssetEntrySource::Actor && !bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="Source == EPCGExDataAssetEntrySource::Actor && !bIsSubCollection", EditConditionHides, DisallowedClasses="/Script/UnrealEd.GroupActor"))
 	TSoftObjectPtr<AActor> SourceActor;
 
 	/** Only in Level mode. An Actor-sourced entry answers null on purpose: its host level is a container,
