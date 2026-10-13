@@ -57,15 +57,25 @@ namespace PCGExMeshCollection
 			return;
 		}
 
-		// Collision is reported even at its SM default (NoCollision): the ISM default enables it, so spline meshes
-		// can gain collision without anyone having edited the SM side.
+		// The two body instances come from different class defaults and never compare identical, so collision is
+		// judged on the one thing a spline mesh shows: whether it is on. That also catches the ISM default enabling it
+		// over an SM side nobody edited.
 		static const FName BodyInstanceName = GET_MEMBER_NAME_CHECKED(FPCGExStaticMeshComponentDescriptor, BodyInstance);
 		const FPCGExStaticMeshComponentDescriptor Defaults;
 		TArray<FString> Lost;
 		for (const FName& Name : Mismatches)
 		{
+			if (Name == BodyInstanceName)
+			{
+				if (Legacy.BodyInstance.GetCollisionEnabled(false) != Shared.BodyInstance.GetCollisionEnabled(false))
+				{
+					Lost.Add(Name.ToString());
+				}
+				continue;
+			}
+
 			const FProperty* Property = FPCGExStaticMeshComponentDescriptor::StaticStruct()->FindPropertyByName(Name);
-			if (Property && (Name == BodyInstanceName || !Property->Identical_InContainer(&Legacy, &Defaults)))
+			if (Property && !Property->Identical_InContainer(&Legacy, &Defaults))
 			{
 				Lost.Add(Name.ToString());
 			}
