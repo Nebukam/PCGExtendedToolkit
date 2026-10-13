@@ -370,6 +370,11 @@ void FPCGExMeshCollectionEntry::BuildMicroCache()
 	MicroCache = NewCache;
 }
 
+bool FPCGExMeshCollectionEntry::Serialize(FArchive& Ar)
+{
+	return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+}
+
 bool UPCGExMeshCollection::GetTypeGlobalsInternal(const UScriptStruct* StructType, FPCGExCollectionTypeGlobals& OutGlobals) const
 {
 	if (!StructType || !StructType->IsChildOf(FPCGExMeshCollectionGlobals::StaticStruct()))

@@ -745,6 +745,20 @@ namespace PCGExAssetCollection
 	 * a pure function of the seed, so a reused seed lands both picks on the same slice of their weight tables.
 	 */
 	PCGEXCOLLECTIONS_API int32 GetNestedPickSeed(int32 InSeed);
+
+	/**
+	 * Tagged serialization of an entry against a default-constructed instance, so only edited members reach disk.
+	 * Array elements get no defaults from the engine (FArrayProperty::SerializeItem), which otherwise writes every
+	 * member of every nested descriptor. Wire it through TStructOpsTypeTraits<T>::WithSerializer + T::Serialize.
+	 * A member equal to its constructor default is not written and follows that default on load.
+	 */
+	template <typename T>
+	bool SerializeEntryDelta(T& Entry, FArchive& Ar)
+	{
+		const T Defaults;
+		T::StaticStruct()->SerializeTaggedProperties(Ar, reinterpret_cast<uint8*>(&Entry), T::StaticStruct(), reinterpret_cast<const uint8*>(&Defaults));
+		return true;
+	}
 }
 
 /**
