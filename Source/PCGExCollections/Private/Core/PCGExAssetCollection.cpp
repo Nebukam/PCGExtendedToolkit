@@ -1297,6 +1297,18 @@ void UPCGExAssetCollection::Serialize(FArchive& Ar)
 #endif
 }
 
+void UPCGExAssetCollection::PreSave(const FObjectPreSaveContext ObjectSaveContext)
+{
+	ForEachEntry([this, ObjectSaveContext](FPCGExAssetCollectionEntry* Entry, int32)
+	{
+		if (Entry)
+		{
+			Entry->OnHostPreSave(this, ObjectSaveContext);
+		}
+	});
+	Super::PreSave(ObjectSaveContext);
+}
+
 void UPCGExAssetCollection::PostLoad()
 {
 	Super::PostLoad();
@@ -1738,10 +1750,27 @@ void UPCGExAssetCollection::ForEachPropertyRows(TFunctionRef<void(FPCGExProperty
 #if WITH_EDITOR
 void UPCGExAssetCollection::GetCookDependencyAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
-	// Identical cook output to before: recursive assets + the same custom-property soft paths,
-	// now sourced from the shared (un-gated) GatherPropertySoftObjectPaths.
-	GetAssetPaths(OutPaths, PCGExAssetCollection::ELoadingFlags::Recursive);
+	GatherCookAssetPaths(OutPaths);
 	GatherPropertySoftObjectPaths(OutPaths);
+}
+
+void UPCGExAssetCollection::GatherCookAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
+{
+	ForEachEntry([&OutPaths](const FPCGExAssetCollectionEntry* InEntry, int32)
+	{
+		if (InEntry->bIsSubCollection)
+		{
+			if (InEntry->SubCollection)
+			{
+				InEntry->SubCollection->GatherCookAssetPaths(OutPaths);
+			}
+			return;
+		}
+		if (!InEntry->IsEditorOnly())
+		{
+			InEntry->GetAssetPaths(OutPaths);
+		}
+	});
 }
 #endif
 

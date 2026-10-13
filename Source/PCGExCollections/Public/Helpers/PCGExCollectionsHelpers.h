@@ -61,6 +61,10 @@ namespace PCGExCollections
 		TSharedPtr<FStreamableHandle>& OutHandle,
 		FString* OutFailure = nullptr);
 
+	/** True when instances of Class never exist in a cooked game: the class lives in an editor or uncooked-only module,
+	 *  or its defaults are editor-only (bIsEditorOnlyActor, or a native IsEditorOnly override such as AGroupActor). */
+	PCGEXCOLLECTIONS_API bool IsEditorOnlyActorClass(const UClass* Class);
+
 	/**
 	 * Call right before loading a level package for reading. In the editor, a level asset loaded outside a Level Instance
 	 * becomes a resident, rendered inactive world (UEditorEngine::OnAssetLoaded); a package this read brings in is unloaded

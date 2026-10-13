@@ -7,6 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Templates/SubclassOf.h"
+#include "UObject/ObjectSaveContext.h"
 
 #include "PCGExAssetCollectionTypes.h"
 #include "PCGExAssetGrammar.h"
@@ -431,6 +432,17 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	virtual void PostUpdateStaging();
 	virtual void SetAssetPath(const FSoftObjectPath& InPath);
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
+
+	/** An entry whose asset never exists in a cooked game. The cook walk reports none of its paths. */
+	virtual bool IsEditorOnly() const
+	{
+		return false;
+	}
+
+	/** Host-side save hook, one call per entry from UPCGExAssetCollection::PreSave, cooks included. */
+	virtual void OnHostPreSave(UPCGExAssetCollection* Host, FObjectPreSaveContext SaveContext)
+	{
+	}
 
 	/**
 	 * Host-side load hook, one call per entry from UPCGExAssetCollection::PostLoad. Entries are structs and
@@ -1067,6 +1079,9 @@ public:
 	virtual void GetCookDependencyAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 	//~ End IPCGExCookDependencyProvider
 
+	/** GetAssetPaths(Recursive) minus editor-only entries, which the cook writes without their asset. */
+	void GatherCookAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
+
 	//~ Begin IPCGExExternalPackageProducer
 	/** Base: nothing. Hosts with externalizing machinery (typed PCGData, Omni) dispatch into
 	 *  their type states' EDITOR_AppendExternalPackages. */
@@ -1082,6 +1097,7 @@ public:
 	virtual void PostEditImport() override;
 	virtual void Serialize(FArchive& Ar) override;
 	virtual void PostLoad() override;
+	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
 	virtual void BeginDestroy() override;
 
 	/** Rename / re-outer of THIS object (UObject::Rename, not a content-browser asset rename, which fixes

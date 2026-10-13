@@ -57,6 +57,11 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftClassPtr<AActor> Actor = nullptr;
 
+	/** Set at staging when Actor is an editor-only class (PCGExCollections::IsEditorOnlyActorClass). A cook writes the
+	 *  entry without its class, delta or graph: a weighted slot that spawns nothing in game. */
+	UPROPERTY()
+	bool bEditorOnly = false;
+
 	/** Cached: whether the actor CDO has any UPCGComponent. */
 	UPROPERTY()
 	bool bHasPCGComponent = false;
@@ -97,10 +102,28 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 	virtual bool OnHostPostLoad(UPCGExAssetCollection* Host) override;
+	virtual void OnHostPreSave(UPCGExAssetCollection* Host, FObjectPreSaveContext SaveContext) override;
+
+	virtual bool IsEditorOnly() const override
+	{
+		return bEditorOnly;
+	}
+
+	/** Delta against a default entry (PCGExAssetCollection::SerializeEntryDelta); a cook gets an editor-only entry cut. */
+	bool Serialize(FArchive& Ar);
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
+};
+
+template <>
+struct TStructOpsTypeTraits<FPCGExActorCollectionEntry> : public TStructOpsTypeTraitsBase2<FPCGExActorCollectionEntry>
+{
+	enum
+	{
+		WithSerializer = true,
+	};
 };
 
 /** Concrete collection for actor classes. Minimal extension of the base -- no extra

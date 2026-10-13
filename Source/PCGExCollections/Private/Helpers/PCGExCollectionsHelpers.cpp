@@ -1506,6 +1506,17 @@ namespace PCGExCollections
 		PCGExHelpers::EnsureWorldTransformsCurrent(Actor->GetWorld());
 		return Actor;
 	}
+
+	bool IsEditorOnlyActorClass(const UClass* Class)
+	{
+		if (!Class || !Class->IsChildOf<AActor>())
+		{
+			return false;
+		}
+		// Editor and uncooked-only module packages are flagged by UHT; the CDO check covers the per-class toggle.
+		return Class->GetPackage()->HasAnyPackageFlags(PKG_EditorOnly | PKG_UncookedOnly)
+			|| Class->GetDefaultObject<AActor>()->IsEditorOnly();
+	}
 }
 
 #pragma endregion

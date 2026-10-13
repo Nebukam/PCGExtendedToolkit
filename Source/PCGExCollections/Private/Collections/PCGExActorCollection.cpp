@@ -76,6 +76,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 
 	Staging.Path = Actor.ToSoftObjectPath();
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Actor.ToSoftObjectPath());
+	bEditorOnly = PCGExCollections::IsEditorOnlyActorClass(Actor.Get());
 
 	if (UClass* ActorClass = Actor.Get())
 	{
@@ -197,6 +198,35 @@ void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
 	FPCGExAssetCollectionEntry::SetAssetPath(InPath);
 	Actor = TSoftClassPtr<AActor>(InPath);
+}
+
+void FPCGExActorCollectionEntry::OnHostPreSave(UPCGExAssetCollection* Host, const FObjectPreSaveContext SaveContext)
+{
+	// Collections never restaged since the flag shipped still get it on cook, for classes already in memory.
+	if (SaveContext.IsCooking() && !bIsSubCollection)
+	{
+		if (const UClass* ActorClass = Actor.Get())
+		{
+			bEditorOnly = PCGExCollections::IsEditorOnlyActorClass(ActorClass);
+		}
+	}
+}
+
+bool FPCGExActorCollectionEntry::Serialize(FArchive& Ar)
+{
+	if (bEditorOnly && Ar.IsCooking())
+	{
+		FPCGExActorCollectionEntry Cooked = *this;
+		Cooked.Actor.Reset();
+		Cooked.Staging.Path.Reset();
+		Cooked.bHasPCGComponent = false;
+		Cooked.CachedPCGGraph.Reset();
+		Cooked.SerializedPropertyDelta.Reset();
+		Cooked.DeltaCollateralPaths.Reset();
+		Cooked.DeltaSourceActor.Reset();
+		return PCGExAssetCollection::SerializeEntryDelta(Cooked, Ar);
+	}
+	return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
 }
 
 bool FPCGExActorCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)
