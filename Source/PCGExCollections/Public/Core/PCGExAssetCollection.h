@@ -12,6 +12,7 @@
 #include "PCGExAssetGrammar.h"
 #include "PCGExCategoryOverrides.h"
 #include "PCGExCollectionGlobals.h"
+#include "PCGExCollectionsCustomVersion.h"
 #include "PCGExPropertyRowHost.h"
 #include "PCGExPropertySchema.h"
 #include "PCGExSchemaMerging.h"
@@ -740,6 +741,21 @@ namespace PCGExAssetCollection
 	 * a pure function of the seed, so a reused seed lands both picks on the same slice of their weight tables.
 	 */
 	PCGEXCOLLECTIONS_API int32 GetNestedPickSeed(int32 InSeed);
+
+	/**
+	 * Tagged serialization of an entry against a default-constructed instance, so only edited members reach disk.
+	 * Array elements get no defaults from the engine (FArrayProperty::SerializeItem), which otherwise writes every
+	 * member of every nested descriptor. Wire it through TStructOpsTypeTraits<T>::WithSerializer + T::Serialize.
+	 * A member equal to its constructor default is not written and follows that default on load.
+	 * The trait is per type and never inherited: a struct deriving from a delta-serialized entry must declare its own.
+	 */
+	template <typename T>
+	bool SerializeEntryDelta(T& Entry, FArchive& Ar)
+	{
+		const T Defaults;
+		T::StaticStruct()->SerializeTaggedProperties(Ar, reinterpret_cast<uint8*>(&Entry), T::StaticStruct(), reinterpret_cast<const uint8*>(&Defaults));
+		return true;
+	}
 }
 
 /**
@@ -1067,6 +1083,20 @@ public:
 	/** Rename / re-outer of THIS object (UObject::Rename, not a content-browser asset rename, which fixes
 	 *  soft paths itself). Dispatches EDITOR_OnHostRelocated unless the move is a retirement to transient. */
 	virtual void PostRename(UObject* OldOuter, const FName OldName) override;
+
+#if WITH_EDITORONLY_DATA
+	/** FPCGExCollectionsCustomVersion this collection was loaded with; LatestVersion when it did not come from a package. */
+	int32 GetLoadedCollectionsVersion() const
+	{
+		return LoadedCollectionsVersion;
+	}
+
+	/** Replays a load at an older version for tests and tooling that drive the migration hooks by hand. */
+	void EDITOR_SetLoadedCollectionsVersion(const int32 InVersion)
+	{
+		LoadedCollectionsVersion = InVersion;
+	}
+#endif
 
 #if WITH_EDITOR
 	/** Hosts with machinery that bakes host-relative paths dispatch into their type states here. */
@@ -1447,9 +1477,9 @@ public:
 	int32 FittingSchemaVersion = 0;
 
 #if WITH_EDITORONLY_DATA
-	// Set by Serialize when the package predates FPCGExCollectionsCustomVersion; the schema ints alone cannot
-	// distinguish a legacy asset from a freshly created one (both read 0).
-	bool bLoadedFromPreVersionedPackage = false;
+	// Set by Serialize from the package. Migrations gate on it: the schema ints alone cannot distinguish a legacy
+	// asset from a freshly created one (both read 0).
+	int32 LoadedCollectionsVersion = FPCGExCollectionsCustomVersion::LatestVersion;
 #endif
 
 	/** Exclude entries whose asset slot is EMPTY from the pickable set. Off (default): empty entries stay valid picks that stage nothing -- weighted "spawn nothing" slots. Governs only empty asset slots, nothing else. */

@@ -3,7 +3,9 @@
 
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
 #include "Components/StaticMeshComponent.h"
+#include "Helpers/PCGExPropertyHelpers.h"
 #include "Materials/MaterialInterface.h"
+#include "UObject/UnrealType.h"
 
 FPCGExPrimitiveComponentDescriptor::FPCGExPrimitiveComponentDescriptor()
 	: FPCGExPrimitiveComponentDescriptor(NoInit)
@@ -360,4 +362,107 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 	StaticMeshComponent->DistanceFieldSelfShadowBias = DistanceFieldSelfShadowBias;
 	StaticMeshComponent->StreamingDistanceMultiplier = StreamingDistanceMultiplier;
 	StaticMeshComponent->LightmassSettings = LightmassSettings;
+}
+
+#pragma region FPCGExStaticMeshDescriptorExtras
+
+FPCGExStaticMeshDescriptorExtras::FPCGExStaticMeshDescriptorExtras()
+	: FPCGExStaticMeshDescriptorExtras(NoInit)
+{
+	// The CDO-derived defaults are read through a full descriptor once; this struct holds no object references,
+	// so a function-local static is safe through shutdown.
+	static const FPCGExStaticMeshDescriptorExtras Defaults = []
+	{
+		FPCGExStaticMeshDescriptorExtras Extras(NoInit);
+		Extras.InitFrom(FPCGExStaticMeshComponentDescriptor());
+		return Extras;
+	}();
+	*this = Defaults;
+}
+
+void FPCGExStaticMeshDescriptorExtras::InitFrom(const FPCGExStaticMeshComponentDescriptor& InDescriptor)
+{
+	PCGExPropertyHelpers::CopyStructProperties(&InDescriptor, this, FPCGExStaticMeshComponentDescriptor::StaticStruct(), StaticStruct());
+}
+
+void FPCGExStaticMeshDescriptorExtras::InitFrom(const UStaticMeshComponent* Component)
+{
+	FPCGExStaticMeshComponentDescriptor Full;
+	Full.InitFrom(Component);
+	InitFrom(Full);
+}
+
+#pragma endregion
+
+namespace PCGExComponentDescriptors
+{
+	void Compose(const FSoftISMComponentDescriptor& InShared, const FPCGExStaticMeshDescriptorExtras& InExtras, FPCGExStaticMeshComponentDescriptor& OutDescriptor)
+	{
+		PCGExPropertyHelpers::CopyStructProperties(&InShared, &OutDescriptor, FSoftISMComponentDescriptor::StaticStruct(), FPCGExStaticMeshComponentDescriptor::StaticStruct());
+
+		// The by-name copy cannot pair these: a different name, or a different width.
+		OutDescriptor.CastShadow = InShared.bCastShadow;
+		OutDescriptor.bAffectIndirectLightingWhileHidden = InShared.bAffectDynamicIndirectLightingWhileHidden;
+		OutDescriptor.VirtualTextureCullMips = static_cast<int8>(InShared.VirtualTextureCullMips);
+
+		PCGExPropertyHelpers::CopyStructProperties(&InExtras, &OutDescriptor, FPCGExStaticMeshDescriptorExtras::StaticStruct(), FPCGExStaticMeshComponentDescriptor::StaticStruct());
+	}
+
+	void FindSharedMismatches(const FPCGExStaticMeshComponentDescriptor& InStaticMesh, const FSoftISMComponentDescriptor& InShared, TArray<FName>& OutMismatches)
+	{
+		const TMap<FName, FName> Aliases = {
+			{FName("CastShadow"), FName("bCastShadow")},
+			{FName("bAffectIndirectLightingWhileHidden"), FName("bAffectDynamicIndirectLightingWhileHidden")},
+		};
+
+		for (TFieldIterator<FProperty> It(FPCGExStaticMeshComponentDescriptor::StaticStruct()); It; ++It)
+		{
+			const FProperty* StaticMeshProperty = *It;
+			const FName* Alias = Aliases.Find(StaticMeshProperty->GetFName());
+			const FProperty* SharedProperty = FSoftISMComponentDescriptor::StaticStruct()->FindPropertyByName(Alias ? *Alias : StaticMeshProperty->GetFName());
+			if (!SharedProperty)
+			{
+				continue;
+			}
+
+			const void* StaticMeshValue = StaticMeshProperty->ContainerPtrToValuePtr<void>(&InStaticMesh);
+			const void* SharedValue = SharedProperty->ContainerPtrToValuePtr<void>(&InShared);
+
+			bool bSame = true;
+			if (const FBoolProperty* StaticMeshBool = CastField<FBoolProperty>(StaticMeshProperty))
+			{
+				// bool on one side, bitfield on the other: compare the values, not the storage.
+				const FBoolProperty* SharedBool = CastField<FBoolProperty>(SharedProperty);
+				if (!SharedBool)
+				{
+					continue;
+				}
+				bSame = StaticMeshBool->GetPropertyValue(StaticMeshValue) == SharedBool->GetPropertyValue(SharedValue);
+			}
+			else if (const FNumericProperty* StaticMeshNumeric = CastField<FNumericProperty>(StaticMeshProperty))
+			{
+				const FNumericProperty* SharedNumeric = CastField<FNumericProperty>(SharedProperty);
+				if (!SharedNumeric)
+				{
+					continue;
+				}
+				bSame = StaticMeshNumeric->IsFloatingPoint()
+					? StaticMeshNumeric->GetFloatingPointPropertyValue(StaticMeshValue) == SharedNumeric->GetFloatingPointPropertyValue(SharedValue)
+					: StaticMeshNumeric->GetSignedIntPropertyValue(StaticMeshValue) == SharedNumeric->GetSignedIntPropertyValue(SharedValue);
+			}
+			else if (StaticMeshProperty->SameType(SharedProperty))
+			{
+				bSame = StaticMeshProperty->Identical(StaticMeshValue, SharedValue);
+			}
+			else
+			{
+				continue;
+			}
+
+			if (!bSame)
+			{
+				OutMismatches.Add(StaticMeshProperty->GetFName());
+			}
+		}
+	}
 }

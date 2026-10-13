@@ -1303,7 +1303,7 @@ void UPCGExAssetCollection::Serialize(FArchive& Ar)
 #if WITH_EDITORONLY_DATA
 	if (Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting())
 	{
-		bLoadedFromPreVersionedPackage = Ar.CustomVer(FPCGExCollectionsCustomVersion::GUID) < FPCGExCollectionsCustomVersion::SchemaMigrationsGatedByCustomVersion;
+		LoadedCollectionsVersion = Ar.CustomVer(FPCGExCollectionsCustomVersion::GUID);
 	}
 #endif
 }
@@ -1342,7 +1342,8 @@ void UPCGExAssetCollection::PostLoad()
 
 #if WITH_EDITOR
 	// Grammar schema migration, legacy packages only: a fresh collection also reads schema version 0.
-	if (bLoadedFromPreVersionedPackage && GrammarSchemaVersion < PCGExAssetCollectionMigration::CurrentGrammarSchemaVersion)
+	const bool bPreVersionedPackage = LoadedCollectionsVersion < FPCGExCollectionsCustomVersion::SchemaMigrationsGatedByCustomVersion;
+	if (bPreVersionedPackage && GrammarSchemaVersion < PCGExAssetCollectionMigration::CurrentGrammarSchemaVersion)
 	{
 		int32 DowngradedEntries = 0;
 		int32 DisabledEntries = 0;
@@ -1388,7 +1389,7 @@ void UPCGExAssetCollection::PostLoad()
 	// Entry variations opt-in migration (v0 -> v1), legacy packages only. VariationMode's default
 	// flipped from Local to None; this pass recovers authored intent from the serialized data (see
 	// MigrateEntryVariationsV0ToV1).
-	if (bLoadedFromPreVersionedPackage && FittingSchemaVersion < PCGExAssetCollectionMigration::CurrentFittingSchemaVersion)
+	if (bPreVersionedPackage && FittingSchemaVersion < PCGExAssetCollectionMigration::CurrentFittingSchemaVersion)
 	{
 		ForEachEntry([](FPCGExAssetCollectionEntry* Entry, int32 /*Index*/)
 		{

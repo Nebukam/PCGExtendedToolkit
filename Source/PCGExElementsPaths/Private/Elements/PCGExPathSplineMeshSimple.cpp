@@ -424,7 +424,7 @@ namespace PCGExPathSplineMeshSimple
 
 			int32 C1 = 1;
 			int32 C2 = 2;
-			PCGExPaths::GetAxisForEntry(Settings->StaticMeshDescriptor, Segment.SplineMeshAxis, C1, C2, EPCGExSplineMeshAxis::X);
+			PCGExPaths::GetAxisForEntry(Settings->StaticMeshDescriptor.SplineMeshAxis, Segment.SplineMeshAxis, C1, C2, EPCGExSplineMeshAxis::X);
 
 			Segment.Params.StartPos = Transforms[Index].GetLocation();
 			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);

@@ -217,6 +217,14 @@ namespace PCGExMeshExportHandler
 		return VariantIdx;
 	}
 
+	template <typename TStruct>
+	uint32 FingerprintStruct(const TStruct& Value)
+	{
+		FArchiveCrc32 CrcArchive;
+		TStruct::StaticStruct()->SerializeBin(CrcArchive, const_cast<TStruct*>(&Value));
+		return CrcArchive.GetCrc();
+	}
+
 	// Non-const ref because FSoftISMComponentDescriptor's copy ctor is explicit. OverrideMaterials are
 	// stripped transiently: they go on the entry as variants and must not influence identity.
 	template <typename TDescriptor>
@@ -225,9 +233,7 @@ namespace PCGExMeshExportHandler
 		decltype(Descriptor.OverrideMaterials) SavedMaterials = MoveTemp(Descriptor.OverrideMaterials);
 		Descriptor.OverrideMaterials.Reset();
 
-		FArchiveCrc32 CrcArchive;
-		TDescriptor::StaticStruct()->SerializeBin(CrcArchive, &Descriptor);
-		const uint32 Crc = CrcArchive.GetCrc();
+		const uint32 Crc = FingerprintStruct(Descriptor);
 
 		Descriptor.OverrideMaterials = MoveTemp(SavedMaterials);
 		return Crc;
@@ -332,7 +338,7 @@ namespace PCGExMeshExportHandler
 		{
 			return false;
 		}
-		if (!FPCGExStaticMeshComponentDescriptor::StaticStruct()->CompareScriptStruct(&A.SMDescriptor, &B.SMDescriptor, 0))
+		if (!FPCGExStaticMeshDescriptorExtras::StaticStruct()->CompareScriptStruct(&A.SMExtras, &B.SMExtras, 0))
 		{
 			return false;
 		}
@@ -459,26 +465,24 @@ void UPCGExMeshExportHandler::Collect(const FPCGExExportCandidate& Candidate, co
 			TagSource = Writer.TagSources.Add(FPCGExExportSlotWriter::FTagSource{SMC->GetReadableName(), AuthoredComponentTags});
 		}
 
-		// Both descriptors are captured whatever the source kind: consumers pick one by spawn path (ISM
-		// spawners read ISMDescriptor, spline meshes SMDescriptor), not by where the entry came from.
-		// Body instances included, so the source's collision carries over.
+		// The ISM descriptor carries the shared settings for every spawn path, whatever the source kind; the
+		// extras carry what only spline meshes need. Body instance included, so the source's collision carries over.
 		FSoftISMComponentDescriptor TentativeISM;
-		FPCGExStaticMeshComponentDescriptor TentativeSM;
+		FPCGExStaticMeshDescriptorExtras TentativeExtras;
 		TentativeISM.InitFrom(SMC, /*bInitBodyInstance=*/true);
-		TentativeSM.InitFrom(SMC, /*bInitBodyInstance=*/true);
+		TentativeExtras.InitFrom(SMC);
 
 		// InitFrom folds the component's mirror sign into bReverseCulling. Mirroring is per-point placement,
 		// not entry identity: keep the authored flag only, so mirrored copies share an entry.
 		TentativeISM.bReverseCulling = SMC->bReverseCulling;
 
-		Key.DescriptorFingerprint = HashCombine(FingerprintDescriptor(TentativeISM), FingerprintDescriptor(TentativeSM));
+		Key.DescriptorFingerprint = HashCombine(FingerprintDescriptor(TentativeISM), FingerprintStruct(TentativeExtras));
 
 		// When capturing, variants are the sole material carrier: sec=-1 must mean mesh defaults, so the
 		// stored descriptor must not bake one contributor's overrides.
 		if (bCaptureMaterialOverrides)
 		{
 			TentativeISM.OverrideMaterials.Reset();
-			TentativeSM.OverrideMaterials.Reset();
 		}
 
 		const int32 LocalIdx = Writer.FindOrAddEntry(
@@ -495,7 +499,7 @@ void UPCGExMeshExportHandler::Collect(const FPCGExExportCandidate& Candidate, co
 				// First contribution stores the descriptors; later contributors share the fingerprint by
 				// construction, so the stored values are canonical.
 				Entry.ISMDescriptor = MoveTemp(TentativeISM);
-				Entry.SMDescriptor = MoveTemp(TentativeSM);
+				Entry.SMExtras = TentativeExtras;
 
 				// Descriptors are authored from the source, not defaults: flag the entry as staged so the first-staging
 				// bDisableCollisionByDefault pass (FPCGExMeshCollectionEntry::UpdateStaging) keeps the captured

@@ -18,13 +18,23 @@ namespace PCGExPropertyHelpers
 				continue;
 			}
 
-			if (SourceProperty->SameType(TargetProperty))
+			if (!SourceProperty->SameType(TargetProperty))
 			{
-				const void* SourceValue = SourceProperty->ContainerPtrToValuePtr<void>(SourceStruct);
-				void* TargetValue = TargetProperty->ContainerPtrToValuePtr<void>(TargetStruct);
-
-				SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
+				continue;
 			}
+
+			const void* SourceValue = SourceProperty->ContainerPtrToValuePtr<void>(SourceStruct);
+			void* TargetValue = TargetProperty->ContainerPtrToValuePtr<void>(TargetStruct);
+
+			// FBoolProperty::CopyValuesInternal applies its own byte offset and bit mask to BOTH sides, which reads the
+			// wrong bit as soon as the two structs pack their bitfields differently: copy the value instead.
+			if (const FBoolProperty* SourceBool = CastField<FBoolProperty>(SourceProperty))
+			{
+				CastFieldChecked<FBoolProperty>(TargetProperty)->SetPropertyValue(TargetValue, SourceBool->GetPropertyValue(SourceValue));
+				continue;
+			}
+
+			SourceProperty->CopyCompleteValue(TargetValue, SourceValue);
 		}
 	}
 

@@ -19,8 +19,8 @@ namespace PCGExSharedCompact
 		FArchiveBlake3 DescHasher;
 		FSoftISMComponentDescriptor::StaticStruct()->SerializeBin(
 			DescHasher, const_cast<FSoftISMComponentDescriptor*>(&E.ISMDescriptor));
-		FPCGExStaticMeshComponentDescriptor::StaticStruct()->SerializeBin(
-			DescHasher, const_cast<FPCGExStaticMeshComponentDescriptor*>(&E.SMDescriptor));
+		FPCGExStaticMeshDescriptorExtras::StaticStruct()->SerializeBin(
+			DescHasher, const_cast<FPCGExStaticMeshDescriptorExtras*>(&E.SMExtras));
 		const FBlake3Hash DescHash = DescHasher.Finalize();
 
 		TStringBuilder<512> Builder;

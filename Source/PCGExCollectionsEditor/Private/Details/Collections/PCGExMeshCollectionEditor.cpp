@@ -48,7 +48,7 @@ void FPCGExMeshCollectionEditor::RegisterPushOptions(TArray<PCGExAssetCollection
 		"Descriptors",
 		"Push descriptor source and ISM/SM descriptors from the active entry to other selected entries.",
 		false,
-		FName("DescriptorSource"), FName("ISMDescriptor"), FName("SMDescriptor"))
+		FName("DescriptorSource"), FName("ISMDescriptor"), FName("SMExtras"))
 
 #undef PCGEX_DECL_PUSH_OPTION
 }

@@ -234,6 +234,19 @@ bool FPCGExPCGDataAssetCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Ho
 		EditorLevelLocalPicks_DEPRECATED.Reset();
 		bRewritten = true;
 	}
+
+	// Captured snapshots are entries: the same migrations apply.
+	for (FPCGExExportSlotCapture& Capture : Captures)
+	{
+		for (FInstancedStruct& Snapshot : Capture.Entries)
+		{
+			FPCGExAssetCollectionEntry* Captured = Snapshot.GetMutablePtr<FPCGExAssetCollectionEntry>();
+			if (Captured && Captured->OnHostPostLoad(Host))
+			{
+				bRewritten = true;
+			}
+		}
+	}
 #endif
 
 	return bRewritten;
