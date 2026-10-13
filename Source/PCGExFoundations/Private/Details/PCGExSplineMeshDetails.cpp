@@ -9,9 +9,9 @@
 
 namespace PCGExPaths
 {
-	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default)
+	void GetAxisForEntry(const EPCGExSplineMeshAxis InAxis, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default)
 	{
-		EPCGExSplineMeshAxis Axis = InDescriptor.SplineMeshAxis;
+		EPCGExSplineMeshAxis Axis = InAxis;
 		if (Axis == EPCGExSplineMeshAxis::Default)
 		{
 			Axis = Default;

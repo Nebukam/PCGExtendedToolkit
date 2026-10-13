@@ -9,6 +9,7 @@
 
 
 #include "PCGExCollectionsSettingsCache.h"
+#include "PCGExLog.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Helpers/PCGExPropertyHelpers.h"
@@ -41,6 +42,75 @@ int32 FPCGExMaterialOverrideCollection::GetHighestIndex() const
 
 namespace PCGExMeshCollection
 {
+#if WITH_EDITORONLY_DATA
+	// Legacy full SM descriptor -> extras. Shared members now come from the ISM descriptor; the ones the author had
+	// edited away from default on the SM side and that the ISM side does not match are named once, so they can be
+	// re-applied where they matter.
+	void FoldLegacyStaticMeshDescriptor(const FPCGExStaticMeshComponentDescriptor& Legacy, const FSoftISMComponentDescriptor& Shared, FPCGExStaticMeshDescriptorExtras& OutExtras, const UObject* Host, const FString& What)
+	{
+		OutExtras.InitFrom(Legacy);
+
+		TArray<FName> Mismatches;
+		PCGExComponentDescriptors::FindSharedMismatches(Legacy, Shared, Mismatches);
+		if (Mismatches.IsEmpty())
+		{
+			return;
+		}
+
+		// The two body instances come from different class defaults and never compare identical, so collision is
+		// judged on the one thing a spline mesh shows: whether it is on. That also catches the ISM default enabling it
+		// over an SM side nobody edited.
+		static const FName BodyInstanceName = GET_MEMBER_NAME_CHECKED(FPCGExStaticMeshComponentDescriptor, BodyInstance);
+		const FPCGExStaticMeshComponentDescriptor Defaults;
+		TArray<FString> Lost;
+		for (const FName& Name : Mismatches)
+		{
+			if (Name == BodyInstanceName)
+			{
+				if (Legacy.BodyInstance.GetCollisionEnabled(false) != Shared.BodyInstance.GetCollisionEnabled(false))
+				{
+					Lost.Add(Name.ToString());
+				}
+				continue;
+			}
+
+			const FProperty* Property = FPCGExStaticMeshComponentDescriptor::StaticStruct()->FindPropertyByName(Name);
+			if (Property && !Property->Identical_InContainer(&Legacy, &Defaults))
+			{
+				Lost.Add(Name.ToString());
+			}
+		}
+		if (Lost.IsEmpty())
+		{
+			return;
+		}
+
+		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: SM settings differed from ISM settings on %s. Spline meshes now use the ISM values."),
+		       *GetNameSafe(Host), *What, *FString::Join(Lost, TEXT(", ")));
+	}
+
+	// An entry on the global descriptor used to spawn spline meshes from its LOCAL SM settings; its static-mesh-only
+	// members now come from the global extras, so whatever differs there is named once.
+	void WarnIgnoredLocalExtras(const FPCGExStaticMeshDescriptorExtras& Local, const FPCGExStaticMeshDescriptorExtras& Global, const UObject* Host, const FString& What)
+	{
+		TArray<FString> Ignored;
+		for (TFieldIterator<FProperty> It(FPCGExStaticMeshDescriptorExtras::StaticStruct()); It; ++It)
+		{
+			if (!It->Identical_InContainer(&Local, &Global))
+			{
+				Ignored.Add(It->GetName());
+			}
+		}
+		if (Ignored.IsEmpty())
+		{
+			return;
+		}
+
+		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: follows the global descriptor, so its local SM settings (%s) no longer reach spline meshes."),
+		       *GetNameSafe(Host), *What, *FString::Join(Ignored, TEXT(", ")));
+	}
+#endif
+
 	void FMicroCache::ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, int32 InSlotIndex)
 	{
 		HighestMaterialIndex = InSlotIndex;
@@ -113,21 +183,9 @@ void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) c
 		}
 	}
 
-	// SM materials
-	for (int32 i = 0; i < SMDescriptor.OverrideMaterials.Num(); i++)
+	if (!ISMDescriptor.OverlayMaterial.IsNull())
 	{
-		if (!SMDescriptor.OverrideMaterials[i].IsNull())
-		{
-			OutPaths.Add(SMDescriptor.OverrideMaterials[i].ToSoftObjectPath());
-		}
-	}
-
-	for (int32 i = 0; i < SMDescriptor.RuntimeVirtualTextures.Num(); i++)
-	{
-		if (!SMDescriptor.RuntimeVirtualTextures[i].IsNull())
-		{
-			OutPaths.Add(SMDescriptor.RuntimeVirtualTextures[i].ToSoftObjectPath());
-		}
+		OutPaths.Add(ISMDescriptor.OverlayMaterial.ToSoftObjectPath());
 	}
 }
 
@@ -258,7 +316,6 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	if (Staging.InternalIndex == -1 && PCGEX_COLLECTIONS_SETTINGS.bDisableCollisionByDefault)
 	{
 		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-		SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	}
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
@@ -309,7 +366,7 @@ void FPCGExMeshCollectionEntry::ResolveGlobalsToLocal(const UPCGExAssetCollectio
 	if (DescriptorSource == EPCGExEntryVariationMode::Global || Globals.GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule)
 	{
 		ISMDescriptor = Globals.GlobalISMDescriptor;
-		SMDescriptor = Globals.GlobalSMDescriptor;
+		SMExtras = Globals.GlobalSMExtras;
 		ISMDescriptor.StaticMesh = StaticMesh; // globals don't carry the entry's asset
 		DescriptorSource = EPCGExEntryVariationMode::Local;
 	}
@@ -336,6 +393,45 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExAssetCollec
 	// mirrors it through SetAssetPath/EDITOR_Sanitize -- which programmatic authoring bypasses.
 	TargetDescriptor.StaticMesh = StaticMesh;
 	TargetDescriptor.ComponentTags.Append(Tags.Array());
+}
+
+void FPCGExMeshCollectionEntry::ComposeStaticMeshDescriptor(const UPCGExAssetCollection* ParentCollection, FPCGExStaticMeshComponentDescriptor& OutDescriptor) const
+{
+	FPCGExMeshCollectionGlobals Globals;
+	const bool bHasGlobals = ParentCollection && ParentCollection->GetTypeGlobals(Globals);
+
+	if (bHasGlobals && (DescriptorSource == EPCGExEntryVariationMode::Global || Globals.GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
+	{
+		PCGExComponentDescriptors::Compose(Globals.GlobalISMDescriptor, Globals.GlobalSMExtras, OutDescriptor);
+	}
+	else
+	{
+		PCGExComponentDescriptors::Compose(ISMDescriptor, SMExtras, OutDescriptor);
+	}
+}
+
+bool FPCGExMeshCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)
+{
+	bool bRewritten = FPCGExAssetCollectionEntry::OnHostPostLoad(Host);
+
+#if WITH_EDITORONLY_DATA
+	if (Host && Host->GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
+	{
+		const FString What = FString::Printf(TEXT("entry '%s'"), *StaticMesh.ToSoftObjectPath().ToString());
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(SMDescriptor_DEPRECATED, ISMDescriptor, SMExtras, Host, What);
+
+		// Host globals are folded before entries run (see UPCGExMeshCollection::PostLoad), so this compares migrated data.
+		FPCGExMeshCollectionGlobals Globals;
+		if (!bIsSubCollection && Host->GetTypeGlobals(Globals)
+			&& (DescriptorSource == EPCGExEntryVariationMode::Global || Globals.GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
+		{
+			PCGExMeshCollection::WarnIgnoredLocalExtras(SMExtras, Globals.GlobalSMExtras, Host, What);
+		}
+		bRewritten = true;
+	}
+#endif
+
+	return bRewritten;
 }
 
 #if WITH_EDITOR
@@ -370,6 +466,23 @@ void FPCGExMeshCollectionEntry::BuildMicroCache()
 	MicroCache = NewCache;
 }
 
+bool FPCGExMeshCollectionEntry::Serialize(FArchive& Ar)
+{
+	return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+}
+
+bool FPCGExMeshCollectionGlobals::OnHostPostLoad(UPCGExAssetCollection* Host)
+{
+#if WITH_EDITORONLY_DATA
+	if (Host && Host->GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
+	{
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, Host, TEXT("global SM settings"));
+		return true;
+	}
+#endif
+	return false;
+}
+
 bool UPCGExMeshCollection::GetTypeGlobalsInternal(const UScriptStruct* StructType, FPCGExCollectionTypeGlobals& OutGlobals) const
 {
 	if (!StructType || !StructType->IsChildOf(FPCGExMeshCollectionGlobals::StaticStruct()))
@@ -380,8 +493,24 @@ bool UPCGExMeshCollection::GetTypeGlobalsInternal(const UScriptStruct* StructTyp
 	FPCGExMeshCollectionGlobals& Out = static_cast<FPCGExMeshCollectionGlobals&>(OutGlobals);
 	Out.GlobalDescriptorMode = GlobalDescriptorMode;
 	Out.GlobalISMDescriptor = GlobalISMDescriptor;
-	Out.GlobalSMDescriptor = GlobalSMDescriptor;
+	Out.GlobalSMExtras = GlobalSMExtras;
 	return true;
+}
+
+void UPCGExMeshCollection::PostLoad()
+{
+#if WITH_EDITORONLY_DATA
+	// Before Super: the entry hooks it runs read the globals through the seam and must see them folded.
+	if (GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
+	{
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, this, TEXT("global SM settings"));
+#if WITH_EDITOR
+		(void)MarkPackageDirty();
+#endif
+	}
+#endif
+
+	Super::PostLoad();
 }
 
 
@@ -430,7 +559,6 @@ void UPCGExMeshCollection::EDITOR_DisableCollisions()
 	for (FPCGExMeshCollectionEntry& Entry : Entries)
 	{
 		Entry.ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-		Entry.SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	}
 
 	FPropertyChangedEvent EmptyEvent(nullptr);
