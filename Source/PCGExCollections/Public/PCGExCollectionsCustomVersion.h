@@ -24,6 +24,12 @@ struct PCGEXCOLLECTIONS_API FPCGExCollectionsCustomVersion
 		 */
 		SchemaMigrationsGatedByCustomVersion,
 
+		/**
+		 * Mesh entries and mesh globals carry the static-mesh-only descriptor half (SMExtras) instead of a full SM
+		 * descriptor. Older packages fold their SM descriptor into it on load.
+		 */
+		MeshEntryStaticMeshExtras,
+
 		// -- add new versions above this line --
 		VersionPlusOne,
 		LatestVersion = VersionPlusOne - 1

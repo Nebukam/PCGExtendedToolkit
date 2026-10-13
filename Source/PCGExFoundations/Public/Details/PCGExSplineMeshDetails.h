@@ -25,7 +25,7 @@ struct FPCGExStaticMeshComponentDescriptor;
 
 namespace PCGExPaths
 {
-	PCGEXFOUNDATIONS_API void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
+	PCGEXFOUNDATIONS_API void GetAxisForEntry(const EPCGExSplineMeshAxis InAxis, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
 
 	struct PCGEXFOUNDATIONS_API FSplineMeshSegment
 	{

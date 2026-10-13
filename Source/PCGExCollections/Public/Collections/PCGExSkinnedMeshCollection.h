@@ -128,11 +128,23 @@ struct PCGEXCOLLECTIONS_API FPCGExSkinnedMeshCollectionEntry : public FPCGExAsse
 
 	virtual void BuildMicroCache() override;
 
+	/** Delta against a default entry: see PCGExAssetCollection::SerializeEntryDelta. */
+	bool Serialize(FArchive& Ar);
+
 	// Typed MicroCache Access
 	PCGExSkinnedMeshCollection::FMicroCache* GetSkinnedMeshMicroCache() const
 	{
 		return static_cast<PCGExSkinnedMeshCollection::FMicroCache*>(MicroCache.Get());
 	}
+};
+
+template <>
+struct TStructOpsTypeTraits<FPCGExSkinnedMeshCollectionEntry> : public TStructOpsTypeTraitsBase2<FPCGExSkinnedMeshCollectionEntry>
+{
+	enum
+	{
+		WithSerializer = true,
+	};
 };
 
 /**

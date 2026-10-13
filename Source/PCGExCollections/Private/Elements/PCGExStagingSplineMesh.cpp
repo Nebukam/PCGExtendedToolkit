@@ -772,6 +772,7 @@ namespace PCGExPathSplineMesh
 
 			MeshEntry = static_cast<const FPCGExMeshCollectionEntry*>(Result.Entry);
 			Segment.MeshEntry = MeshEntry;
+			Segment.Host = Result.Host;
 
 			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
 			const FTransform& CurrentTransform = Transforms[Index];
@@ -846,21 +847,14 @@ namespace PCGExPathSplineMesh
 				}
 			}
 
-			int32 C1 = 1;
-			int32 C2 = 2;
-			PCGExPaths::GetAxisForEntry(MeshEntry->SMDescriptor, Segment.SplineMeshAxis, C1, C2, Settings->DefaultDescriptor.SplineMeshAxis);
-
 			Segment.Params.StartPos = CurrentLocation;
-			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
 			Segment.Params.StartRoll = CurrentRotation.Rotator().Roll;
-
-			const FVector Scale = bApplyScaleToFit ? OutScale : NextScale;
 			Segment.Params.EndPos = NextLocation;
-			Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
 			Segment.Params.EndRoll = NextRotation.Rotator().Roll;
 
-			Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
-			Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
+			Segment.StartScale3D = OutScale;
+			Segment.EndScale3D = bApplyScaleToFit ? OutScale : NextScale;
+			Segment.Offset3D = OutTranslation;
 
 			if (bTangentsEnabled)
 			{
@@ -939,7 +933,7 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessSegment(const int32 Index)
 	{
-		const FSplineMeshSegment& Segment = Segments[Index];
+		FSplineMeshSegment& Segment = Segments[Index];
 		if (!Segment.MeshEntry)
 		{
 			return;
@@ -952,15 +946,31 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
+		const bool bForcedDescriptor = Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet;
+		const FPCGExStaticMeshComponentDescriptor* Descriptor = &Settings->DefaultDescriptor;
+		if (!bForcedDescriptor)
+		{
+			Descriptor = ComposedDescriptors.Find(Segment.MeshEntry);
+			if (!Descriptor)
+			{
+				FPCGExStaticMeshComponentDescriptor& NewComposed = ComposedDescriptors.Add(Segment.MeshEntry);
+				Segment.MeshEntry->ComposeStaticMeshDescriptor(Segment.Host, NewComposed);
+				Descriptor = &NewComposed;
+			}
+		}
+
+		// The entry's axis comes first even under a forced descriptor; the node default fills the Default case.
+		const EPCGExSplineMeshAxis EntryAxis = bForcedDescriptor ? Segment.MeshEntry->SMExtras.SplineMeshAxis : Descriptor->SplineMeshAxis;
+		int32 C1 = 1;
+		int32 C2 = 2;
+		PCGExPaths::GetAxisForEntry(EntryAxis, Segment.SplineMeshAxis, C1, C2, Settings->DefaultDescriptor.SplineMeshAxis);
+		Segment.Params.StartScale = FVector2D(Segment.StartScale3D[C1], Segment.StartScale3D[C2]);
+		Segment.Params.EndScale = FVector2D(Segment.EndScale3D[C1], Segment.EndScale3D[C2]);
+		Segment.Params.StartOffset = FVector2D(Segment.Offset3D[C1], Segment.Offset3D[C2]);
+		Segment.Params.EndOffset = Segment.Params.StartOffset;
+
 		Segment.ApplySettings(SplineMeshComponent); // Init Component
-		if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
-		{
-			Settings->DefaultDescriptor.InitComponent(SplineMeshComponent);
-		}
-		else
-		{
-			Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent);
-		}
+		Descriptor->InitComponent(SplineMeshComponent);
 
 		if (Settings->TaggingDetails.bForwardInputDataTags)
 		{

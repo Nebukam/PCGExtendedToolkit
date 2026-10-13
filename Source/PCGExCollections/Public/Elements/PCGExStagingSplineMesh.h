@@ -278,7 +278,13 @@ namespace PCGExPathSplineMesh
 		bool bSetMeshWithSettings = false;
 
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
+		const UPCGExAssetCollection* Host = nullptr;
 		int16 MaterialPick = -1;
+
+		// Kept in 3D until the spawning descriptor fixes the spline axis (ProcessSegment picks the two components).
+		FVector StartScale3D = FVector::OneVector;
+		FVector EndScale3D = FVector::OneVector;
+		FVector Offset3D = FVector::ZeroVector;
 
 		virtual void ApplySettings(USplineMeshComponent* Component) const override;
 		bool ApplyMesh(USplineMeshComponent* Component) const;
@@ -322,6 +328,9 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TArray<FSplineMeshSegment> Segments;
+
+		// Composed once per entry, on the main thread, as segments spawn.
+		TMap<const FPCGExMeshCollectionEntry*, FPCGExStaticMeshComponentDescriptor> ComposedDescriptors;
 
 		AActor* TargetActor = nullptr;
 		EObjectFlags ObjectFlags = RF_NoFlags;
