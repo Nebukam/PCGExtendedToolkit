@@ -349,9 +349,8 @@ bool UPCGExOmniCollection::SupportsTypeMachinery(const PCGExAssetCollection::FTy
 
 void UPCGExOmniCollection::PostLoad()
 {
-	Super::PostLoad();
-
-	// Globals blocks live here physically: give each one its load hook, as entries get theirs.
+	// Globals blocks live here physically: give each one its load hook, as entries get theirs. Before Super, so
+	// the entry hooks it runs read the blocks migrated.
 	bool bBlockRewritten = false;
 	for (FInstancedStruct& Block : TypeGlobals)
 	{
@@ -367,6 +366,8 @@ void UPCGExOmniCollection::PostLoad()
 		(void)MarkPackageDirty();
 	}
 #endif
+
+	Super::PostLoad();
 }
 
 void UPCGExOmniCollection::Serialize(FArchive& Ar)

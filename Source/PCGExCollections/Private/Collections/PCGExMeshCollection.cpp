@@ -57,12 +57,15 @@ namespace PCGExMeshCollection
 			return;
 		}
 
+		// Collision is reported even at its SM default (NoCollision): the ISM default enables it, so spline meshes
+		// can gain collision without anyone having edited the SM side.
+		static const FName BodyInstanceName = GET_MEMBER_NAME_CHECKED(FPCGExStaticMeshComponentDescriptor, BodyInstance);
 		const FPCGExStaticMeshComponentDescriptor Defaults;
 		TArray<FString> Lost;
 		for (const FName& Name : Mismatches)
 		{
 			const FProperty* Property = FPCGExStaticMeshComponentDescriptor::StaticStruct()->FindPropertyByName(Name);
-			if (Property && !Property->Identical_InContainer(&Legacy, &Defaults))
+			if (Property && (Name == BodyInstanceName || !Property->Identical_InContainer(&Legacy, &Defaults)))
 			{
 				Lost.Add(Name.ToString());
 			}
@@ -74,6 +77,27 @@ namespace PCGExMeshCollection
 
 		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: SM settings differed from ISM settings on %s. Spline meshes now use the ISM values."),
 		       *GetNameSafe(Host), *What, *FString::Join(Lost, TEXT(", ")));
+	}
+
+	// An entry on the global descriptor used to spawn spline meshes from its LOCAL SM settings; its static-mesh-only
+	// members now come from the global extras, so whatever differs there is named once.
+	void WarnIgnoredLocalExtras(const FPCGExStaticMeshDescriptorExtras& Local, const FPCGExStaticMeshDescriptorExtras& Global, const UObject* Host, const FString& What)
+	{
+		TArray<FString> Ignored;
+		for (TFieldIterator<FProperty> It(FPCGExStaticMeshDescriptorExtras::StaticStruct()); It; ++It)
+		{
+			if (!It->Identical_InContainer(&Local, &Global))
+			{
+				Ignored.Add(It->GetName());
+			}
+		}
+		if (Ignored.IsEmpty())
+		{
+			return;
+		}
+
+		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: follows the global descriptor, so its local SM settings (%s) no longer reach spline meshes."),
+		       *GetNameSafe(Host), *What, *FString::Join(Ignored, TEXT(", ")));
 	}
 #endif
 
@@ -147,6 +171,11 @@ void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) c
 		{
 			OutPaths.Add(ISMDescriptor.RuntimeVirtualTextures[i].ToSoftObjectPath());
 		}
+	}
+
+	if (!ISMDescriptor.OverlayMaterial.IsNull())
+	{
+		OutPaths.Add(ISMDescriptor.OverlayMaterial.ToSoftObjectPath());
 	}
 }
 
@@ -378,8 +407,16 @@ bool FPCGExMeshCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)
 #if WITH_EDITORONLY_DATA
 	if (Host && Host->GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
 	{
-		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(
-			SMDescriptor_DEPRECATED, ISMDescriptor, SMExtras, Host, FString::Printf(TEXT("entry '%s'"), *StaticMesh.ToSoftObjectPath().ToString()));
+		const FString What = FString::Printf(TEXT("entry '%s'"), *StaticMesh.ToSoftObjectPath().ToString());
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(SMDescriptor_DEPRECATED, ISMDescriptor, SMExtras, Host, What);
+
+		// Host globals are folded before entries run (see UPCGExMeshCollection::PostLoad), so this compares migrated data.
+		FPCGExMeshCollectionGlobals Globals;
+		if (!bIsSubCollection && Host->GetTypeGlobals(Globals)
+			&& (DescriptorSource == EPCGExEntryVariationMode::Global || Globals.GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
+		{
+			PCGExMeshCollection::WarnIgnoredLocalExtras(SMExtras, Globals.GlobalSMExtras, Host, What);
+		}
 		bRewritten = true;
 	}
 #endif
@@ -452,9 +489,8 @@ bool UPCGExMeshCollection::GetTypeGlobalsInternal(const UScriptStruct* StructTyp
 
 void UPCGExMeshCollection::PostLoad()
 {
-	Super::PostLoad();
-
 #if WITH_EDITORONLY_DATA
+	// Before Super: the entry hooks it runs read the globals through the seam and must see them folded.
 	if (GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
 	{
 		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, this, TEXT("global SM settings"));
@@ -463,6 +499,8 @@ void UPCGExMeshCollection::PostLoad()
 #endif
 	}
 #endif
+
+	Super::PostLoad();
 }
 
 

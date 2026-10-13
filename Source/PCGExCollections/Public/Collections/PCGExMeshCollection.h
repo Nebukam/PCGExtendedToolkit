@@ -118,7 +118,8 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionGlobals : public FPCGExCollectio
 	FPCGExStaticMeshDescriptorExtras GlobalSMExtras;
 
 #if WITH_EDITORONLY_DATA
-	/** LEGACY full SM descriptor. Folded into GlobalSMExtras by OnHostPostLoad; shared members now come from the ISM descriptor. */
+	/** LEGACY full SM descriptor. Folded into GlobalSMExtras by OnHostPostLoad; shared members now come from the
+	 *  ISM descriptor. */
 	UPROPERTY(meta=(DeprecatedProperty, ScriptNoExport))
 	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor_DEPRECATED;
 #endif
@@ -173,12 +174,14 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="DescriptorSource", PCGExCategoryGroup="Descriptors"))
 	FSoftISMComponentDescriptor ISMDescriptor;
 
-	/** Static-mesh-only settings for spline meshes (axis, LODs, Nanite, distance-field shadows...). Collision, shadows, materials and every other shared setting come from ISM Settings. */
+	/** Static-mesh-only settings for spline meshes (axis, LODs, Nanite, distance-field shadows...). Collision,
+	 *  shadows, materials and every other shared setting come from ISM Settings. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor", PCGExCategoryGroup="Descriptors"))
 	FPCGExStaticMeshDescriptorExtras SMExtras;
 
 #if WITH_EDITORONLY_DATA
-	/** LEGACY full SM descriptor. Folded into SMExtras by OnHostPostLoad; shared members now come from ISMDescriptor. */
+	/** LEGACY full SM descriptor. Folded into SMExtras by OnHostPostLoad; shared members now come from
+	 *  ISMDescriptor. */
 	UPROPERTY(meta=(DeprecatedProperty, ScriptNoExport))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor_DEPRECATED;
 #endif
@@ -281,7 +284,8 @@ public:
 	FPCGExStaticMeshDescriptorExtras GlobalSMExtras;
 
 #if WITH_EDITORONLY_DATA
-	/** LEGACY full SM descriptor. Folded into GlobalSMExtras by PostLoad; shared members now come from the ISM descriptor. */
+	/** LEGACY full SM descriptor. Folded into GlobalSMExtras by PostLoad; shared members now come from the ISM
+	 *  descriptor. */
 	UPROPERTY(meta=(DeprecatedProperty, ScriptNoExport))
 	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor_DEPRECATED;
 #endif

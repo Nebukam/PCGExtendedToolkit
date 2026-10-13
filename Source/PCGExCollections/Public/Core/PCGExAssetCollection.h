@@ -752,6 +752,7 @@ namespace PCGExAssetCollection
 	 * Array elements get no defaults from the engine (FArrayProperty::SerializeItem), which otherwise writes every
 	 * member of every nested descriptor. Wire it through TStructOpsTypeTraits<T>::WithSerializer + T::Serialize.
 	 * A member equal to its constructor default is not written and follows that default on load.
+	 * The trait is per type and never inherited: a struct deriving from a delta-serialized entry must declare its own.
 	 */
 	template <typename T>
 	bool SerializeEntryDelta(T& Entry, FArchive& Ar)
@@ -1092,6 +1093,12 @@ public:
 	int32 GetLoadedCollectionsVersion() const
 	{
 		return LoadedCollectionsVersion;
+	}
+
+	/** Replays a load at an older version for tests and tooling that drive the migration hooks by hand. */
+	void EDITOR_SetLoadedCollectionsVersion(const int32 InVersion)
+	{
+		LoadedCollectionsVersion = InVersion;
 	}
 #endif
 
@@ -1484,10 +1491,8 @@ public:
 	int32 FittingSchemaVersion = 0;
 
 #if WITH_EDITORONLY_DATA
-	// Set by Serialize when the package predates FPCGExCollectionsCustomVersion; the schema ints alone cannot
-	// distinguish a legacy asset from a freshly created one (both read 0).
-	bool bLoadedFromPreVersionedPackage = false;
-
+	// Set by Serialize from the package. Migrations gate on it: the schema ints alone cannot distinguish a legacy
+	// asset from a freshly created one (both read 0).
 	int32 LoadedCollectionsVersion = FPCGExCollectionsCustomVersion::LatestVersion;
 #endif
 

@@ -217,6 +217,14 @@ namespace PCGExMeshExportHandler
 		return VariantIdx;
 	}
 
+	template <typename TStruct>
+	uint32 FingerprintStruct(const TStruct& Value)
+	{
+		FArchiveCrc32 CrcArchive;
+		TStruct::StaticStruct()->SerializeBin(CrcArchive, const_cast<TStruct*>(&Value));
+		return CrcArchive.GetCrc();
+	}
+
 	// Non-const ref because FSoftISMComponentDescriptor's copy ctor is explicit. OverrideMaterials are
 	// stripped transiently: they go on the entry as variants and must not influence identity.
 	template <typename TDescriptor>
@@ -225,19 +233,10 @@ namespace PCGExMeshExportHandler
 		decltype(Descriptor.OverrideMaterials) SavedMaterials = MoveTemp(Descriptor.OverrideMaterials);
 		Descriptor.OverrideMaterials.Reset();
 
-		FArchiveCrc32 CrcArchive;
-		TDescriptor::StaticStruct()->SerializeBin(CrcArchive, &Descriptor);
-		const uint32 Crc = CrcArchive.GetCrc();
+		const uint32 Crc = FingerprintStruct(Descriptor);
 
 		Descriptor.OverrideMaterials = MoveTemp(SavedMaterials);
 		return Crc;
-	}
-
-	uint32 FingerprintExtras(const FPCGExStaticMeshDescriptorExtras& Extras)
-	{
-		FArchiveCrc32 CrcArchive;
-		FPCGExStaticMeshDescriptorExtras::StaticStruct()->SerializeBin(CrcArchive, const_cast<FPCGExStaticMeshDescriptorExtras*>(&Extras));
-		return CrcArchive.GetCrc();
 	}
 
 	// Identity hash deliberately omits Weight/Category/PropertyOverrides -- Weight accumulates from
@@ -477,7 +476,7 @@ void UPCGExMeshExportHandler::Collect(const FPCGExExportCandidate& Candidate, co
 		// not entry identity: keep the authored flag only, so mirrored copies share an entry.
 		TentativeISM.bReverseCulling = SMC->bReverseCulling;
 
-		Key.DescriptorFingerprint = HashCombine(FingerprintDescriptor(TentativeISM), FingerprintExtras(TentativeExtras));
+		Key.DescriptorFingerprint = HashCombine(FingerprintDescriptor(TentativeISM), FingerprintStruct(TentativeExtras));
 
 		// When capturing, variants are the sole material carrier: sec=-1 must mean mesh defaults, so the
 		// stored descriptor must not bake one contributor's overrides.

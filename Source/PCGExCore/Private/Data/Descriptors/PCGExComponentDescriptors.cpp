@@ -366,7 +366,15 @@ void FPCGExStaticMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InC
 FPCGExStaticMeshDescriptorExtras::FPCGExStaticMeshDescriptorExtras()
 	: FPCGExStaticMeshDescriptorExtras(NoInit)
 {
-	InitFrom(FPCGExStaticMeshComponentDescriptor());
+	// The CDO-derived defaults are read through a full descriptor once; this struct holds no object references,
+	// so a function-local static is safe through shutdown.
+	static const FPCGExStaticMeshDescriptorExtras Defaults = []
+	{
+		FPCGExStaticMeshDescriptorExtras Extras(NoInit);
+		Extras.InitFrom(FPCGExStaticMeshComponentDescriptor());
+		return Extras;
+	}();
+	*this = Defaults;
 }
 
 void FPCGExStaticMeshDescriptorExtras::InitFrom(const FPCGExStaticMeshComponentDescriptor& InDescriptor)
@@ -390,7 +398,6 @@ namespace PCGExComponentDescriptors
 		PCGExPropertyHelpers::CopyStructProperties(&InShared, &OutDescriptor, FSoftISMComponentDescriptor::StaticStruct(), FPCGExStaticMeshComponentDescriptor::StaticStruct());
 
 		// The by-name copy cannot pair these: a different name, or a different width.
-		OutDescriptor.bVisible = InShared.bVisible;
 		OutDescriptor.CastShadow = InShared.bCastShadow;
 		OutDescriptor.bAffectIndirectLightingWhileHidden = InShared.bAffectDynamicIndirectLightingWhileHidden;
 		OutDescriptor.VirtualTextureCullMips = static_cast<int8>(InShared.VirtualTextureCullMips);
