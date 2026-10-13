@@ -12,6 +12,7 @@
 #include "PCGExAssetGrammar.h"
 #include "PCGExCategoryOverrides.h"
 #include "PCGExCollectionGlobals.h"
+#include "PCGExCollectionsCustomVersion.h"
 #include "PCGExPropertyRowHost.h"
 #include "PCGExPropertySchema.h"
 #include "PCGExSchemaMerging.h"
@@ -1086,6 +1087,14 @@ public:
 	 *  soft paths itself). Dispatches EDITOR_OnHostRelocated unless the move is a retirement to transient. */
 	virtual void PostRename(UObject* OldOuter, const FName OldName) override;
 
+#if WITH_EDITORONLY_DATA
+	/** FPCGExCollectionsCustomVersion this collection was loaded with; LatestVersion when it did not come from a package. */
+	int32 GetLoadedCollectionsVersion() const
+	{
+		return LoadedCollectionsVersion;
+	}
+#endif
+
 #if WITH_EDITOR
 	/** Hosts with machinery that bakes host-relative paths dispatch into their type states here. */
 	virtual void EDITOR_OnHostRelocated()
@@ -1478,6 +1487,8 @@ public:
 	// Set by Serialize when the package predates FPCGExCollectionsCustomVersion; the schema ints alone cannot
 	// distinguish a legacy asset from a freshly created one (both read 0).
 	bool bLoadedFromPreVersionedPackage = false;
+
+	int32 LoadedCollectionsVersion = FPCGExCollectionsCustomVersion::LatestVersion;
 #endif
 
 	/** Exclude entries whose asset slot is EMPTY from the pickable set. Off (default): empty entries stay valid picks that stage nothing -- weighted "spawn nothing" slots. Governs only empty asset slots, nothing else. */

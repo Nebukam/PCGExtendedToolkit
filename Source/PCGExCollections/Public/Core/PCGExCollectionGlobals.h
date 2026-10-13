@@ -7,6 +7,8 @@
 
 #include "PCGExCollectionGlobals.generated.h"
 
+class UPCGExAssetCollection;
+
 /**
  * Base for per-type collection-level settings blocks ("type globals") -- the interchange
  * format of UPCGExAssetCollection::GetTypeGlobals. Entries query their host through it
@@ -24,4 +26,10 @@ struct PCGEXCOLLECTIONS_API FPCGExCollectionTypeGlobals
 
 	FPCGExCollectionTypeGlobals() = default;
 	virtual ~FPCGExCollectionTypeGlobals() = default;
+
+	/** Host-side load hook for blocks stored physically (Omni). Same contract as FPCGExAssetCollectionEntry::OnHostPostLoad. */
+	virtual bool OnHostPostLoad(UPCGExAssetCollection* Host)
+	{
+		return false;
+	}
 };

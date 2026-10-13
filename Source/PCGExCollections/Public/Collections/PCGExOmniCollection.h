@@ -95,6 +95,7 @@ public:
 
 	//~ Lifecycle dispatch into type states
 	virtual void Serialize(FArchive& Ar) override;
+	virtual void PostLoad() override;
 	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
 	virtual void PostDuplicate(bool bDuplicateForPIE) override;
 

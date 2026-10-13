@@ -347,6 +347,28 @@ bool UPCGExOmniCollection::SupportsTypeMachinery(const PCGExAssetCollection::FTy
 	return Super::SupportsTypeMachinery(TypeId);
 }
 
+void UPCGExOmniCollection::PostLoad()
+{
+	Super::PostLoad();
+
+	// Globals blocks live here physically: give each one its load hook, as entries get theirs.
+	bool bBlockRewritten = false;
+	for (FInstancedStruct& Block : TypeGlobals)
+	{
+		FPCGExCollectionTypeGlobals* Globals = Block.GetMutablePtr<FPCGExCollectionTypeGlobals>();
+		if (Globals && Globals->OnHostPostLoad(this))
+		{
+			bBlockRewritten = true;
+		}
+	}
+#if WITH_EDITOR
+	if (bBlockRewritten)
+	{
+		(void)MarkPackageDirty();
+	}
+#endif
+}
+
 void UPCGExOmniCollection::Serialize(FArchive& Ar)
 {
 	// Save-scrub pair: type states null host-side instanced refs (entry payload subobjects)

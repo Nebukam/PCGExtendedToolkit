@@ -1293,6 +1293,7 @@ void UPCGExAssetCollection::Serialize(FArchive& Ar)
 	if (Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting())
 	{
 		bLoadedFromPreVersionedPackage = Ar.CustomVer(FPCGExCollectionsCustomVersion::GUID) < FPCGExCollectionsCustomVersion::SchemaMigrationsGatedByCustomVersion;
+		LoadedCollectionsVersion = Ar.CustomVer(FPCGExCollectionsCustomVersion::GUID);
 	}
 #endif
 }

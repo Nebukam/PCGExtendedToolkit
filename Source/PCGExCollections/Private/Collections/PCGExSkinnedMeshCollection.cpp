@@ -267,6 +267,11 @@ void FPCGExSkinnedMeshCollectionEntry::BuildMicroCache()
 	MicroCache = NewCache;
 }
 
+bool FPCGExSkinnedMeshCollectionEntry::Serialize(FArchive& Ar)
+{
+	return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+}
+
 bool UPCGExSkinnedMeshCollection::GetTypeGlobalsInternal(const UScriptStruct* StructType, FPCGExCollectionTypeGlobals& OutGlobals) const
 {
 	if (!StructType || !StructType->IsChildOf(FPCGExSkinnedMeshCollectionGlobals::StaticStruct()))
