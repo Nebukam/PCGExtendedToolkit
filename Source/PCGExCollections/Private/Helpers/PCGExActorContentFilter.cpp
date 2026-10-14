@@ -39,7 +39,8 @@ bool UPCGExActorContentFilter::IsInfrastructureActor(const AActor* Actor)
 	{
 		return true;
 	}
-	if (Actor->bIsEditorOnlyActor)
+	// The virtual, not bIsEditorOnlyActor: AGroupActor & co. only override IsEditorOnly().
+	if (Actor->IsEditorOnly())
 	{
 		return true;
 	}

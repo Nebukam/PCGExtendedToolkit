@@ -143,6 +143,7 @@ public:
 	 *  over actor-typed entries (matching a native actor collection), then dispatches the
 	 *  post-rebuild hook into every type state. */
 	virtual void EDITOR_OnPostStagingRebuild() override;
+	virtual void EDITOR_RunTypeStatesPreStaging() override;
 	virtual void EDITOR_RunTypeStatesPostStaging() override;
 	virtual void EDITOR_OnHostRelocated() override;
 

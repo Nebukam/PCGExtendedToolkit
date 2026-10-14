@@ -5,6 +5,7 @@
 
 #include "Editor.h"
 #include "ScopedTransaction.h"
+#include "Editor/GroupActor.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Images/SImage.h"
@@ -184,9 +185,11 @@ void FPCGExActorCollectionEditor::BuildAddMenuContent(const TSharedRef<SVertical
 					FScopedTransaction Transaction(INVTEXT("Add Selected Actors to Collection"));
 					Collection->Modify();
 
+					// A locked group selects its group actor too, and a group is never an entry.
 					for (int32 i = 0; i < Selection->Num(); ++i)
 					{
-						if (AActor* Actor = Cast<AActor>(Selection->GetSelectedObject(i)))
+						AActor* Actor = Cast<AActor>(Selection->GetSelectedObject(i));
+						if (Actor && !Actor->IsA<AGroupActor>())
 						{
 							PCGExActorCollectionEditor::AddOrUpdateActorEntry(Collection, Actor);
 						}
@@ -243,7 +246,7 @@ void FPCGExActorCollectionEditor::BuildAddMenuContent(const TSharedRef<SVertical
 
 						for (AActor* Actor : World->PersistentLevel->Actors)
 						{
-							if (!Actor)
+							if (!Actor || Actor->IsA<AGroupActor>())
 							{
 								continue;
 							}

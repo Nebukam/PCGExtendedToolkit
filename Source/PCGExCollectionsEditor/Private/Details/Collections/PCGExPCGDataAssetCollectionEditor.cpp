@@ -8,6 +8,7 @@
 #include "ScopedTransaction.h"
 #include "Collections/PCGExPCGDataAssetCollection.h"
 #include "Core/PCGExAssetCollection.h"
+#include "Editor/GroupActor.h"
 #include "Engine/Level.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -281,6 +282,7 @@ TSharedRef<SWidget> FPCGExPCGDataAssetCollectionEditor::BuildTilePickerWidget(
 		[
 			SNew(SObjectPropertyEntryBox)
 			.AllowedClass(AActor::StaticClass())
+			.OnShouldFilterActor_Lambda([](const AActor* Actor) { return Actor && !Actor->IsA<AGroupActor>(); })
 			.ObjectPath_Lambda([GetTypedEntry]() -> FString
 			{
 				const FPCGExPCGDataAssetCollectionEntry* Entry = GetTypedEntry();

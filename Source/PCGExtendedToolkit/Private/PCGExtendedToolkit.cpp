@@ -13,6 +13,7 @@
 #include "PCGExCoreSettingsCache.h"
 #include "Engine/AssetManager.h"
 #include "Engine/AssetManagerTypes.h"
+#include "Misc/PackageName.h"
 #include "UObject/ICookInfo.h"
 #include "UObject/UObjectIterator.h"
 #include "AssetRegistry/ARFilter.h"
@@ -95,8 +96,9 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 				for (const FSoftObjectPath& Path : Paths)
 				{
+					// Native classes resolve to /Script/<Module>: compiled in, nothing to cook.
 					const FName PackageName = Path.GetLongPackageFName();
-					if (!PackageName.IsNone())
+					if (!PackageName.IsNone() && !FPackageName::IsScriptPackage(WriteToString<256>(PackageName)))
 					{
 						InOutPackageCookRules.Emplace(PackageName, ProviderInstigator, UE::Cook::EPackageCookRule::AddToCook);
 					}
