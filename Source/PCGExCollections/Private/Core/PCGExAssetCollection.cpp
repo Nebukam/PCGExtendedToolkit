@@ -28,6 +28,7 @@
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
+#include "Core/PCGExCollectionHelpers.h"
 #include "Engine/Level.h"
 #include "HAL/IConsoleManager.h"
 #include "Hash/Blake3.h"
@@ -1187,7 +1188,20 @@ void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 	// Duplicates get a new identity; PIE copies keep the same GUID
 	if (!bDuplicateForPIE)
 	{
+#if WITH_EDITOR
+		// A host's re-key already minted this one ahead (EDITOR_RekeyForHostDuplicate): keep it.
+		if (bEDITOR_CollectionGUIDMintedAhead)
+		{
+			bEDITOR_CollectionGUIDMintedAhead = false;
+		}
+		else
+		{
+			EDITOR_PreviousCollectionGUID = CollectionGUID;
+			CollectionGUID = GenerateNewGUID();
+		}
+#else
 		CollectionGUID = GenerateNewGUID();
+#endif
 	}
 
 #if WITH_EDITOR
@@ -1213,6 +1227,25 @@ void UPCGExAssetCollection::PostEditImport()
 	EDITOR_SetDirty();
 #endif
 }
+
+#if WITH_EDITOR
+uint32 UPCGExAssetCollection::EDITOR_RekeyForHostDuplicate()
+{
+	// Its own PostDuplicate already ran: the GUID in place is fresh.
+	if (EDITOR_PreviousCollectionGUID != 0)
+	{
+		const uint32 PreviousGUID = EDITOR_PreviousCollectionGUID;
+		EDITOR_PreviousCollectionGUID = 0;
+		return PreviousGUID;
+	}
+
+	// Still pending: mint now, and have that PostDuplicate keep it.
+	const uint32 PreviousGUID = CollectionGUID;
+	CollectionGUID = GenerateNewGUID();
+	bEDITOR_CollectionGUIDMintedAhead = true;
+	return PreviousGUID;
+}
+#endif
 
 #if WITH_EDITOR
 namespace PCGExAssetCollectionMigration
@@ -1972,6 +2005,42 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	{
 		Super::PostEditChangeProperty(PropertyChangedEvent);
 		return;
+	}
+
+	// Property-editor row copies. Duplicate (FPropertyNode::DuplicateArrayEntry) inserts the raw copy at Index and
+	// deep-copies the Instanced subobjects of the element pushed to Index + 1; SyncEntryIds keeps the first id, so
+	// Index + 1 is the copy. Paste imports with PPF_InstanceSubobjects: fresh subobjects, soft refs as they were.
+	if (const FArrayProperty* EntriesProperty = FindEntriesProperty(GetClass()); EntriesProperty && PropertyChangedEvent.Property)
+	{
+		const int32 Index = PropertyChangedEvent.GetArrayIndex(EntriesProperty->GetName());
+		if (ChangeType == EPropertyChangeType::Duplicate && PropertyChangedEvent.Property == EntriesProperty)
+		{
+			const FPCGExAssetCollectionEntry* Original = GetMutableEntryRaw(Index);
+			FPCGExAssetCollectionEntry* Copy = GetMutableEntryRaw(Index + 1);
+			const UScriptStruct* CopyStruct = EDITOR_GetEntryScriptStruct(Index + 1);
+
+			// Only while it is still the engine's raw copy: same payload type, same id until SyncEntryIds.
+			if (Original && Copy && CopyStruct == EDITOR_GetEntryScriptStruct(Index) && Copy->EntryId == Original->EntryId)
+			{
+				Copy->EntryId = 0;
+				PCGExCollectionHelpers::DetachCopiedEntry(CopyStruct, Copy, Original, this);
+			}
+		}
+		else if (ChangeType == EPropertyChangeType::ValueSet)
+		{
+			const FStructProperty* RowProperty = CastField<FStructProperty>(EntriesProperty->Inner);
+			const FStructProperty* ValueProperty = CastField<FStructProperty>(PropertyChangedEvent.Property);
+			const bool bRowReplaced = PropertyChangedEvent.Property == EntriesProperty->Inner
+				|| (RowProperty && ValueProperty && ValueProperty->GetOwnerStruct() == RowProperty->Struct && ValueProperty->Struct == TBaseStructure<FInstancedStruct>::Get());
+
+			// The pasted row is a copy: like a duplicate it takes a new id, so the clipboard's original keeps its own.
+			FPCGExAssetCollectionEntry* Pasted = bRowReplaced ? GetMutableEntryRaw(Index) : nullptr;
+			if (Pasted)
+			{
+				Pasted->EntryId = 0;
+				PCGExCollectionHelpers::DetachCopiedEntry(EDITOR_GetEntryScriptStruct(Index), Pasted, nullptr, this);
+			}
+		}
 	}
 
 	// Default-to-structural is the safe bias; only a positive "leaf is an FPCGExProperty value

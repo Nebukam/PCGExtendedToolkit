@@ -1100,11 +1100,10 @@ void SPCGExVariantGridView::DeclareSwapAs(const int32 ItemIndex, const UScriptSt
 				NewRow.Entry.GetMutableMemory(), SourceEntry.Entry, 1);
 		}
 
-		// Cross-ASSET copy: any Instanced subobject refs the payload carried (e.g. a PCGData
-		// entry's ExportedDataAsset) are SHALLOW -- duplicate them into the variant, per the
-		// standing rule for every cross-asset copy of an entry payload. No-op for payloads
-		// without instanced refs.
-		PCGExCollectionHelpers::DuplicateInstancedSubobjects(EntryStruct, NewRow.Entry.GetMutableMemory(), Variant);
+		// Cross-ASSET copy: the payload's Instanced subobjects and per-entry export state (e.g. a
+		// PCGData entry's ExportedDataAsset and slot collections) are still the source's -- detach
+		// them, per the standing rule for every entry copy. A fresh payload only carried base fields.
+		PCGExCollectionHelpers::DetachCopiedEntry(EntryStruct, NewRow.Entry.GetMutableMemory(), bCopySource ? SourceEntry.Entry : nullptr, Variant);
 
 		// The copy carried the SOURCE entry's identity; zero it so the variant's own
 		// SyncEntryIds assigns a fresh one on the next staging rebuild. Also bake the
@@ -1184,9 +1183,9 @@ void SPCGExVariantGridView::DeclareRuleSwapAs(const int32 ItemIndex, const UScri
 			}
 		}
 
-		// Cross-ASSET copy: duplicate any Instanced subobject refs the payload carried into the
-		// variant, per the standing rule for every cross-asset copy of an entry payload.
-		PCGExCollectionHelpers::DuplicateInstancedSubobjects(EntryStruct, Rule.Entry.GetMutableMemory(), Variant);
+		// Cross-ASSET copy: detach the Instanced subobjects and per-entry export state the payload
+		// still shares with its seed, per the standing rule for every entry copy.
+		PCGExCollectionHelpers::DetachCopiedEntry(EntryStruct, Rule.Entry.GetMutableMemory(), bCopySeed ? Seed : nullptr, Variant);
 
 		if (FPCGExAssetCollectionEntry* Payload = Rule.Entry.GetMutablePtr<FPCGExAssetCollectionEntry>())
 		{

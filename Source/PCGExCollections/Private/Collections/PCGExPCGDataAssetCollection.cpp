@@ -543,6 +543,61 @@ void FPCGExPCGDataAssetCollectionEntry::EDITOR_Sanitize()
 	}
 }
 
+void FPCGExPCGDataAssetCollectionEntry::EDITOR_OnCopied(const FPCGExAssetCollectionEntry* Original)
+{
+	FPCGExAssetCollectionEntry::EDITOR_OnCopied(Original);
+
+	const FPCGExPCGDataAssetCollectionEntry* From = Original && Original->IsType(PCGExAssetCollection::TypeIds::PCGDataAsset)
+		                                                ? static_cast<const FPCGExPCGDataAssetCollectionEntry*>(Original)
+		                                                : nullptr;
+
+	// The original's next export reuses its working objects and its External refs name its packages, so the copy
+	// starts from nothing. A shared object is only dropped; one the copy holds alone was deep-copied for it and is
+	// retired. Without an original to compare against, nothing is retired.
+	auto Discard = [From](auto& Copied, const UObject* Shared)
+	{
+		if (Copied && From && Copied.Get() != Shared)
+		{
+			Copied->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
+		}
+		Copied = nullptr;
+	};
+
+	Discard(ExportedDataAsset, From ? From->ExportedDataAsset.Get() : nullptr);
+	ExternalExportedDataAsset.Reset();
+
+	for (int32 i = 0; i < EmbeddedSlots.Num(); i++)
+	{
+		Discard(EmbeddedSlots[i].Collection, From && From->EmbeddedSlots.IsValidIndex(i) ? From->EmbeddedSlots[i].Collection.Get() : nullptr);
+	}
+	EmbeddedSlots.Reset();
+
+	for (int32 c = 0; From && c < Captures.Num(); c++)
+	{
+		const FPCGExExportSlotCapture* FromCapture = From->Captures.IsValidIndex(c) ? &From->Captures[c] : nullptr;
+		for (int32 e = 0; e < Captures[c].Entries.Num(); e++)
+		{
+			FInstancedStruct& Entry = Captures[c].Entries[e];
+			if (!Entry.IsValid())
+			{
+				continue;
+			}
+
+			const FInstancedStruct* FromEntry = FromCapture && FromCapture->Entries.IsValidIndex(e) ? &FromCapture->Entries[e] : nullptr;
+			const bool bSameStruct = FromEntry && FromEntry->GetScriptStruct() == Entry.GetScriptStruct();
+			PCGExCollectionHelpers::RetireInstancedSubobjects(Entry.GetScriptStruct(), Entry.GetMutableMemory(), bSameStruct ? FromEntry->GetMemory() : nullptr);
+		}
+	}
+	Captures.Reset();
+
+	// Export-backed staging addresses the original's export.
+	if (!bIsSubCollection && Source != EPCGExDataAssetEntrySource::DataAsset)
+	{
+		Staging.Path = FSoftObjectPath();
+		Staging.Bounds = FBox(ForceInit);
+	}
+}
+
 void FPCGExPCGDataAssetCollectionEntry::EDITOR_GetSourceAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	if (bIsSubCollection)
@@ -668,6 +723,62 @@ namespace PCGExSharedCompact
 	const FPCGExExportSlotCapture* FindCapture(const FPCGExPCGDataAssetCollectionEntry& Entry, const FName SlotId)
 	{
 		return PCGExExportSlots::Find(Entry.Captures, SlotId);
+	}
+
+	// Copy-in counterpart of Internalize, for a duplicated host whose refs still reach its source's storage:
+	// the source's object (live, or loaded from External) is duplicated under NewOuter and left untouched;
+	// one already under NewOuter is the host's own. False when External names an object that won't load.
+	template <typename T>
+	bool AdoptCopy(TObjectPtr<T>& Instanced, TSoftObjectPtr<T>& External, UObject* NewOuter)
+	{
+		T* Object = Instanced.Get();
+		if (!Object && !External.IsNull())
+		{
+			Object = External.LoadSynchronous();
+		}
+
+		const bool bResolved = Object || External.IsNull();
+		if (Object && !Object->IsIn(NewOuter))
+		{
+			Object = DuplicateObject<T>(Object, NewOuter, MakeUniqueObjectName(NewOuter, Object->GetClass(), Object->GetFName()));
+			Object->ClearFlags(RF_Public | RF_Standalone);
+		}
+
+		Instanced = Object;
+		External.Reset();
+		return bResolved;
+	}
+
+	// Swap the collection GUID of every pick hash an export packed against a re-keyed collection. PickHash
+	// keeps the entry and secondary index below the GUID, so the rest of the hash stays as it is.
+	void RepackPickHashes(UPCGDataAsset* Asset, const TMap<uint32, uint32>& NewGUIDs)
+	{
+		if (!Asset)
+		{
+			return;
+		}
+
+		for (const FPCGTaggedData& TaggedData : Asset->Data.TaggedData)
+		{
+			UPCGBasePointData* PointData = const_cast<UPCGBasePointData*>(Cast<UPCGBasePointData>(TaggedData.Data));
+			UPCGMetadata* Metadata = PointData ? PointData->MutableMetadata() : nullptr;
+			FPCGMetadataAttribute<int64>* HashAttribute = Metadata ? Metadata->GetMutableTypedAttribute<int64>(PCGExCollections::Labels::Tag_EntryIdx) : nullptr;
+			if (!HashAttribute)
+			{
+				continue;
+			}
+
+			const TConstPCGValueRange<int64> MetadataEntries = PointData->GetConstMetadataEntryValueRange();
+			for (int32 i = 0; i < MetadataEntries.Num(); i++)
+			{
+				const uint64 Hash = static_cast<uint64>(HashAttribute->GetValueFromItemKey(MetadataEntries[i]));
+				if (const uint32* NewGUID = NewGUIDs.Find(PCGExCollections::PickHash::GetCollectionGUID(Hash)))
+				{
+					const uint64 Repacked = PCGExCollections::PickHash::Pack(*NewGUID, PCGExCollections::PickHash::GetRawEntryIndex(Hash), PCGExCollections::PickHash::GetSecondaryIndex(Hash));
+					HashAttribute->SetValue(MetadataEntries[i], static_cast<int64>(Repacked));
+				}
+			}
+		}
 	}
 
 	// Merge every entry's captured contributions for one slot into its deduplicated shared collection
@@ -1345,6 +1456,93 @@ void UPCGExPCGDataAssetCollection::InternalizeSubobjectsFor(FPCGExPCGDataAssetMa
 #endif
 }
 
+void UPCGExPCGDataAssetCollection::AdoptDuplicatedStorageFor(FPCGExPCGDataAssetMachinery& State)
+{
+#if WITH_EDITOR
+	if (!State.IsValid())
+	{
+		return;
+	}
+
+	using namespace PCGExSharedCompact;
+	UPCGExAssetCollection* Host = State.Host;
+
+	auto Adopt = [Host](auto& Instanced, auto& External)
+	{
+		const FSoftObjectPath ExternalPath = External.ToSoftObjectPath();
+		if (!AdoptCopy(Instanced, External, Host))
+		{
+			UE_LOG(LogPCGEx, Warning, TEXT("'%s': external asset '%s' of the duplicated collection could not be loaded; the duplicate starts without it until its next export."),
+			       *Host->GetName(), *ExternalPath.ToString());
+		}
+	};
+
+	for (FPCGExExportCollectionSlot& Slot : *State.SharedSlots)
+	{
+		Adopt(Slot.Collection, Slot.External);
+	}
+
+	for (FPCGExPCGDataAssetCollectionEntry* EntryPtr : State.Entries)
+	{
+		FPCGExPCGDataAssetCollectionEntry& Entry = *EntryPtr;
+		for (FPCGExExportCollectionSlot& Slot : Entry.EmbeddedSlots)
+		{
+			Adopt(Slot.Collection, Slot.External);
+		}
+		Adopt(Entry.ExportedDataAsset, Entry.ExternalExportedDataAsset);
+
+		// The duplication remapped embedded paths; an adopted export still names the source's package.
+		if (Entry.ExportedDataAsset)
+		{
+			Entry.Staging.Path = FSoftObjectPath(Entry.ExportedDataAsset);
+		}
+		else if (!Entry.bIsSubCollection && Entry.Source != EPCGExDataAssetEntrySource::DataAsset)
+		{
+			Entry.Staging.Path = FSoftObjectPath();
+		}
+	}
+
+	// Every slot collection takes a fresh GUID, and the exports' hashes follow it.
+	TMap<uint32, uint32> NewGUIDs;
+	TSet<UPCGExAssetCollection*> Rekeyed;
+	auto Rekey = [&NewGUIDs, &Rekeyed](UPCGExAssetCollection* SlotCollection)
+	{
+		bool bAlreadyRekeyed = false;
+		if (SlotCollection)
+		{
+			Rekeyed.Add(SlotCollection, &bAlreadyRekeyed);
+		}
+		if (SlotCollection && !bAlreadyRekeyed)
+		{
+			const uint32 PreviousGUID = SlotCollection->EDITOR_RekeyForHostDuplicate();
+			NewGUIDs.Add(PreviousGUID, SlotCollection->GetCollectionGUID());
+		}
+	};
+
+	for (const FPCGExExportCollectionSlot& Slot : *State.SharedSlots)
+	{
+		Rekey(Slot.Collection);
+	}
+	for (FPCGExPCGDataAssetCollectionEntry* EntryPtr : State.Entries)
+	{
+		for (const FPCGExExportCollectionSlot& Slot : EntryPtr->EmbeddedSlots)
+		{
+			Rekey(Slot.Collection);
+		}
+	}
+
+	if (NewGUIDs.IsEmpty())
+	{
+		return;
+	}
+
+	for (FPCGExPCGDataAssetCollectionEntry* EntryPtr : State.Entries)
+	{
+		RepackPickHashes(EntryPtr->ExportedDataAsset, NewGUIDs);
+	}
+#endif
+}
+
 void UPCGExPCGDataAssetCollection::CollectExternalPackagesFor(
 	const UPCGExAssetCollection* Host,
 	const TArray<FPCGExExportCollectionSlot>& InSharedSlots,
@@ -1764,11 +1962,13 @@ void UPCGExPCGDataTypeState::OnHostPreSave(UPCGExAssetCollection* Host, FObjectP
 
 void UPCGExPCGDataTypeState::OnHostPostDuplicate(UPCGExAssetCollection* Host, bool bDuplicateForPIE)
 {
-	// Mirrors UPCGExPCGDataAssetCollection::PostDuplicate: the duplicate's collections carry
-	// fresh GUIDs while per-entry ExportedDataAssets still hold hashes keyed to the originals.
+	// The duplicate still shares its source's machinery storage (external packages, slot collection GUIDs
+	// the hashes are packed against): adopt it first, then re-bake under this host's identity. The source's
+	// objects are only read -- re-baking them in place would rename them into this host's packages.
 	if (!bDuplicateForPIE)
 	{
 		FPCGExPCGDataAssetMachinery State = MakeMachinery(Host);
+		UPCGExPCGDataAssetCollection::AdoptDuplicatedStorageFor(State);
 		UPCGExPCGDataAssetCollection::RebuildSharedCollectionsFor(State);
 	}
 }

@@ -214,10 +214,10 @@ void FPCGExVariantCollectionEditor::OnSwapAssetPicked(const FAssetData& AssetDat
 		{
 			NewRule.Entry.InitializeAs(SeedStruct, reinterpret_cast<const uint8*>(SeedEntry));
 
-			// Cross-ASSET copy: duplicate any Instanced subobject refs the seed carried
-			// (e.g. a PCGData entry's ExportedDataAsset) into the variant, per the standing
-			// rule for every cross-asset copy of an entry payload.
-			PCGExCollectionHelpers::DuplicateInstancedSubobjects(SeedStruct, NewRule.Entry.GetMutableMemory(), Variant);
+			// Cross-ASSET copy: detach the Instanced subobjects and per-entry export state the
+			// payload still shares with the seed (e.g. a PCGData entry's ExportedDataAsset), per
+			// the standing rule for every entry copy.
+			PCGExCollectionHelpers::DetachCopiedEntry(SeedStruct, NewRule.Entry.GetMutableMemory(), SeedEntry, Variant);
 
 			if (FPCGExAssetCollectionEntry* Payload = NewRule.Entry.GetMutablePtr<FPCGExAssetCollectionEntry>())
 			{

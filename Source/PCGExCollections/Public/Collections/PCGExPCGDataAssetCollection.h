@@ -165,6 +165,7 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
+	virtual void EDITOR_OnCopied(const FPCGExAssetCollectionEntry* Original) override;
 	virtual void EDITOR_GetSourceAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 	virtual FSoftObjectPath EDITOR_GetThumbnailAssetPath() const override;
 	virtual FSoftObjectPath EDITOR_GetActivationAssetPath() const override;
@@ -484,6 +485,12 @@ public:
 	static void ExternalizeExportedDataAssetsFor(FPCGExPCGDataAssetMachinery& State);
 	static void InternalizeSubobjectsFor(FPCGExPCGDataAssetMachinery& State);
 	static void SaveExternalPackagesFor(FPCGExPCGDataAssetMachinery& State);
+
+	/** A duplicated host still shares its source's storage: external objects live in the source's packages and
+	 *  slot collections carry the GUIDs the hashes are packed against. Copies external storage in (the source
+	 *  is only read), gives every slot collection a fresh GUID and re-packs every export's Tag_EntryIdx to it.
+	 *  Run before RebuildSharedCollectionsFor, which then externalizes under this host's names. */
+	static void AdoptDuplicatedStorageFor(FPCGExPCGDataAssetMachinery& State);
 
 	/** Shared package-collection walk over the machinery storage: the loaded packages the
 	 *  shared slots and per-entry exports currently live in, minus the host's own and

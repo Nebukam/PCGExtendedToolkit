@@ -1075,8 +1075,9 @@ void SPCGExCollectionGridView::HandleCrossCollectionDrop(
 			// element when a base-typed row lands in a typed collection.
 			PayloadStruct->CopyScriptStruct(NewEntry, Snapshots[i].GetMemory());
 
-			// The copy is SHALLOW for Instanced subobjects -- duplicate into the target.
-			PCGExCollectionHelpers::DuplicateInstancedSubobjects(PayloadStruct, NewEntry, TargetColl);
+			// The copy is SHALLOW: its Instanced subobjects and per-entry export state are still the
+			// source row's (the snapshot holds the same refs).
+			PCGExCollectionHelpers::DetachCopiedEntry(PayloadStruct, NewEntry, Snapshots[i].GetMemory(), TargetColl);
 
 			NewEntry->Category = TargetCategory;
 			// NEW identity in the target: zero EntryId so SyncEntryIds re-mints it.
@@ -2415,6 +2416,10 @@ FReply SPCGExCollectionGridView::OnDuplicateSelected()
 			if (FPCGExAssetCollectionEntry* DuplicatePayload = Coll->GetMutableEntryRaw(InsertAt))
 			{
 				DuplicatePayload->EntryId = 0;
+
+				// The element copy is SHALLOW: its Instanced subobjects and per-entry export state are
+				// still the original's.
+				PCGExCollectionHelpers::DetachCopiedEntry(Coll->EDITOR_GetEntryScriptStruct(InsertAt), DuplicatePayload, Coll->GetMutableEntryRaw(SrcIndex), Coll);
 			}
 		}
 

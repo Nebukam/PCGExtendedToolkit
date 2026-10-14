@@ -178,6 +178,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
  * 5. Override SetAssetPath() to update your TSoftObjectPtr from a path
  * 6. Optionally override EDITOR_Sanitize() to clean up type-specific state (call Super)
  * 7. Optionally override BuildMicroCache() for per-entry sub-selections (e.g. material variants)
+ * 8. Optionally override EDITOR_OnCopied() when the entry owns state a copy must not share (call Super)
  * Subcollection support comes for free: the base SubCollection property accepts any
  * collection type, no per-type storage or overrides needed.
  *
@@ -457,6 +458,17 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize();
+
+	/**
+	 * Editor-only: this payload was just copied from Original to become a new entry (duplicate, cross-collection
+	 * transfer, Omni merge, variant seed). Drop the per-entry state only Original may keep, e.g. working objects its
+	 * next rebuild reuses: what the copy shares with Original stays Original's, what it holds alone is its own to
+	 * retire. Original may be a BASE of this struct (check its type before downcasting) or null (nothing to compare
+	 * against: drop, retire nothing). Called by PCGExCollectionHelpers::DetachCopiedEntry.
+	 */
+	virtual void EDITOR_OnCopied(const FPCGExAssetCollectionEntry* Original)
+	{
+	}
 
 	/**
 	 * Editor-only: paths whose on-disk updates should trigger a rebuild of this entry.
@@ -1436,6 +1448,16 @@ public:
 		return CollectionGUID;
 	}
 
+#if WITH_EDITOR
+	/**
+	 * For a host's post-duplicate pass over the collections it owns (slot collections outered under it):
+	 * returns the GUID hashes were packed against before this duplication and leaves a fresh one in place,
+	 * whether this object's own PostDuplicate already ran or is still pending -- duplicated objects are not
+	 * post-duplicated in a fixed order.
+	 */
+	uint32 EDITOR_RekeyForHostDuplicate();
+#endif
+
 #if WITH_EDITORONLY_DATA
 	bool bSuppressStagingRebuild = false;
 
@@ -1641,6 +1663,12 @@ protected:
 
 	/** Whole-object baseline taken when a pipeline session begins; empty outside a session. */
 	TArray<uint8> EDITOR_SessionPreState;
+
+	/** CollectionGUID before the last PostDuplicate re-mint, until a host's re-key consumes it. Transient. */
+	uint32 EDITOR_PreviousCollectionGUID = 0;
+
+	/** Set when a host's re-key minted ahead of this object's pending PostDuplicate, which then keeps it. Transient. */
+	bool bEDITOR_CollectionGUIDMintedAhead = false;
 #endif
 };
 

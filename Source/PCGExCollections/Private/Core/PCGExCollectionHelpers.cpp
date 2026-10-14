@@ -480,7 +480,39 @@ namespace PCGExCollectionHelpers
 		}
 	}
 
-	void RetireInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory)
+	void DetachCopiedEntry(const UScriptStruct* Struct, void* StructMemory, const void* OriginalMemory, UPCGExAssetCollection* NewHost)
+	{
+		if (!Struct || !StructMemory || !NewHost || !Struct->IsChildOf(FPCGExAssetCollectionEntry::StaticStruct()))
+		{
+			return;
+		}
+
+		static_cast<FPCGExAssetCollectionEntry*>(StructMemory)->EDITOR_OnCopied(static_cast<const FPCGExAssetCollectionEntry*>(OriginalMemory));
+
+		if (!OriginalMemory)
+		{
+			return;
+		}
+
+		// Sharing is decided against the original, not by outer: a copy within one collection shares
+		// subobjects already outered to NewHost. One the original doesn't hold is already the copy's own.
+		for (TFieldIterator<FObjectPropertyBase> It(Struct); It; ++It)
+		{
+			const FObjectPropertyBase* ObjProp = *It;
+			if (!ObjProp->HasAnyPropertyFlags(CPF_InstancedReference))
+			{
+				continue;
+			}
+
+			UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory);
+			if (Current && Current == ObjProp->GetObjectPropertyValue_InContainer(OriginalMemory))
+			{
+				ObjProp->SetObjectPropertyValue_InContainer(StructMemory, DuplicateObject(Current, NewHost));
+			}
+		}
+	}
+
+	void RetireInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, const void* SharedWith)
 	{
 		if (!Struct || !StructMemory)
 		{
@@ -497,7 +529,10 @@ namespace PCGExCollectionHelpers
 
 			if (UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory))
 			{
-				Current->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
+				if (!SharedWith || Current != ObjProp->GetObjectPropertyValue_InContainer(SharedWith))
+				{
+					Current->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
+				}
 				ObjProp->SetObjectPropertyValue_InContainer(StructMemory, nullptr);
 			}
 		}
