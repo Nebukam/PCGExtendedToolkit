@@ -457,27 +457,36 @@ namespace PCGExCollectionHelpers
 	}
 
 #if WITH_EDITOR
-	void DuplicateInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, UObject* NewOuter)
+	void ForEachInstancedObjectRef(const UScriptStruct* Struct, void* StructMemory, TFunctionRef<void(const FObjectPropertyBase*, UObject*)> Visit)
 	{
-		if (!Struct || !StructMemory || !NewOuter)
+		if (!Struct || !StructMemory)
 		{
 			return;
 		}
 
 		for (TFieldIterator<FObjectPropertyBase> It(Struct); It; ++It)
 		{
-			const FObjectPropertyBase* ObjProp = *It;
-			if (!ObjProp->HasAnyPropertyFlags(CPF_InstancedReference))
+			if (It->HasAnyPropertyFlags(CPF_InstancedReference))
 			{
-				continue;
+				Visit(*It, It->GetObjectPropertyValue_InContainer(StructMemory));
 			}
+		}
+	}
 
-			UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory);
+	void DuplicateInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, UObject* NewOuter)
+	{
+		if (!NewOuter)
+		{
+			return;
+		}
+
+		ForEachInstancedObjectRef(Struct, StructMemory, [StructMemory, NewOuter](const FObjectPropertyBase* ObjProp, UObject* Current)
+		{
 			if (Current && Current->GetOuter() != NewOuter)
 			{
 				ObjProp->SetObjectPropertyValue_InContainer(StructMemory, DuplicateObject(Current, NewOuter));
 			}
-		}
+		});
 	}
 
 	void DetachCopiedEntry(const UScriptStruct* Struct, void* StructMemory, const void* OriginalMemory, UPCGExAssetCollection* NewHost)
@@ -496,69 +505,45 @@ namespace PCGExCollectionHelpers
 
 		// Sharing is decided against the original, not by outer: a copy within one collection shares
 		// subobjects already outered to NewHost. One the original doesn't hold is already the copy's own.
-		for (TFieldIterator<FObjectPropertyBase> It(Struct); It; ++It)
+		ForEachInstancedObjectRef(Struct, StructMemory, [StructMemory, OriginalMemory, NewHost](const FObjectPropertyBase* ObjProp, UObject* Current)
 		{
-			const FObjectPropertyBase* ObjProp = *It;
-			if (!ObjProp->HasAnyPropertyFlags(CPF_InstancedReference))
-			{
-				continue;
-			}
-
-			UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory);
 			if (Current && Current == ObjProp->GetObjectPropertyValue_InContainer(OriginalMemory))
 			{
 				ObjProp->SetObjectPropertyValue_InContainer(StructMemory, DuplicateObject(Current, NewHost));
 			}
-		}
+		});
 	}
 
 	void RetireInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, const void* SharedWith)
 	{
-		if (!Struct || !StructMemory)
+		ForEachInstancedObjectRef(Struct, StructMemory, [StructMemory, SharedWith](const FObjectPropertyBase* ObjProp, UObject* Current)
 		{
-			return;
-		}
-
-		for (TFieldIterator<FObjectPropertyBase> It(Struct); It; ++It)
-		{
-			const FObjectPropertyBase* ObjProp = *It;
-			if (!ObjProp->HasAnyPropertyFlags(CPF_InstancedReference))
+			if (!Current)
 			{
-				continue;
+				return;
 			}
-
-			if (UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory))
+			if (!SharedWith || Current != ObjProp->GetObjectPropertyValue_InContainer(SharedWith))
 			{
-				if (!SharedWith || Current != ObjProp->GetObjectPropertyValue_InContainer(SharedWith))
-				{
-					Current->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
-				}
-				ObjProp->SetObjectPropertyValue_InContainer(StructMemory, nullptr);
+				Current->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
 			}
-		}
+			ObjProp->SetObjectPropertyValue_InContainer(StructMemory, nullptr);
+		});
 	}
 
 	void ReparentInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, UObject* NewOuter)
 	{
-		if (!Struct || !StructMemory || !NewOuter)
+		if (!NewOuter)
 		{
 			return;
 		}
 
-		for (TFieldIterator<FObjectPropertyBase> It(Struct); It; ++It)
+		ForEachInstancedObjectRef(Struct, StructMemory, [NewOuter](const FObjectPropertyBase*, UObject* Current)
 		{
-			const FObjectPropertyBase* ObjProp = *It;
-			if (!ObjProp->HasAnyPropertyFlags(CPF_InstancedReference))
-			{
-				continue;
-			}
-
-			UObject* Current = ObjProp->GetObjectPropertyValue_InContainer(StructMemory);
 			if (Current && Current->GetOuter() != NewOuter)
 			{
 				Current->Rename(nullptr, NewOuter, REN_DontCreateRedirectors | REN_NonTransactional);
 			}
-		}
+		});
 	}
 #endif
 }

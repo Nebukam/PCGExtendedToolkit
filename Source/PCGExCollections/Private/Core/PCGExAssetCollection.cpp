@@ -1708,31 +1708,35 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 	return bCircularDependency;
 }
 
+namespace PCGExAssetCollectionWalk
+{
+	// The one entry walk behind GetAssetPaths and the cook walk; bSkipEditorOnly drops entries the cook writes without their asset.
+	void WalkAssetPaths(const UPCGExAssetCollection* Collection, TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags, const bool bSkipEditorOnly)
+	{
+		const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
+		const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
+
+		Collection->ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry, int32)
+		{
+			if (InEntry->bIsSubCollection)
+			{
+				if (bRecursive && InEntry->SubCollection)
+				{
+					WalkAssetPaths(InEntry->SubCollection, OutPaths, Flags, bSkipEditorOnly);
+				}
+				return;
+			}
+			if (!bCollectionOnly && !(bSkipEditorOnly && InEntry->IsEditorOnly()))
+			{
+				InEntry->GetAssetPaths(OutPaths);
+			}
+		});
+	}
+}
+
 void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, PCGExAssetCollection::ELoadingFlags Flags) const
 {
-	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
-	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
-
-	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry, int32 i)
-	{
-		if (InEntry->bIsSubCollection)
-		{
-			if (bRecursive || bCollectionOnly)
-			{
-				if (InEntry->SubCollection)
-				{
-					InEntry->SubCollection->GetAssetPaths(OutPaths, Flags);
-				}
-			}
-			return;
-		}
-		if (bCollectionOnly)
-		{
-			return;
-		}
-
-		InEntry->GetAssetPaths(OutPaths);
-	});
+	PCGExAssetCollectionWalk::WalkAssetPaths(this, OutPaths, Flags, /*bSkipEditorOnly=*/false);
 }
 
 void UPCGExAssetCollection::GatherPropertySoftObjectPaths(TSet<FSoftObjectPath>& OutPaths) const
@@ -1789,21 +1793,7 @@ void UPCGExAssetCollection::GetCookDependencyAssetPaths(TSet<FSoftObjectPath>& O
 
 void UPCGExAssetCollection::GatherCookAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
-	ForEachEntry([&OutPaths](const FPCGExAssetCollectionEntry* InEntry, int32)
-	{
-		if (InEntry->bIsSubCollection)
-		{
-			if (InEntry->SubCollection)
-			{
-				InEntry->SubCollection->GatherCookAssetPaths(OutPaths);
-			}
-			return;
-		}
-		if (!InEntry->IsEditorOnly())
-		{
-			InEntry->GetAssetPaths(OutPaths);
-		}
-	});
+	PCGExAssetCollectionWalk::WalkAssetPaths(this, OutPaths, PCGExAssetCollection::ELoadingFlags::Recursive, /*bSkipEditorOnly=*/true);
 }
 #endif
 

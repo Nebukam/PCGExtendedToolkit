@@ -1713,15 +1713,7 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	for (const FProperty* Prop : ChangedMembers)
 	{
 		const int32 Offset = Prop->GetOffset_ForInternal();
-		const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
-		if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
-		{
-			PropagateChangedProperties(OldData + Offset, SrcData + Offset, PrimaryPtr + Offset, StructProp->Struct);
-		}
-		else
-		{
-			Prop->CopyCompleteValue(PrimaryPtr + Offset, SrcData + Offset);
-		}
+		CopyChangedMember(Prop, OldData + Offset, SrcData + Offset, PrimaryPtr + Offset);
 	}
 
 	// Step 4: Propagate to other selected entries
@@ -1753,18 +1745,7 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 				}
 
 				const int32 Offset = Prop->GetOffset_ForInternal();
-				uint8* DstData = OtherPtr + DstProp->GetOffset_ForInternal();
-
-				// Reflected structs: changed sub-properties only. FInstancedStruct: copied whole (see PushStructGated).
-				const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
-				if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
-				{
-					PropagateChangedProperties(OldData + Offset, SrcData + Offset, DstData, StructProp->Struct);
-				}
-				else
-				{
-					Prop->CopyCompleteValue(DstData, SrcData + Offset);
-				}
+				CopyChangedMember(Prop, OldData + Offset, SrcData + Offset, OtherPtr + DstProp->GetOffset_ForInternal());
 			}
 		}
 	}
@@ -1777,6 +1758,19 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	EntryStruct->CopyScriptStruct(CurrentStructBaseline->GetStructMemory(), SrcData);
 
 	Coll->PostEditChange();
+}
+
+void SPCGExCollectionGridView::CopyChangedMember(const FProperty* Prop, const uint8* Old, const uint8* Src, uint8* Dst)
+{
+	const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
+	if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
+	{
+		PropagateChangedProperties(Old, Src, Dst, StructProp->Struct);
+	}
+	else
+	{
+		Prop->CopyCompleteValue(Dst, Src);
+	}
 }
 
 void SPCGExCollectionGridView::PropagateChangedProperties(

@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+class FObjectPropertyBase;
 #include "PCGExAssetCollection.h"
 #include "PCGParamData.h"
 #include "Core/PCGExContext.h"
@@ -115,6 +117,10 @@ namespace PCGExCollectionHelpers
 	void GetEntryAssetHalves(const UPCGExAssetCollection* Collection, bool& bOutAnyActor, bool& bOutAnyNonActor);
 
 #if WITH_EDITOR
+	/** Visits every top-level Instanced object reference of Struct in StructMemory, with its current value. */
+	PCGEXCOLLECTIONS_API
+	void ForEachInstancedObjectRef(const UScriptStruct* Struct, void* StructMemory, TFunctionRef<void(const FObjectPropertyBase*, UObject*)> Visit);
+
 	/**
 	 * Deep-copy Instanced subobjects referenced by a struct into a new owner. Raw struct
 	 * copies are SHALLOW for object refs and sharing EditInlineNew subobjects across assets

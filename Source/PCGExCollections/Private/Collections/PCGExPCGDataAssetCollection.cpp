@@ -102,6 +102,20 @@ bool FPCGExPCGDataAssetCollectionEntry::Validate(const UPCGExAssetCollection* Pa
 
 namespace PCGExPCGDataAssetCollectionInternal
 {
+	// Nulls Ref; bRetire also moves the object to the transient package so it stops serializing under its outer.
+	template <typename T>
+	void DiscardSubobject(TObjectPtr<T>& Ref, const bool bRetire)
+	{
+		if (Ref)
+		{
+			if (bRetire)
+			{
+				Ref->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
+			}
+			Ref = nullptr;
+		}
+	}
+
 	/** Compute combined bounds from all spatial data in a PCGDataAsset. */
 	static FBox ComputeBoundsFromAsset(const UPCGDataAsset* Asset)
 	{
@@ -143,25 +157,12 @@ void FPCGExPCGDataAssetCollectionEntry::ResetEditorContributions()
 
 void FPCGExPCGDataAssetCollectionEntry::ResetExport(const UPCGExAssetCollection* OwningCollection)
 {
-	// Own subobjects get the transient-rename so they stop serializing; a pointer to another
-	// package's private subobject (cross-asset copy) is only nulled -- it must never survive a save.
-	auto Discard = [OwningCollection](auto& Embedded)
-	{
-		if (!Embedded)
-		{
-			return;
-		}
-		if (OwningCollection && Embedded->IsIn(OwningCollection))
-		{
-			Embedded->Rename(nullptr, GetTransientPackage(),
-			                 REN_DontCreateRedirectors | REN_NonTransactional);
-		}
-		Embedded = nullptr;
-	};
-	Discard(ExportedDataAsset);
+	// Own subobjects are retired; a pointer into another package (cross-asset copy) is only nulled.
+	using PCGExPCGDataAssetCollectionInternal::DiscardSubobject;
+	DiscardSubobject(ExportedDataAsset, OwningCollection && ExportedDataAsset && ExportedDataAsset->IsIn(OwningCollection));
 	for (FPCGExExportCollectionSlot& Slot : EmbeddedSlots)
 	{
-		Discard(Slot.Collection);
+		DiscardSubobject(Slot.Collection, OwningCollection && Slot.Collection && Slot.Collection->IsIn(OwningCollection));
 	}
 
 	Staging.Bounds = FBox(ForceInit);
@@ -262,11 +263,7 @@ bool FPCGExPCGDataAssetCollectionEntry::ExportFromSource(const UPCGExAssetCollec
 	// Always recreate ExportedDataAsset fresh. Reusing + resetting TaggedData leaves orphaned
 	// UPCGBasePointData subobjects in the outer chain that still serialize into the .uasset,
 	// which causes save-time pointer traversal crashes after repeated rebuilds.
-	if (ExportedDataAsset)
-	{
-		ExportedDataAsset->Rename(nullptr, GetTransientPackage(),
-		                          REN_DontCreateRedirectors | REN_NonTransactional);
-	}
+	PCGExPCGDataAssetCollectionInternal::DiscardSubobject(ExportedDataAsset, /*bRetire=*/true);
 	ExportedDataAsset = NewObject<UPCGDataAsset>(const_cast<UPCGExAssetCollection*>(OwningCollection));
 
 	// Exporter via the type-globals seam, else a transient default. Editor-only data:
@@ -555,21 +552,14 @@ void FPCGExPCGDataAssetCollectionEntry::EDITOR_OnCopied(const FPCGExAssetCollect
 	// The original's next export reuses its working objects and its External refs name its packages, so the copy
 	// starts from nothing. A shared object is only dropped; one the copy holds alone (deep-copied for it, or pasted
 	// with no original) is retired.
-	auto Discard = [](auto& Copied, const UObject* Shared)
-	{
-		if (Copied && Copied.Get() != Shared)
-		{
-			Copied->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
-		}
-		Copied = nullptr;
-	};
-
-	Discard(ExportedDataAsset, From ? From->ExportedDataAsset.Get() : nullptr);
+	using PCGExPCGDataAssetCollectionInternal::DiscardSubobject;
+	DiscardSubobject(ExportedDataAsset, ExportedDataAsset.Get() != (From ? From->ExportedDataAsset.Get() : nullptr));
 	ExternalExportedDataAsset.Reset();
 
 	for (int32 i = 0; i < EmbeddedSlots.Num(); i++)
 	{
-		Discard(EmbeddedSlots[i].Collection, From && From->EmbeddedSlots.IsValidIndex(i) ? From->EmbeddedSlots[i].Collection.Get() : nullptr);
+		const UPCGExAssetCollection* Shared = From && From->EmbeddedSlots.IsValidIndex(i) ? From->EmbeddedSlots[i].Collection.Get() : nullptr;
+		DiscardSubobject(EmbeddedSlots[i].Collection, EmbeddedSlots[i].Collection.Get() != Shared);
 	}
 	EmbeddedSlots.Reset();
 
@@ -1573,22 +1563,19 @@ void UPCGExPCGDataAssetCollection::DealiasEntryStorageFor(FPCGExPCGDataAssetMach
 			PathOwners.Add(Path, Path.GetAssetName().StartsWith(HostPrefix) ? Row : INDEX_NONE);
 		}
 	};
-	auto ForEachCaptureObjectRef = [](FPCGExPCGDataAssetCollectionEntry& Entry, TFunctionRef<void(const FObjectPropertyBase*, void*)> Visit)
+	auto ForEachCaptureObjectRef = [](FPCGExPCGDataAssetCollectionEntry& Entry, TFunctionRef<void(const FObjectPropertyBase*, void*, UObject*)> Visit)
 	{
 		for (FPCGExExportSlotCapture& Capture : Entry.Captures)
 		{
 			for (FInstancedStruct& Captured : Capture.Entries)
 			{
-				if (!Captured.IsValid())
+				if (Captured.IsValid())
 				{
-					continue;
-				}
-				for (TFieldIterator<FObjectPropertyBase> It(Captured.GetScriptStruct()); It; ++It)
-				{
-					if (It->HasAnyPropertyFlags(CPF_InstancedReference))
+					void* Memory = Captured.GetMutableMemory();
+					PCGExCollectionHelpers::ForEachInstancedObjectRef(Captured.GetScriptStruct(), Memory, [&Visit, Memory](const FObjectPropertyBase* Property, UObject* Current)
 					{
-						Visit(*It, Captured.GetMutableMemory());
-					}
+						Visit(Property, Memory, Current);
+					});
 				}
 			}
 		}
@@ -1625,9 +1612,9 @@ void UPCGExPCGDataAssetCollection::DealiasEntryStorageFor(FPCGExPCGDataAssetMach
 			ClaimObject(Slot.Collection, Row);
 			ClaimPath(Slot.External.ToSoftObjectPath(), Row);
 		}
-		ForEachCaptureObjectRef(Entry, [&ClaimObject, Row](const FObjectPropertyBase* Property, void* Memory)
+		ForEachCaptureObjectRef(Entry, [&ClaimObject, Row](const FObjectPropertyBase*, void*, UObject* Current)
 		{
-			ClaimObject(Property->GetObjectPropertyValue_InContainer(Memory), Row);
+			ClaimObject(Current, Row);
 		});
 	}
 
@@ -1666,9 +1653,9 @@ void UPCGExPCGDataAssetCollection::DealiasEntryStorageFor(FPCGExPCGDataAssetMach
 			}
 		}
 		bool bDroppedCapture = false;
-		ForEachCaptureObjectRef(Entry, [&OwnsObject, &bDroppedCapture](const FObjectPropertyBase* Property, void* Memory)
+		ForEachCaptureObjectRef(Entry, [&OwnsObject, &bDroppedCapture](const FObjectPropertyBase* Property, void* Memory, UObject* Current)
 		{
-			if (!OwnsObject(Property->GetObjectPropertyValue_InContainer(Memory)))
+			if (!OwnsObject(Current))
 			{
 				Property->SetObjectPropertyValue_InContainer(Memory, nullptr);
 				bDroppedCapture = true;
