@@ -14,6 +14,7 @@
 #include "Collections/PCGExVariantCollection.h"
 #include "Core/PCGExAssetCollection.h"
 #include "UObject/Package.h"
+#include "UObject/UnrealType.h"
 
 namespace PCGExCollectionEditorUtils
 {
@@ -49,6 +50,11 @@ namespace PCGExCollectionEditorUtils
 		}
 
 		return nullptr;
+	}
+
+	bool IsPanelOwnedMember(const FProperty* Property)
+	{
+		return Property && Property->HasAnyPropertyFlags(CPF_Edit) && !Property->HasAnyPropertyFlags(CPF_EditConst);
 	}
 
 	FText GetEntryTypeLabel(const UScriptStruct* EntryStruct)

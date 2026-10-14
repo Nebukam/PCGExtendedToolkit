@@ -1678,23 +1678,26 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	// Step 1: Resolve the "before" side of this commit's delta
 	// The panel's baseline, not the live entry, which restaging changes between commits (see CurrentStructBaseline).
 	TSharedPtr<FStructOnScope> Before = CurrentStructBaseline;
-	if (bMultiEdit && (!Before.IsValid() || Before->GetStruct() != EntryStruct))
+	if (!Before.IsValid() || Before->GetStruct() != EntryStruct)
 	{
-		// No usable baseline: fall back to the live entry, snapshotted before Step 3 overwrites it.
+		// No usable baseline: fall back to the live entry, snapshotted before Step 3 writes to it.
 		Before = MakeShared<FStructOnScope>(EntryStruct);
 		EntryStruct->CopyScriptStruct(Before->GetStructMemory(), PrimaryPtr);
 	}
 
-	// Step 2: Collect every top-level member this commit changed
-	// All of them: TFieldIterator walks derived members first, so a single pick pre-empts PropertyOverrides.
-	// A direct ChangedMemberProperty counts even unchanged (re-commit = stamp); external rows only show in the diff.
+	// Step 2: Collect the panel-owned members this commit changed. Derived members come first (TFieldIterator), so a
+	// single pick pre-empts PropertyOverrides; a direct ChangedMemberProperty counts even unchanged (re-commit = stamp).
 	TArray<const FProperty*, TInlineAllocator<4>> ChangedMembers;
-	if (bMultiEdit)
 	{
 		const uint8* OldData = Before->GetStructMemory();
 		for (TFieldIterator<FProperty> It(EntryStruct); It; ++It)
 		{
 			const FProperty* Prop = *It;
+			if (!PCGExCollectionEditorUtils::IsPanelOwnedMember(Prop))
+			{
+				continue;
+			}
+
 			const int32 Offset = Prop->GetOffset_ForInternal();
 			if (Prop == ChangedMemberProperty || !Prop->Identical(OldData + Offset, SrcData + Offset))
 			{
@@ -1703,12 +1706,17 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 		}
 	}
 
-	// Step 3: Copy entire struct back to the primary entry
-	EntryStruct->CopyScriptStruct(PrimaryPtr, SrcData);
+	// Step 3: Copy the changed members back to the primary entry
+	// Never the whole struct: everything else on the live entry is newer than the panel copy.
+	for (const FProperty* Prop : ChangedMembers)
+	{
+		const int32 Offset = Prop->GetOffset_ForInternal();
+		Prop->CopyCompleteValue(PrimaryPtr + Offset, SrcData + Offset);
+	}
 
 	// Step 4: Propagate to other selected entries
 	// Mixed-type selections: targets resolve each member by name + type; incompatible skip.
-	if (!ChangedMembers.IsEmpty())
+	if (bMultiEdit && !ChangedMembers.IsEmpty())
 	{
 		const uint8* OldData = Before->GetStructMemory();
 

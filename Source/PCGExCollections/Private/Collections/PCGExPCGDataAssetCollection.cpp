@@ -592,6 +592,12 @@ FSoftObjectPath FPCGExPCGDataAssetCollectionEntry::EDITOR_GetThumbnailAssetPath(
 		return DataAsset.ToSoftObjectPath();
 	case EPCGExDataAssetEntrySource::Level:
 	case EPCGExDataAssetEntrySource::Actor:
+		// A level someone captured a thumbnail for shows that instead: the export render only draws loose meshes,
+		// and a closed level has no other picture (the engine's world renderer is off by default).
+		if (Source == EPCGExDataAssetEntrySource::Level && PCGExCollections::HasStoredThumbnail(Level.ToSoftObjectPath()))
+		{
+			return Level.ToSoftObjectPath();
+		}
 		if (ExportedDataAsset)
 		{
 			return FSoftObjectPath(ExportedDataAsset);

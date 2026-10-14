@@ -77,6 +77,13 @@ namespace PCGExCollections
 
 	/** Drops pending and retried level releases without unloading anything (module shutdown). */
 	PCGEXCOLLECTIONS_API void CancelPendingLevelReleases();
+
+	/**
+	 * True when the asset's package stores a thumbnail for it, captured this session or saved. An asset without a
+	 * thumbnail renderer only ever stores a user capture -- that includes levels, whose world renderer is off by
+	 * default. Reads the package header once per saved version. Editor and game thread only; false elsewhere.
+	 */
+	PCGEXCOLLECTIONS_API bool HasStoredThumbnail(const FSoftObjectPath& AssetPath);
 }
 
 namespace PCGExMeshCollection

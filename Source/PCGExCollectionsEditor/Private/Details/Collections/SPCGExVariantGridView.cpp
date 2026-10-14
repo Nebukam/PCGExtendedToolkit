@@ -17,6 +17,7 @@
 #include "PropertyEditorModule.h"
 #include "ScopedTransaction.h"
 #include "UObject/StructOnScope.h"
+#include "UObject/UnrealType.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
 #include "Collections/PCGExVariantCollection.h"
@@ -1392,7 +1393,19 @@ void SPCGExVariantGridView::OnDetailPropertyChanged(const FPropertyChangedEvent&
 		FScopedTransaction Transaction(LOCTEXT("EditSwapEntry", "Edit Swap Entry"));
 		bIsSyncing = true;
 		Variant->Modify();
-		PayloadStruct->CopyScriptStruct(PayloadMemory, CurrentStructScope->GetStructMemory());
+
+		// Panel-owned members only: the rest may have been replaced by a restage since the panel copy was taken
+		// (an export's instanced subobjects), and copying it back reinstates what that restage retired.
+		const uint8* PanelMemory = CurrentStructScope->GetStructMemory();
+		for (TFieldIterator<FProperty> It(PayloadStruct); It; ++It)
+		{
+			if (PCGExCollectionEditorUtils::IsPanelOwnedMember(*It))
+			{
+				const int32 Offset = It->GetOffset_ForInternal();
+				It->CopyCompleteValue(PayloadMemory + Offset, PanelMemory + Offset);
+			}
+		}
+
 		Variant->PostEditChange();
 		bIsSyncing = false;
 	}
