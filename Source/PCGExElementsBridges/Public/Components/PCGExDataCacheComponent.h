@@ -95,9 +95,9 @@ struct PCGEXELEMENTSBRIDGES_API FPCGExDataCacheEntry
  * objects (unions, intersections, projections, collision wrappers) is refused: it would either steal live
  * upstream objects mid-execution or serialize with null operands.
  *
- * Preview-mode writers get a transient shadow map that never saves, plus tombstones so a preview Clear hides a
- * persisted ID. Unlike a PCG component's output, nothing is promoted when the writer's editing mode changes:
- * the next persistent write does that.
+ * Persistence follows the host, never the writer's editing mode: an actor that can be saved keeps every write,
+ * preview generations included (a Load as Preview writer is one once reloaded). Only a host that cannot be saved
+ * (see IsTransientHost) gets the transient shadow map, which never saves.
  *
  * Reads are safe from any thread. Writes are game-thread only: adopting data re-outers it (Rename) and
  * flattens it (Modify), neither of which is thread-safe.
@@ -134,9 +134,13 @@ public:
 
 	/**
 	 * The actor's cache component, created as an instance component if missing. Game thread only.
-	 * bTransient (preview-mode writers) creates an RF_Transient component; a later persistent write promotes it.
+	 * bTransient (see IsTransientHost) creates an RF_Transient component; a later persistent write promotes it.
 	 */
 	static UPCGExDataCacheComponent* FindOrCreate(AActor* InActor, const bool bTransient);
+
+	/** True when InActor can never be saved: pooled runtime generation partition actors, preview-spawned actors, anything
+	 *  in a transient package. Writes to it are transient whatever the writer's editing mode. */
+	static bool IsTransientHost(const AActor* InActor);
 
 	/** Copies the entry stored under InId (preview entries shadow persisted ones). Any thread. */
 	bool Read(const FName InId, TArray<FPCGTaggedData>& OutData) const;
@@ -213,7 +217,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Data Cache")
 	TMap<FName, FPCGExDataCacheEntry> Entries;
 
-	/** Entries written by preview-mode generations. Never saved; shadow persisted entries on read. */
+	/** Entries written while the owner could not be saved. Never saved; shadow persisted entries on read. */
 	UPROPERTY(Transient, VisibleAnywhere, Category = "Data Cache")
 	TMap<FName, FPCGExDataCacheEntry> PreviewEntries;
 

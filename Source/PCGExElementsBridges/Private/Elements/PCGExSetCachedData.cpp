@@ -9,7 +9,6 @@
 #include "GameFramework/Actor.h"
 
 #include "PCGExCoreSettingsCache.h"
-#include "Helpers/PCGExActorHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSetCachedData"
 #define PCGEX_NAMESPACE SetCachedData
@@ -240,9 +239,7 @@ bool FPCGExSetCachedDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_CONTEXT_AND_SETTINGS(SetCachedData)
 	check(IsInGameThread());
 
-	IPCGGraphExecutionSource* Source = Context->ExecutionSource.Get();
-	const bool bPreview = PCGExHelpers::IsSourceInPreviewMode(Source);
-	UObject* Writer = Cast<UObject>(Source);
+	UObject* Writer = Cast<UObject>(Context->ExecutionSource.Get());
 
 	// Resolved in the step that writes or clears: a pooled partition actor can be handed to another cell in between.
 	TArray<AActor*> Hosts;
@@ -266,8 +263,9 @@ bool FPCGExSetCachedDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		{
 			UPCGExDataCacheComponent* Cache = UPCGExDataCacheComponent::Find(Host);
 			if (!Cache) { continue; }
-			if (Settings->Mode == EPCGExDataCacheWriteMode::Clear) { Cache->Clear(Context->CacheID, Writer, bPreview, Settings->bNotifyChange); }
-			else { Cache->ClearAll(Writer, bPreview, Settings->bNotifyChange); }
+			const bool bTransient = UPCGExDataCacheComponent::IsTransientHost(Host);
+			if (Settings->Mode == EPCGExDataCacheWriteMode::Clear) { Cache->Clear(Context->CacheID, Writer, bTransient, Settings->bNotifyChange); }
+			else { Cache->ClearAll(Writer, bTransient, Settings->bNotifyChange); }
 		}
 		Context->Done();
 		return Context->TryComplete();
@@ -281,7 +279,9 @@ bool FPCGExSetCachedDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 	for (AActor* Host : Hosts)
 	{
-		UPCGExDataCacheComponent* Cache = UPCGExDataCacheComponent::FindOrCreate(Host, bPreview);
+		// Never the writer's editing mode: a preview writer (Load as Preview once reloaded) still persists on a saveable host.
+		const bool bTransient = UPCGExDataCacheComponent::IsTransientHost(Host);
+		UPCGExDataCacheComponent* Cache = UPCGExDataCacheComponent::FindOrCreate(Host, bTransient);
 		if (!Cache) { continue; }
 
 		// Each target adopts its own private copies: a data object has exactly one outer.
@@ -302,7 +302,7 @@ bool FPCGExSetCachedDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 			Copy.Pin = Input->Pin;
 		}
 
-		Cache->Write(Context->CacheID, bAppend, MoveTemp(Duplicates), Writer, bPreview, Settings->bNotifyChange);
+		Cache->Write(Context->CacheID, bAppend, MoveTemp(Duplicates), Writer, bTransient, Settings->bNotifyChange);
 	}
 
 	// Pass-through, so the node can sit inline.

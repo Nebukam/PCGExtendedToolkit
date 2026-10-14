@@ -104,7 +104,7 @@ UPCGExDataCacheComponent* UPCGExDataCacheComponent::FindOrCreate(AActor* InActor
 
 	if (UPCGExDataCacheComponent* Existing = FindCurrent(InActor))
 	{
-		// Born in preview, promoted by the first persistent write. Never demoted.
+		// Born transient, promoted by the first persistent write. Never demoted.
 		if (!bTransient && Existing->HasAnyFlags(RF_Transient))
 		{
 			Existing->ClearFlags(RF_Transient);
@@ -115,11 +115,18 @@ UPCGExDataCacheComponent* UPCGExDataCacheComponent::FindOrCreate(AActor* InActor
 	}
 
 	// Instance components survive construction-script reruns and are not touched by PCG cleanup; same path as
-	// the engine's Add Component node, including RF_Transient for preview-mode writers.
+	// the engine's Add Component node, except RF_Transient follows the host rather than the writer.
 	UPCGExDataCacheComponent* Component = NewObject<UPCGExDataCacheComponent>(InActor, NAME_None, bTransient ? RF_Transient : RF_Transactional);
 	Component->RegisterComponent();
 	InActor->AddInstanceComponent(Component);
 	return Component;
+}
+
+bool UPCGExDataCacheComponent::IsTransientHost(const AActor* InActor)
+{
+	// Pooled runtime generation partition actors are spawned RF_Transient; preview-spawned actors also live in an
+	// RF_Transient preview package, and lose both when their component leaves preview.
+	return !InActor || InActor->HasAnyFlags(RF_Transient) || InActor->GetPackage()->HasAnyFlags(RF_Transient);
 }
 
 bool UPCGExDataCacheComponent::Read(const FName InId, TArray<FPCGTaggedData>& OutData) const
