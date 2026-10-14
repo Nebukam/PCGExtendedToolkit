@@ -76,6 +76,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 
 	Staging.Path = Actor.ToSoftObjectPath();
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Actor.ToSoftObjectPath());
+	bEditorOnly = PCGExCollections::IsEditorOnlyActorClass(Actor.Get());
 
 	if (UClass* ActorClass = Actor.Get())
 	{
@@ -199,6 +200,54 @@ void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 {
 	FPCGExAssetCollectionEntry::SetAssetPath(InPath);
 	Actor = TSoftClassPtr<AActor>(InPath);
+}
+
+void FPCGExActorCollectionEntry::OnHostPreSave(UPCGExAssetCollection* Host, const FObjectPreSaveContext SaveContext)
+{
+	// Collections never restaged since the flag shipped still get it on cook, for classes already in memory.
+	if (SaveContext.IsCooking() && !bIsSubCollection)
+	{
+		if (const UClass* ActorClass = Actor.Get())
+		{
+			bEditorOnly = PCGExCollections::IsEditorOnlyActorClass(ActorClass);
+		}
+	}
+}
+
+bool FPCGExActorCollectionEntry::Serialize(FArchive& Ar)
+{
+	if (!bEditorOnly || !Ar.IsCooking())
+	{
+		return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+	}
+
+	// Scrubbed around the write and restored after it, so the cook gets no class, delta or graph without copying the entry.
+	const TSoftClassPtr<AActor> KeptActor = Actor;
+	const FSoftObjectPath KeptPath = Staging.Path;
+	const bool bKeptHasPCGComponent = bHasPCGComponent;
+	const TSoftObjectPtr<UPCGGraphInterface> KeptGraph = CachedPCGGraph;
+	TArray<uint8> KeptDelta = MoveTemp(SerializedPropertyDelta);
+	TArray<FSoftObjectPath> KeptCollateral = MoveTemp(DeltaCollateralPaths);
+	const TSoftObjectPtr<AActor> KeptDeltaSource = DeltaSourceActor;
+
+	Actor.Reset();
+	Staging.Path.Reset();
+	bHasPCGComponent = false;
+	CachedPCGGraph.Reset();
+	SerializedPropertyDelta.Reset();
+	DeltaCollateralPaths.Reset();
+	DeltaSourceActor.Reset();
+
+	const bool bWritten = PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+
+	Actor = KeptActor;
+	Staging.Path = KeptPath;
+	bHasPCGComponent = bKeptHasPCGComponent;
+	CachedPCGGraph = KeptGraph;
+	SerializedPropertyDelta = MoveTemp(KeptDelta);
+	DeltaCollateralPaths = MoveTemp(KeptCollateral);
+	DeltaSourceActor = KeptDeltaSource;
+	return bWritten;
 }
 
 bool FPCGExActorCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)

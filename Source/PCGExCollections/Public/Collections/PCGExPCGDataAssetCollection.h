@@ -91,7 +91,7 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 
 	/** Root actor whose attached subtree is exported (used when Source == Actor). Its level must not be
 	 *  World Partition: a closed partitioned level cannot be read. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="Source == EPCGExDataAssetEntrySource::Actor && !bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="Source == EPCGExDataAssetEntrySource::Actor && !bIsSubCollection", EditConditionHides, DisallowedClasses="/Script/UnrealEd.GroupActor"))
 	TSoftObjectPtr<AActor> SourceActor;
 
 	/** Only in Level mode. An Actor-sourced entry answers null on purpose: its host level is a container,
@@ -165,6 +165,7 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
+	virtual void EDITOR_OnCopied(const FPCGExAssetCollectionEntry* Original) override;
 	virtual void EDITOR_GetSourceAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 	virtual FSoftObjectPath EDITOR_GetThumbnailAssetPath() const override;
 	virtual FSoftObjectPath EDITOR_GetActivationAssetPath() const override;
@@ -334,6 +335,7 @@ public:
 	virtual void OnHostSerializeSave_Begin(UPCGExAssetCollection* Host) override;
 	virtual void OnHostSerializeSave_End(UPCGExAssetCollection* Host) override;
 #if WITH_EDITOR
+	virtual void EDITOR_OnHostPreStagingRebuild(UPCGExAssetCollection* Host) override;
 	virtual void EDITOR_OnHostPostStagingRebuild(UPCGExAssetCollection* Host) override;
 
 	/** Embedded exports moved with the host; their Staging.Path strings and the CollectionMap rows baked
@@ -487,6 +489,19 @@ public:
 	static void InternalizeSubobjectsFor(FPCGExPCGDataAssetMachinery& State);
 	static void SaveExternalPackagesFor(FPCGExPCGDataAssetMachinery& State);
 
+	/** A duplicated host still shares its source's storage: external objects live in the source's packages and
+	 *  slot collections carry the GUIDs the hashes are packed against. Copies external storage in (the source
+	 *  is only read), gives every slot collection a fresh GUID and re-packs every export's Tag_EntryIdx to it.
+	 *  Run before RebuildSharedCollectionsFor, which then externalizes under this host's names. */
+	static void AdoptDuplicatedStorageFor(FPCGExPCGDataAssetMachinery& State);
+
+	/** Rows saved before entry copies were detached can still share per-row storage (a slot collection, an export, an
+	 *  external path, a capture payload subobject), and every export then hands the object to the last row exporting.
+	 *  Owner: the row whose export contains the object, else the first row holding it; nothing outside the host, under
+	 *  a foreign external prefix, or in a shared slot is a row's. Other holders lose the reference (never retired) and
+	 *  their next export rebuilds their own. Runs before every editor re-stage; a no-op on clean data. */
+	static void DealiasEntryStorageFor(FPCGExPCGDataAssetMachinery& State);
+
 	/** Shared package-collection walk over the machinery storage: the loaded packages the
 	 *  shared slots and per-entry exports currently live in, minus the host's own and
 	 *  the transient package (so embedded mode contributes nothing). Drives both the manual
@@ -545,6 +560,7 @@ public:
 
 #if WITH_EDITOR
 	virtual void EDITOR_OnPostStagingRebuild() override;
+	virtual void EDITOR_RunTypeStatesPreStaging() override;
 	virtual void EDITOR_RunTypeStatesPostStaging() override;
 	virtual void EDITOR_OnHostRelocated() override;
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;

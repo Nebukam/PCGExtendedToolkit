@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetData.h"
 
+class FProperty;
 class UPCGExAssetCollection;
 class UPCGExVariantCollection;
 class UPackage;
@@ -16,6 +17,13 @@ struct FPCGExAssetCollectionEntry;
 /** Utility functions for collection editing. Operate on any UPCGExAssetCollection. */
 namespace PCGExCollectionEditorUtils
 {
+	/**
+	 * Whether a struct-on-scope panel may write this entry member back: it is editable there (CPF_Edit, not EditConst).
+	 * Everything else -- exports, capture buffers, slot collections, ids -- belongs to the live entry. The panel's copy
+	 * of it goes stale on the next restage, and writing it back reinstates objects that restage retired.
+	 */
+	PCGEXCOLLECTIONSEDITOR_API bool IsPanelOwnedMember(const FProperty* Property);
+
 	/**
 	 * Resolve an entry's thumbnail/source path to FAssetData without loading. Falls back to stripping
 	 * a trailing "_C" so actor entries (generated class path) resolve to their Blueprint asset.

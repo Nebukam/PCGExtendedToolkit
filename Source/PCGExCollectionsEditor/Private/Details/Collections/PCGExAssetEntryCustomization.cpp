@@ -8,6 +8,7 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "Editor.h"
+#include "Editor/GroupActor.h"
 #include "FileHelpers.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyCustomizationHelpers.h"
@@ -273,7 +274,17 @@ namespace PCGExActorEntryCustomization
 					return;
 				}
 
-				AActor* SelectedActor = Cast<AActor>(Selection->GetSelectedObject(0));
+				// A locked group selects its group actor first, and a group is never an entry.
+				AActor* SelectedActor = nullptr;
+				for (int32 i = 0; i < Selection->Num() && !SelectedActor; ++i)
+				{
+					AActor* Candidate = Cast<AActor>(Selection->GetSelectedObject(i));
+					if (Candidate && !Candidate->IsA<AGroupActor>())
+					{
+						SelectedActor = Candidate;
+					}
+				}
+
 				if (!SelectedActor)
 				{
 					return;

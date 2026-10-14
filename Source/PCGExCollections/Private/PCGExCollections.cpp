@@ -14,6 +14,7 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #include "Styling/AppStyle.h"
+#include "UObject/PackageReload.h"
 
 #if PCGEX_ENGINE_VERSION > 506
 #include "Data/Registry/PCGDataTypeRegistry.h" // PCGEX_PCG_DATA_REGISTRY
@@ -29,15 +30,25 @@ namespace PCGExCollectionsModule
 	FDelegateHandle PostEngineInitHandle;
 #if WITH_EDITOR
 	FDelegateHandle BlueprintCompiledHandle;
+	FDelegateHandle PackageReloadedHandle;
 
 	void OnBlueprintCompiled()
 	{
 		GetMutableDefault<UPCGExCollectionsSettings>()->UpdateSettingsCaches(/*bLoadClasses=*/false);
 	}
+
+	void OnPackageReloaded(const EPackageReloadPhase Phase, FPackageReloadedEvent*)
+	{
+		if (Phase == EPackageReloadPhase::PostBatchPreGC)
+		{
+			GetMutableDefault<UPCGExCollectionsSettings>()->UpdateSettingsCaches(/*bLoadClasses=*/false);
+		}
+	}
 #endif
 
-	// A config-loaded class default gets no PostLoad, so the settings cache is pushed here; after engine init, when
-	// content (Blueprint) classes resolve. A recompile supersedes a Blueprint default class in place: re-resolve then.
+	// A config-loaded class default gets no PostLoad, so the cache is pushed after engine init, once Blueprint classes
+	// resolve. Editor: re-resolved after Blueprint compiles and before a package reload's GC, which replaces the class
+	// objects the pin must let go of.
 	void OnEngineInitialized()
 	{
 		GetMutableDefault<UPCGExCollectionsSettings>()->UpdateSettingsCaches();
@@ -45,6 +56,10 @@ namespace PCGExCollectionsModule
 		if (GEditor && !BlueprintCompiledHandle.IsValid())
 		{
 			BlueprintCompiledHandle = GEditor->OnBlueprintCompiled().AddStatic(&OnBlueprintCompiled);
+		}
+		if (!PackageReloadedHandle.IsValid())
+		{
+			PackageReloadedHandle = FCoreUObjectDelegates::OnPackageReloaded.AddStatic(&OnPackageReloaded);
 		}
 #endif
 	}
@@ -81,6 +96,7 @@ void FPCGExCollectionsModule::ShutdownModule()
 	{
 		GEditor->OnBlueprintCompiled().Remove(PCGExCollectionsModule::BlueprintCompiledHandle);
 	}
+	FCoreUObjectDelegates::OnPackageReloaded.Remove(PCGExCollectionsModule::PackageReloadedHandle);
 #endif
 	PCGExCollections::CancelPendingLevelReleases();
 

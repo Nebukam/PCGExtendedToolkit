@@ -43,12 +43,16 @@ int32 FPCGExMaterialOverrideCollection::GetHighestIndex() const
 namespace PCGExMeshCollection
 {
 #if WITH_EDITORONLY_DATA
-	// Legacy full SM descriptor -> extras. Shared members now come from the ISM descriptor; the ones the author had
-	// edited away from default on the SM side and that the ISM side does not match are named once, so they can be
-	// re-applied where they matter.
-	void FoldLegacyStaticMeshDescriptor(const FPCGExStaticMeshComponentDescriptor& Legacy, const FSoftISMComponentDescriptor& Shared, FPCGExStaticMeshDescriptorExtras& OutExtras, const UObject* Host, const FString& What)
+	// Legacy full SM descriptor -> extras. Shared members the author edited on the SM side and that the ISM side does
+	// not match are named once, and only when these settings reach a spline mesh.
+	void FoldLegacyStaticMeshDescriptor(const FPCGExStaticMeshComponentDescriptor& Legacy, const FSoftISMComponentDescriptor& Shared, FPCGExStaticMeshDescriptorExtras& OutExtras, const bool bReachesSplineMeshes, const UObject* Host, const FString& What)
 	{
 		OutExtras.InitFrom(Legacy);
+
+		if (!bReachesSplineMeshes)
+		{
+			return;
+		}
 
 		TArray<FName> Mismatches;
 		PCGExComponentDescriptors::FindSharedMismatches(Legacy, Shared, Mismatches);
@@ -57,9 +61,8 @@ namespace PCGExMeshCollection
 			return;
 		}
 
-		// The two body instances come from different class defaults and never compare identical, so collision is
-		// judged on the one thing a spline mesh shows: whether it is on. That also catches the ISM default enabling it
-		// over an SM side nobody edited.
+		// The two body instances never compare identical (different class defaults), so collision is judged on
+		// whether it is on, and like every other member only once the SM side was edited away from its default.
 		static const FName BodyInstanceName = GET_MEMBER_NAME_CHECKED(FPCGExStaticMeshComponentDescriptor, BodyInstance);
 		const FPCGExStaticMeshComponentDescriptor Defaults;
 		TArray<FString> Lost;
@@ -67,7 +70,9 @@ namespace PCGExMeshCollection
 		{
 			if (Name == BodyInstanceName)
 			{
-				if (Legacy.BodyInstance.GetCollisionEnabled(false) != Shared.BodyInstance.GetCollisionEnabled(false))
+				const ECollisionEnabled::Type LegacyCollision = Legacy.BodyInstance.GetCollisionEnabled(false);
+				if (LegacyCollision != Defaults.BodyInstance.GetCollisionEnabled(false)
+					&& LegacyCollision != Shared.BodyInstance.GetCollisionEnabled(false))
 				{
 					Lost.Add(Name.ToString());
 				}
@@ -86,7 +91,24 @@ namespace PCGExMeshCollection
 		}
 
 		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: SM settings differed from ISM settings on %s. Spline meshes now use the ISM values."),
-		       *GetNameSafe(Host), *What, *FString::Join(Lost, TEXT(", ")));
+		       *GetPathNameSafe(Host), *What, *FString::Join(Lost, TEXT(", ")));
+	}
+
+	// Global settings only reach spline meshes through the mesh entries that follow them.
+	bool AnyEntryFollowsGlobals(const UPCGExAssetCollection* Host, const EPCGExGlobalVariationRule Mode)
+	{
+		bool bAnyFollows = false;
+		Host->ForEachEntry([&bAnyFollows, Mode](const FPCGExAssetCollectionEntry* Entry, int32)
+		{
+			if (bAnyFollows || !Entry || Entry->bIsSubCollection || !Entry->IsType(PCGExAssetCollection::TypeIds::Mesh))
+			{
+				return;
+			}
+
+			bAnyFollows = Mode == EPCGExGlobalVariationRule::Overrule
+				|| static_cast<const FPCGExMeshCollectionEntry*>(Entry)->DescriptorSource == EPCGExEntryVariationMode::Global;
+		});
+		return bAnyFollows;
 	}
 
 	// An entry on the global descriptor used to spawn spline meshes from its LOCAL SM settings; its static-mesh-only
@@ -107,7 +129,7 @@ namespace PCGExMeshCollection
 		}
 
 		UE_LOG(LogPCGEx, Warning, TEXT("[%s] %s: follows the global descriptor, so its local SM settings (%s) no longer reach spline meshes."),
-		       *GetNameSafe(Host), *What, *FString::Join(Ignored, TEXT(", ")));
+		       *GetPathNameSafe(Host), *What, *FString::Join(Ignored, TEXT(", ")));
 	}
 #endif
 
@@ -419,7 +441,7 @@ bool FPCGExMeshCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)
 	if (Host && Host->GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
 	{
 		const FString What = FString::Printf(TEXT("entry '%s'"), *StaticMesh.ToSoftObjectPath().ToString());
-		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(SMDescriptor_DEPRECATED, ISMDescriptor, SMExtras, Host, What);
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(SMDescriptor_DEPRECATED, ISMDescriptor, SMExtras, !bIsSubCollection, Host, What);
 
 		// Host globals are folded before entries run (see UPCGExMeshCollection::PostLoad), so this compares migrated data.
 		FPCGExMeshCollectionGlobals Globals;
@@ -477,7 +499,7 @@ bool FPCGExMeshCollectionGlobals::OnHostPostLoad(UPCGExAssetCollection* Host)
 #if WITH_EDITORONLY_DATA
 	if (Host && Host->GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
 	{
-		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, Host, TEXT("global SM settings"));
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, PCGExMeshCollection::AnyEntryFollowsGlobals(Host, GlobalDescriptorMode), Host, TEXT("global SM settings"));
 		return true;
 	}
 #endif
@@ -504,7 +526,7 @@ void UPCGExMeshCollection::PostLoad()
 	// Before Super: the entry hooks it runs read the globals through the seam and must see them folded.
 	if (GetLoadedCollectionsVersion() < FPCGExCollectionsCustomVersion::MeshEntryStaticMeshExtras)
 	{
-		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, this, TEXT("global SM settings"));
+		PCGExMeshCollection::FoldLegacyStaticMeshDescriptor(GlobalSMDescriptor_DEPRECATED, GlobalISMDescriptor, GlobalSMExtras, PCGExMeshCollection::AnyEntryFollowsGlobals(this, GlobalDescriptorMode), this, TEXT("global SM settings"));
 #if WITH_EDITOR
 		(void)MarkPackageDirty();
 #endif

@@ -1079,8 +1079,9 @@ void SPCGExCollectionGridView::HandleCrossCollectionDrop(
 			// element when a base-typed row lands in a typed collection.
 			PayloadStruct->CopyScriptStruct(NewEntry, Snapshots[i].GetMemory());
 
-			// The copy is SHALLOW for Instanced subobjects -- duplicate into the target.
-			PCGExCollectionHelpers::DuplicateInstancedSubobjects(PayloadStruct, NewEntry, TargetColl);
+			// The copy is SHALLOW: its Instanced subobjects and per-entry export state are still the
+			// source row's (the snapshot holds the same refs).
+			PCGExCollectionHelpers::DetachCopiedEntry(PayloadStruct, NewEntry, Snapshots[i].GetMemory(), TargetColl);
 
 			NewEntry->Category = TargetCategory;
 			// NEW identity in the target: zero EntryId so SyncEntryIds re-mints it.
@@ -1684,23 +1685,26 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	// Step 1: Resolve the "before" side of this commit's delta
 	// The panel's baseline, not the live entry, which restaging changes between commits (see CurrentStructBaseline).
 	TSharedPtr<FStructOnScope> Before = CurrentStructBaseline;
-	if (bMultiEdit && (!Before.IsValid() || Before->GetStruct() != EntryStruct))
+	if (!Before.IsValid() || Before->GetStruct() != EntryStruct)
 	{
-		// No usable baseline: fall back to the live entry, snapshotted before Step 3 overwrites it.
+		// No usable baseline: fall back to the live entry, snapshotted before Step 3 writes to it.
 		Before = MakeShared<FStructOnScope>(EntryStruct);
 		EntryStruct->CopyScriptStruct(Before->GetStructMemory(), PrimaryPtr);
 	}
 
-	// Step 2: Collect every top-level member this commit changed
-	// All of them: TFieldIterator walks derived members first, so a single pick pre-empts PropertyOverrides.
-	// A direct ChangedMemberProperty counts even unchanged (re-commit = stamp); external rows only show in the diff.
+	// Step 2: Collect the panel-owned members this commit changed. Derived members come first (TFieldIterator), so a
+	// single pick pre-empts PropertyOverrides; a direct ChangedMemberProperty counts even unchanged (re-commit = stamp).
 	TArray<const FProperty*, TInlineAllocator<4>> ChangedMembers;
-	if (bMultiEdit)
+	const uint8* OldData = Before->GetStructMemory();
 	{
-		const uint8* OldData = Before->GetStructMemory();
 		for (TFieldIterator<FProperty> It(EntryStruct); It; ++It)
 		{
 			const FProperty* Prop = *It;
+			if (!PCGExCollectionEditorUtils::IsPanelOwnedMember(Prop))
+			{
+				continue;
+			}
+
 			const int32 Offset = Prop->GetOffset_ForInternal();
 			if (Prop == ChangedMemberProperty || !Prop->Identical(OldData + Offset, SrcData + Offset))
 			{
@@ -1709,15 +1713,19 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 		}
 	}
 
-	// Step 3: Copy entire struct back to the primary entry
-	EntryStruct->CopyScriptStruct(PrimaryPtr, SrcData);
+	// Step 3: Copy the changed members back to the primary entry
+	// Never the whole struct, and reflected structs sub-property by sub-property: everything the user did not touch
+	// on the live entry is newer than the panel copy (restaging re-stamps Staging between commits).
+	for (const FProperty* Prop : ChangedMembers)
+	{
+		const int32 Offset = Prop->GetOffset_ForInternal();
+		CopyChangedMember(Prop, OldData + Offset, SrcData + Offset, PrimaryPtr + Offset);
+	}
 
 	// Step 4: Propagate to other selected entries
 	// Mixed-type selections: targets resolve each member by name + type; incompatible skip.
-	if (!ChangedMembers.IsEmpty())
+	if (bMultiEdit && !ChangedMembers.IsEmpty())
 	{
-		const uint8* OldData = Before->GetStructMemory();
-
 		TArray<int32> Selected = GetSelectedIndices();
 		for (int32 OtherIndex : Selected)
 		{
@@ -1743,18 +1751,7 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 				}
 
 				const int32 Offset = Prop->GetOffset_ForInternal();
-				uint8* DstData = OtherPtr + DstProp->GetOffset_ForInternal();
-
-				// Reflected structs: changed sub-properties only. FInstancedStruct: copied whole (see PushStructGated).
-				const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
-				if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
-				{
-					PropagateChangedProperties(OldData + Offset, SrcData + Offset, DstData, StructProp->Struct);
-				}
-				else
-				{
-					Prop->CopyCompleteValue(DstData, SrcData + Offset);
-				}
+				CopyChangedMember(Prop, OldData + Offset, SrcData + Offset, OtherPtr + DstProp->GetOffset_ForInternal());
 			}
 		}
 	}
@@ -1767,6 +1764,19 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	EntryStruct->CopyScriptStruct(CurrentStructBaseline->GetStructMemory(), SrcData);
 
 	Coll->PostEditChange();
+}
+
+void SPCGExCollectionGridView::CopyChangedMember(const FProperty* Prop, const uint8* Old, const uint8* Src, uint8* Dst)
+{
+	const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
+	if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
+	{
+		PropagateChangedProperties(Old, Src, Dst, StructProp->Struct);
+	}
+	else
+	{
+		Prop->CopyCompleteValue(Dst, Src);
+	}
 }
 
 void SPCGExCollectionGridView::PropagateChangedProperties(
@@ -2413,6 +2423,10 @@ FReply SPCGExCollectionGridView::OnDuplicateSelected()
 			if (FPCGExAssetCollectionEntry* DuplicatePayload = Coll->GetMutableEntryRaw(InsertAt))
 			{
 				DuplicatePayload->EntryId = 0;
+
+				// The element copy is SHALLOW: its Instanced subobjects and per-entry export state are
+				// still the original's.
+				PCGExCollectionHelpers::DetachCopiedEntry(Coll->EDITOR_GetEntryScriptStruct(InsertAt), DuplicatePayload, Coll->GetMutableEntryRaw(SrcIndex), Coll);
 			}
 		}
 

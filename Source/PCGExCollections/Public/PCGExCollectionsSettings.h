@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "UObject/StrongObjectPtr.h"
 
 #include "PCGExCollectionsSettings.generated.h"
 
@@ -56,7 +57,6 @@ public:
 	void UpdateSettingsCaches(bool bLoadClasses = true);
 
 private:
-	/** Roots the classes the cache points at: unreferenced Blueprint classes are collectable outside the editor. */
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UClass>> ResolvedDefaultClasses;
+	// Pins the cached classes. Not a UPROPERTY on purpose, see UpdateSettingsCaches.
+	TArray<TStrongObjectPtr<UClass>> ResolvedDefaultClasses;
 };

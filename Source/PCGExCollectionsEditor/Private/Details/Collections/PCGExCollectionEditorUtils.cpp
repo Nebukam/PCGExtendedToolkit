@@ -12,9 +12,15 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Collections/PCGExVariantCollection.h"
 #include "Core/PCGExAssetCollection.h"
+#include "UObject/UnrealType.h"
 
 namespace PCGExCollectionEditorUtils
 {
+	bool IsPanelOwnedMember(const FProperty* Property)
+	{
+		return Property && Property->HasAnyPropertyFlags(CPF_Edit) && !Property->HasAnyPropertyFlags(CPF_EditConst);
+	}
+
 	FText GetEntryTypeLabel(const UScriptStruct* EntryStruct)
 	{
 		static const FName ShortNameMeta = FName("ShortName");

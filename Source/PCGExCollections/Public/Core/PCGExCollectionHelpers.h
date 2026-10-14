@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+class FObjectPropertyBase;
 #include "PCGExAssetCollection.h"
 #include "PCGParamData.h"
 #include "Core/PCGExContext.h"
@@ -117,22 +119,37 @@ namespace PCGExCollectionHelpers
 	void GetEntryAssetHalves(const UPCGExAssetCollection* Collection, bool& bOutAnyActor, bool& bOutAnyNonActor);
 
 #if WITH_EDITOR
+	/** Visits every top-level Instanced object reference of Struct in StructMemory, with its current value. */
+	PCGEXCOLLECTIONS_API
+	void ForEachInstancedObjectRef(const UScriptStruct* Struct, void* StructMemory, TFunctionRef<void(const FObjectPropertyBase*, UObject*)> Visit);
+
 	/**
 	 * Deep-copy Instanced subobjects referenced by a struct into a new owner. Raw struct
 	 * copies are SHALLOW for object refs and sharing EditInlineNew subobjects across assets
-	 * is illegal -- run this on every cross-asset copy of a globals block or entry payload.
-	 * Top-level properties only (built-in structs keep instanced refs flat).
+	 * is illegal -- run this on every cross-asset copy of a globals block. An entry copied from
+	 * another entry goes through DetachCopiedEntry instead. Top-level properties only (built-in
+	 * structs keep instanced refs flat).
 	 */
 	PCGEXCOLLECTIONS_API
 	void DuplicateInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, UObject* NewOuter);
 
 	/**
-	 * Move a struct's Instanced subobjects to the transient package and null the refs. For entries about
-	 * to be overwritten: an unreferenced inner left under its outer still shows up in save-time traversal.
-	 * Top-level properties only, like DuplicateInstancedSubobjects.
+	 * Make an entry payload just copied from OriginalMemory its own -- run on every entry copy, within one collection
+	 * or across assets: EDITOR_OnCopied first, then every top-level Instanced subobject still shared with the original
+	 * is duplicated into NewHost, even one already outered there. OriginalMemory is an instance of Struct (possibly a
+	 * base of the payload's own) or null, in which case nothing is duplicated.
 	 */
 	PCGEXCOLLECTIONS_API
-	void RetireInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory);
+	void DetachCopiedEntry(const UScriptStruct* Struct, void* StructMemory, const void* OriginalMemory, UPCGExAssetCollection* NewHost);
+
+	/**
+	 * Move a struct's Instanced subobjects to the transient package and null the refs. For entries about
+	 * to be overwritten: an unreferenced inner left under its outer still shows up in save-time traversal.
+	 * A subobject SharedWith (another instance of Struct) holds at the same property is only nulled --
+	 * that instance still owns it. Top-level properties only, like DuplicateInstancedSubobjects.
+	 */
+	PCGEXCOLLECTIONS_API
+	void RetireInstancedSubobjects(const UScriptStruct* Struct, void* StructMemory, const void* SharedWith = nullptr);
 
 	/**
 	 * Rename a struct's Instanced subobjects under NewOuter (no copy). For subobjects the struct is the
