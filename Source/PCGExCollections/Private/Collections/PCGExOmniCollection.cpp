@@ -724,6 +724,17 @@ void UPCGExOmniCollection::EDITOR_OnPostStagingRebuild()
 	EDITOR_RunTypeStatesPostStaging();
 }
 
+void UPCGExOmniCollection::EDITOR_RunTypeStatesPreStaging()
+{
+	for (const TObjectPtr<UPCGExCollectionTypeState>& State : TypeStates)
+	{
+		if (State)
+		{
+			State->EDITOR_OnHostPreStagingRebuild(this);
+		}
+	}
+}
+
 void UPCGExOmniCollection::EDITOR_RunTypeStatesPostStaging()
 {
 	// Per-type setup safety net (entry-add paths ensure eagerly), then dispatch -- newly

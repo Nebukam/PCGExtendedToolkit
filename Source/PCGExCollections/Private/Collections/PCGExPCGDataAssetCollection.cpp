@@ -9,6 +9,7 @@
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
 #include "UObject/UObjectGlobals.h"
+#include "UObject/UnrealType.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
@@ -1543,6 +1544,150 @@ void UPCGExPCGDataAssetCollection::AdoptDuplicatedStorageFor(FPCGExPCGDataAssetM
 #endif
 }
 
+void UPCGExPCGDataAssetCollection::DealiasEntryStorageFor(FPCGExPCGDataAssetMachinery& State)
+{
+#if WITH_EDITOR
+	if (!State.IsValid())
+	{
+		return;
+	}
+
+	const UPCGExAssetCollection* Host = State.Host;
+	const FString& HostPrefix = State.ExternalAssetPrefix;
+
+	// Owner row per object and per external path; INDEX_NONE when no row may keep it (another asset's, or a shared slot's).
+	TMap<const UObject*, int32> ObjectOwners;
+	TMap<FSoftObjectPath, int32> PathOwners;
+
+	auto ClaimObject = [&ObjectOwners, Host](const UObject* Object, const int32 Row)
+	{
+		if (Object && !ObjectOwners.Contains(Object))
+		{
+			ObjectOwners.Add(Object, Object->IsIn(Host) ? Row : INDEX_NONE);
+		}
+	};
+	auto ClaimPath = [&PathOwners, &HostPrefix](const FSoftObjectPath& Path, const int32 Row)
+	{
+		if (!Path.IsNull() && !PathOwners.Contains(Path))
+		{
+			PathOwners.Add(Path, Path.GetAssetName().StartsWith(HostPrefix) ? Row : INDEX_NONE);
+		}
+	};
+	auto ForEachCaptureObjectRef = [](FPCGExPCGDataAssetCollectionEntry& Entry, TFunctionRef<void(const FObjectPropertyBase*, void*)> Visit)
+	{
+		for (FPCGExExportSlotCapture& Capture : Entry.Captures)
+		{
+			for (FInstancedStruct& Captured : Capture.Entries)
+			{
+				if (!Captured.IsValid())
+				{
+					continue;
+				}
+				for (TFieldIterator<FObjectPropertyBase> It(Captured.GetScriptStruct()); It; ++It)
+				{
+					if (It->HasAnyPropertyFlags(CPF_InstancedReference))
+					{
+						Visit(*It, Captured.GetMutableMemory());
+					}
+				}
+			}
+		}
+	};
+
+	// Shared slots are the host's: no row may hold their objects or paths.
+	for (const FPCGExExportCollectionSlot& Slot : *State.SharedSlots)
+	{
+		ClaimObject(Slot.Collection, INDEX_NONE);
+		ClaimPath(Slot.External.ToSoftObjectPath(), INDEX_NONE);
+	}
+
+	// A slot collection inside a row's export is that row's, whatever the row order.
+	for (int32 Row = 0; Row < State.Entries.Num(); Row++)
+	{
+		const FPCGExPCGDataAssetCollectionEntry& Entry = *State.Entries[Row];
+		for (const FPCGExExportCollectionSlot& Slot : Entry.EmbeddedSlots)
+		{
+			if (Slot.Collection && Entry.ExportedDataAsset && Slot.Collection->IsIn(Entry.ExportedDataAsset))
+			{
+				ClaimObject(Slot.Collection, Row);
+			}
+		}
+	}
+
+	// Everything else goes to the first row holding it, the same tie-break as SyncEntryIds.
+	for (int32 Row = 0; Row < State.Entries.Num(); Row++)
+	{
+		FPCGExPCGDataAssetCollectionEntry& Entry = *State.Entries[Row];
+		ClaimObject(Entry.ExportedDataAsset, Row);
+		ClaimPath(Entry.ExternalExportedDataAsset.ToSoftObjectPath(), Row);
+		for (const FPCGExExportCollectionSlot& Slot : Entry.EmbeddedSlots)
+		{
+			ClaimObject(Slot.Collection, Row);
+			ClaimPath(Slot.External.ToSoftObjectPath(), Row);
+		}
+		ForEachCaptureObjectRef(Entry, [&ClaimObject, Row](const FObjectPropertyBase* Property, void* Memory)
+		{
+			ClaimObject(Property->GetObjectPropertyValue_InContainer(Memory), Row);
+		});
+	}
+
+	// Non-owners only lose the reference: the owner's next export reuses the object, this row's next export rebuilds its own.
+	for (int32 Row = 0; Row < State.Entries.Num(); Row++)
+	{
+		FPCGExPCGDataAssetCollectionEntry& Entry = *State.Entries[Row];
+		TArray<FString> Dropped;
+
+		auto OwnsObject = [&ObjectOwners, Row](const UObject* Object) { return !Object || ObjectOwners.FindRef(Object) == Row; };
+		auto OwnsPath = [&PathOwners, Row](const FSoftObjectPath& Path) { return Path.IsNull() || PathOwners.FindRef(Path) == Row; };
+
+		if (!OwnsObject(Entry.ExportedDataAsset))
+		{
+			Entry.ExportedDataAsset = nullptr;
+			Entry.Staging.Path.Reset();
+			Dropped.Add(TEXT("export"));
+		}
+		if (!OwnsPath(Entry.ExternalExportedDataAsset.ToSoftObjectPath()))
+		{
+			Entry.ExternalExportedDataAsset.Reset();
+			Entry.Staging.Path.Reset();
+			Dropped.Add(TEXT("external export"));
+		}
+		for (FPCGExExportCollectionSlot& Slot : Entry.EmbeddedSlots)
+		{
+			if (!OwnsObject(Slot.Collection))
+			{
+				Slot.Collection = nullptr;
+				Dropped.Add(FString::Printf(TEXT("slot '%s'"), *Slot.SlotId.ToString()));
+			}
+			if (!OwnsPath(Slot.External.ToSoftObjectPath()))
+			{
+				Slot.External.Reset();
+				Dropped.Add(FString::Printf(TEXT("external slot '%s'"), *Slot.SlotId.ToString()));
+			}
+		}
+		bool bDroppedCapture = false;
+		ForEachCaptureObjectRef(Entry, [&OwnsObject, &bDroppedCapture](const FObjectPropertyBase* Property, void* Memory)
+		{
+			if (!OwnsObject(Property->GetObjectPropertyValue_InContainer(Memory)))
+			{
+				Property->SetObjectPropertyValue_InContainer(Memory, nullptr);
+				bDroppedCapture = true;
+			}
+		});
+		if (bDroppedCapture)
+		{
+			Dropped.Add(TEXT("capture payload"));
+		}
+
+		if (!Dropped.IsEmpty())
+		{
+			UE_LOG(LogPCGEx, Warning, TEXT("'%s': row %d shared per-row export state another row or asset owns (%s). Dropped; its next export rebuilds it."),
+			       *Host->GetPathName(), Row, *FString::Join(Dropped, TEXT(", ")));
+		}
+	}
+#endif
+}
+
 void UPCGExPCGDataAssetCollection::CollectExternalPackagesFor(
 	const UPCGExAssetCollection* Host,
 	const TArray<FPCGExExportCollectionSlot>& InSharedSlots,
@@ -1758,6 +1903,14 @@ void UPCGExPCGDataAssetCollection::PreSave(FObjectPreSaveContext ObjectSaveConte
 void UPCGExPCGDataAssetCollection::EDITOR_OnPostStagingRebuild()
 {
 	EDITOR_RunTypeStatesPostStaging();
+}
+
+void UPCGExPCGDataAssetCollection::EDITOR_RunTypeStatesPreStaging()
+{
+	if (MachineryState)
+	{
+		MachineryState->EDITOR_OnHostPreStagingRebuild(this);
+	}
 }
 
 void UPCGExPCGDataAssetCollection::EDITOR_RunTypeStatesPostStaging()
@@ -2046,6 +2199,12 @@ void UPCGExPCGDataTypeState::AdoptLegacySlot(const FName SlotId, UPCGExAssetColl
 }
 
 #if WITH_EDITOR
+
+void UPCGExPCGDataTypeState::EDITOR_OnHostPreStagingRebuild(UPCGExAssetCollection* Host)
+{
+	FPCGExPCGDataAssetMachinery State = MakeMachinery(Host);
+	UPCGExPCGDataAssetCollection::DealiasEntryStorageFor(State);
+}
 
 void UPCGExPCGDataTypeState::EDITOR_OnHostPostStagingRebuild(UPCGExAssetCollection* Host)
 {

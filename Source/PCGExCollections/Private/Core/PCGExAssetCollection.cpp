@@ -2618,6 +2618,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingDataInternal(bool bRecursive)
 	if (EDITOR_PostStagingRebuildSuppressDepth == 0)
 	{
 		EDITOR_DispatchPipelinePreRebuild();
+		EDITOR_RunTypeStatesPreStaging();
 	}
 
 	// Same identity contract as the runtime RebuildStagingData: ids are settled before entries
@@ -2926,6 +2927,7 @@ int32 UPCGExAssetCollection::EDITOR_RebuildEntriesStaging(TFunctionRef<bool(cons
 	}
 
 	EDITOR_DispatchPipelinePreRebuild();
+	EDITOR_RunTypeStatesPreStaging();
 
 	// Matched again after the hooks: OnPreRebuild may add or remove entries before the batch.
 	TArray<int32> Indices;
@@ -3035,6 +3037,7 @@ bool UPCGExAssetCollection::EDITOR_RebuildEntryStaging(int32 EntryIndex)
 	if (EDITOR_PostStagingRebuildSuppressDepth == 0)
 	{
 		EDITOR_DispatchPipelinePreRebuild();
+		EDITOR_RunTypeStatesPreStaging();
 	}
 
 	bool bChanged = false;

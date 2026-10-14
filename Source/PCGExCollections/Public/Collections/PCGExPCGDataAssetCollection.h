@@ -335,6 +335,7 @@ public:
 	virtual void OnHostSerializeSave_Begin(UPCGExAssetCollection* Host) override;
 	virtual void OnHostSerializeSave_End(UPCGExAssetCollection* Host) override;
 #if WITH_EDITOR
+	virtual void EDITOR_OnHostPreStagingRebuild(UPCGExAssetCollection* Host) override;
 	virtual void EDITOR_OnHostPostStagingRebuild(UPCGExAssetCollection* Host) override;
 
 	/** Embedded exports moved with the host; their Staging.Path strings and the CollectionMap rows baked
@@ -492,6 +493,13 @@ public:
 	 *  Run before RebuildSharedCollectionsFor, which then externalizes under this host's names. */
 	static void AdoptDuplicatedStorageFor(FPCGExPCGDataAssetMachinery& State);
 
+	/** Rows saved before entry copies were detached can still share per-row storage (a slot collection, an export, an
+	 *  external path, a capture payload subobject), and every export then hands the object to the last row exporting.
+	 *  Owner: the row whose export contains the object, else the first row holding it; nothing outside the host, under
+	 *  a foreign external prefix, or in a shared slot is a row's. Other holders lose the reference (never retired) and
+	 *  their next export rebuilds their own. Runs before every editor re-stage; a no-op on clean data. */
+	static void DealiasEntryStorageFor(FPCGExPCGDataAssetMachinery& State);
+
 	/** Shared package-collection walk over the machinery storage: the loaded packages the
 	 *  shared slots and per-entry exports currently live in, minus the host's own and
 	 *  the transient package (so embedded mode contributes nothing). Drives both the manual
@@ -550,6 +558,7 @@ public:
 
 #if WITH_EDITOR
 	virtual void EDITOR_OnPostStagingRebuild() override;
+	virtual void EDITOR_RunTypeStatesPreStaging() override;
 	virtual void EDITOR_RunTypeStatesPostStaging() override;
 	virtual void EDITOR_OnHostRelocated() override;
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;

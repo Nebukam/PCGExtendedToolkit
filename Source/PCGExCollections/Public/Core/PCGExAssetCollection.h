@@ -1278,6 +1278,12 @@ public:
 	{
 	}
 
+	/** The per-type machinery that must precede a re-stage (PCGData per-row storage de-aliasing). Hosts with type
+	 *  states override it; every editor restage path runs it once, after the pipelines' OnPreRebuild. */
+	virtual void EDITOR_RunTypeStatesPreStaging()
+	{
+	}
+
 	/** Re-stage a single entry, mirroring the dirty/broadcast behaviour of a property edit.
 	 *  True only when the entry actually changed. */
 	bool EDITOR_RebuildEntryStaging(int32 EntryIndex);
