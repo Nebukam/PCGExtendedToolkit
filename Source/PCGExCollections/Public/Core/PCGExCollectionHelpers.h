@@ -129,7 +129,7 @@ namespace PCGExCollectionHelpers
 	 * Make an entry payload just copied from OriginalMemory its own -- run on every entry copy, within one collection
 	 * or across assets: EDITOR_OnCopied first, then every top-level Instanced subobject still shared with the original
 	 * is duplicated into NewHost, even one already outered there. OriginalMemory is an instance of Struct (possibly a
-	 * base of the payload's own) or null, in which case nothing is duplicated or retired.
+	 * base of the payload's own) or null, in which case nothing is duplicated.
 	 */
 	PCGEXCOLLECTIONS_API
 	void DetachCopiedEntry(const UScriptStruct* Struct, void* StructMemory, const void* OriginalMemory, UPCGExAssetCollection* NewHost);

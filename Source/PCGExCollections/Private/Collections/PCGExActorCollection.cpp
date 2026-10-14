@@ -214,19 +214,38 @@ void FPCGExActorCollectionEntry::OnHostPreSave(UPCGExAssetCollection* Host, cons
 
 bool FPCGExActorCollectionEntry::Serialize(FArchive& Ar)
 {
-	if (bEditorOnly && Ar.IsCooking())
+	if (!bEditorOnly || !Ar.IsCooking())
 	{
-		FPCGExActorCollectionEntry Cooked = *this;
-		Cooked.Actor.Reset();
-		Cooked.Staging.Path.Reset();
-		Cooked.bHasPCGComponent = false;
-		Cooked.CachedPCGGraph.Reset();
-		Cooked.SerializedPropertyDelta.Reset();
-		Cooked.DeltaCollateralPaths.Reset();
-		Cooked.DeltaSourceActor.Reset();
-		return PCGExAssetCollection::SerializeEntryDelta(Cooked, Ar);
+		return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
 	}
-	return PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+
+	// Scrubbed around the write and restored after it, so the cook gets no class, delta or graph without copying the entry.
+	const TSoftClassPtr<AActor> KeptActor = Actor;
+	const FSoftObjectPath KeptPath = Staging.Path;
+	const bool bKeptHasPCGComponent = bHasPCGComponent;
+	const TSoftObjectPtr<UPCGGraphInterface> KeptGraph = CachedPCGGraph;
+	TArray<uint8> KeptDelta = MoveTemp(SerializedPropertyDelta);
+	TArray<FSoftObjectPath> KeptCollateral = MoveTemp(DeltaCollateralPaths);
+	const TSoftObjectPtr<AActor> KeptDeltaSource = DeltaSourceActor;
+
+	Actor.Reset();
+	Staging.Path.Reset();
+	bHasPCGComponent = false;
+	CachedPCGGraph.Reset();
+	SerializedPropertyDelta.Reset();
+	DeltaCollateralPaths.Reset();
+	DeltaSourceActor.Reset();
+
+	const bool bWritten = PCGExAssetCollection::SerializeEntryDelta(*this, Ar);
+
+	Actor = KeptActor;
+	Staging.Path = KeptPath;
+	bHasPCGComponent = bKeptHasPCGComponent;
+	CachedPCGGraph = KeptGraph;
+	SerializedPropertyDelta = MoveTemp(KeptDelta);
+	DeltaCollateralPaths = MoveTemp(KeptCollateral);
+	DeltaSourceActor = KeptDeltaSource;
+	return bWritten;
 }
 
 bool FPCGExActorCollectionEntry::OnHostPostLoad(UPCGExAssetCollection* Host)

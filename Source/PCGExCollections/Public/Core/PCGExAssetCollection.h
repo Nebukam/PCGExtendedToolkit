@@ -463,8 +463,8 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	 * Editor-only: this payload was just copied from Original to become a new entry (duplicate, cross-collection
 	 * transfer, Omni merge, variant seed). Drop the per-entry state only Original may keep, e.g. working objects its
 	 * next rebuild reuses: what the copy shares with Original stays Original's, what it holds alone is its own to
-	 * retire. Original may be a BASE of this struct (check its type before downcasting) or null (nothing to compare
-	 * against: drop, retire nothing). Called by PCGExCollectionHelpers::DetachCopiedEntry.
+	 * retire. Original may be a BASE of this struct (check its type before downcasting) or null (nothing is shared:
+	 * drop and retire everything). Called by PCGExCollectionHelpers::DetachCopiedEntry.
 	 */
 	virtual void EDITOR_OnCopied(const FPCGExAssetCollectionEntry* Original)
 	{

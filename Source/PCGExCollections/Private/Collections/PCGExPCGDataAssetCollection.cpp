@@ -552,11 +552,11 @@ void FPCGExPCGDataAssetCollectionEntry::EDITOR_OnCopied(const FPCGExAssetCollect
 		                                                : nullptr;
 
 	// The original's next export reuses its working objects and its External refs name its packages, so the copy
-	// starts from nothing. A shared object is only dropped; one the copy holds alone was deep-copied for it and is
-	// retired. Without an original to compare against, nothing is retired.
-	auto Discard = [From](auto& Copied, const UObject* Shared)
+	// starts from nothing. A shared object is only dropped; one the copy holds alone (deep-copied for it, or pasted
+	// with no original) is retired.
+	auto Discard = [](auto& Copied, const UObject* Shared)
 	{
-		if (Copied && From && Copied.Get() != Shared)
+		if (Copied && Copied.Get() != Shared)
 		{
 			Copied->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
 		}
@@ -572,9 +572,9 @@ void FPCGExPCGDataAssetCollectionEntry::EDITOR_OnCopied(const FPCGExAssetCollect
 	}
 	EmbeddedSlots.Reset();
 
-	for (int32 c = 0; From && c < Captures.Num(); c++)
+	for (int32 c = 0; c < Captures.Num(); c++)
 	{
-		const FPCGExExportSlotCapture* FromCapture = From->Captures.IsValidIndex(c) ? &From->Captures[c] : nullptr;
+		const FPCGExExportSlotCapture* FromCapture = From && From->Captures.IsValidIndex(c) ? &From->Captures[c] : nullptr;
 		for (int32 e = 0; e < Captures[c].Entries.Num(); e++)
 		{
 			FInstancedStruct& Entry = Captures[c].Entries[e];
@@ -1867,7 +1867,7 @@ void UPCGExPCGDataAssetCollection::AppendCookDependencyAssetPathsFor(
 	{
 		if (Slot.Collection)
 		{
-			Slot.Collection->GetAssetPaths(OutPaths, PCGExAssetCollection::ELoadingFlags::Recursive);
+			Slot.Collection->GatherCookAssetPaths(OutPaths);
 		}
 		if (!Slot.External.IsNull())
 		{

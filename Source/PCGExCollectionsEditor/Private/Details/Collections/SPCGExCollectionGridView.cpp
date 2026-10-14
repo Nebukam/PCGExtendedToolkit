@@ -1689,8 +1689,8 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	// Step 2: Collect the panel-owned members this commit changed. Derived members come first (TFieldIterator), so a
 	// single pick pre-empts PropertyOverrides; a direct ChangedMemberProperty counts even unchanged (re-commit = stamp).
 	TArray<const FProperty*, TInlineAllocator<4>> ChangedMembers;
+	const uint8* OldData = Before->GetStructMemory();
 	{
-		const uint8* OldData = Before->GetStructMemory();
 		for (TFieldIterator<FProperty> It(EntryStruct); It; ++It)
 		{
 			const FProperty* Prop = *It;
@@ -1708,19 +1708,26 @@ void SPCGExCollectionGridView::SyncStructToCollection(const FProperty* ChangedMe
 	}
 
 	// Step 3: Copy the changed members back to the primary entry
-	// Never the whole struct: everything else on the live entry is newer than the panel copy.
+	// Never the whole struct, and reflected structs sub-property by sub-property: everything the user did not touch
+	// on the live entry is newer than the panel copy (restaging re-stamps Staging between commits).
 	for (const FProperty* Prop : ChangedMembers)
 	{
 		const int32 Offset = Prop->GetOffset_ForInternal();
-		Prop->CopyCompleteValue(PrimaryPtr + Offset, SrcData + Offset);
+		const FStructProperty* StructProp = CastField<FStructProperty>(Prop);
+		if (StructProp && StructProp->Struct != TBaseStructure<FInstancedStruct>::Get())
+		{
+			PropagateChangedProperties(OldData + Offset, SrcData + Offset, PrimaryPtr + Offset, StructProp->Struct);
+		}
+		else
+		{
+			Prop->CopyCompleteValue(PrimaryPtr + Offset, SrcData + Offset);
+		}
 	}
 
 	// Step 4: Propagate to other selected entries
 	// Mixed-type selections: targets resolve each member by name + type; incompatible skip.
 	if (bMultiEdit && !ChangedMembers.IsEmpty())
 	{
-		const uint8* OldData = Before->GetStructMemory();
-
 		TArray<int32> Selected = GetSelectedIndices();
 		for (int32 OtherIndex : Selected)
 		{

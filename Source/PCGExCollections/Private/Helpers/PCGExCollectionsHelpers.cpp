@@ -1735,8 +1735,8 @@ namespace PCGExCollections
 			bool bHasThumbnail = false;
 		};
 
-		// Game thread only. Keyed by object full name.
-		TMap<FName, FDiskProbe> DiskProbes;
+		// Game thread only.
+		TMap<FSoftObjectPath, FDiskProbe> DiskProbes;
 	}
 #endif
 
@@ -1748,6 +1748,16 @@ namespace PCGExCollections
 			return false;
 		}
 
+		// A loaded package's map is the session's latest word: a capture not saved yet (the asset may never have been
+		// saved), or the empty placeholder a save writes for an asset nobody captured.
+		if (const UObject* Loaded = AssetPath.ResolveObject())
+		{
+			if (const FObjectThumbnail* InMemory = ThumbnailTools::FindCachedThumbnail(Loaded->GetFullName()))
+			{
+				return !InMemory->IsEmpty();
+			}
+		}
+
 		const IAssetRegistry* AssetRegistry = IAssetRegistry::Get();
 		const FAssetData AssetData = AssetRegistry ? AssetRegistry->GetAssetByObjectPath(AssetPath, /*bIncludeOnlyOnDiskAssets=*/ true) : FAssetData();
 		if (!AssetData.IsValid())
@@ -1757,25 +1767,17 @@ namespace PCGExCollections
 
 		const FString FullName = AssetData.GetFullName();
 
-		// A loaded package's map is the session's latest word: a capture not saved yet, or the empty placeholder a save
-		// writes for an asset nobody captured.
-		if (const FObjectThumbnail* InMemory = ThumbnailTools::FindCachedThumbnail(FullName))
-		{
-			return !InMemory->IsEmpty();
-		}
-
 		// The file's answer only changes with its bytes. Tile refreshes ask on every edit; read the header once per version.
 		const TOptional<FAssetPackageData> PackageData = AssetRegistry->GetAssetPackageDataCopy(AssetData.PackageName);
 		const FIoHash SavedHash = PackageData.IsSet() ? PackageData->GetPackageSavedHash() : FIoHash();
 
-		const FName Key(FullName);
-		if (const StoredThumbnails::FDiskProbe* Cached = StoredThumbnails::DiskProbes.Find(Key); Cached && Cached->SavedHash == SavedHash)
+		if (const StoredThumbnails::FDiskProbe* Cached = StoredThumbnails::DiskProbes.Find(AssetPath); Cached && Cached->SavedHash == SavedHash)
 		{
 			return Cached->bHasThumbnail;
 		}
 
 		const bool bHasThumbnail = ThumbnailTools::AssetHasCustomThumbnail(FullName);
-		StoredThumbnails::DiskProbes.Add(Key, StoredThumbnails::FDiskProbe{SavedHash, bHasThumbnail});
+		StoredThumbnails::DiskProbes.Add(AssetPath, StoredThumbnails::FDiskProbe{SavedHash, bHasThumbnail});
 		return bHasThumbnail;
 #else
 		return false;
