@@ -30,6 +30,7 @@ class UPackage;
  * UPCGExPCGDataAssetCollection for the reference semantics each hook ports:
  * - EDITOR_OnHostPostStagingRebuild: cross-entry post passes (fires after the host's native
  *   post-rebuild work, before staging pipelines' OnPostRebuild).
+ * - EDITOR_OnHostPreStagingRebuild: cross-entry repairs before any entry re-stages (every editor restage path).
  * - OnHostPreSave: cook-time safety nets (called BEFORE Super::PreSave on the host).
  * - OnHostPostDuplicate: identity re-stamping after asset duplication.
  * - OnHostSerializeSave_Begin/End: paired around the host's Super::Serialize on save, for
@@ -61,6 +62,10 @@ public:
 	}
 
 #if WITH_EDITOR
+	virtual void EDITOR_OnHostPreStagingRebuild(UPCGExAssetCollection* Host)
+	{
+	}
+
 	virtual void EDITOR_OnHostPostStagingRebuild(UPCGExAssetCollection* Host)
 	{
 	}

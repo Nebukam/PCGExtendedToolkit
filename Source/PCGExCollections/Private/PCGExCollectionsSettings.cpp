@@ -33,8 +33,8 @@ void UPCGExCollectionsSettings::UpdateSettingsCaches(const bool bLoadClasses)
 
 #undef PCGEX_PUSH_SETTING
 
-	// Game thread only. A recompiled Blueprint is superseded in place (the old class is renamed REINST_), so the
-	// compile hook re-resolves without loading: the new class is already in memory under the configured path.
+	// Game thread only. The editor hooks pass bLoadClasses false and pick up whatever class object now lives at the
+	// configured path: a Blueprint recompile keeps it (only a REINST_ copy is made), a package reload replaces it.
 	auto Resolve = [bLoadClasses](const FSoftClassPath& Path, const UClass* Base) -> UClass*
 	{
 		UClass* Class = bLoadClasses ? Path.TryLoadClass<UObject>() : Path.ResolveClass();
@@ -47,11 +47,13 @@ void UPCGExCollectionsSettings::UpdateSettingsCaches(const bool bLoadClasses)
 	Cache.DefaultBoundsEvaluatorClass = Resolve(DefaultBoundsEvaluatorClass, UPCGExBoundsEvaluator::StaticClass());
 	Cache.DefaultMeshClassificatorClass = Resolve(DefaultMeshClassificatorClass, UPCGExActorMeshClassificator::StaticClass());
 
+	// Pins the cached classes: unreferenced Blueprint classes are collectable outside the editor. Not a UPROPERTY: cooked
+	// builds put this CDO in the disregard-for-GC pool, whose references are never traced (and fail VerifyGCAssumptions).
 	ResolvedDefaultClasses.Reset(4);
-	ResolvedDefaultClasses.Add(Cache.DefaultLevelExporterClass.Get());
-	ResolvedDefaultClasses.Add(Cache.DefaultContentFilterClass.Get());
-	ResolvedDefaultClasses.Add(Cache.DefaultBoundsEvaluatorClass.Get());
-	ResolvedDefaultClasses.Add(Cache.DefaultMeshClassificatorClass.Get());
+	ResolvedDefaultClasses.Emplace(Cache.DefaultLevelExporterClass.Get());
+	ResolvedDefaultClasses.Emplace(Cache.DefaultContentFilterClass.Get());
+	ResolvedDefaultClasses.Emplace(Cache.DefaultBoundsEvaluatorClass.Get());
+	ResolvedDefaultClasses.Emplace(Cache.DefaultMeshClassificatorClass.Get());
 
 	Cache.SystemActorClasses = UPCGExActorContentFilter::KnownSystemActorClasses;
 	Cache.SystemActorClasses.Append(AdditionalSystemActorClasses);

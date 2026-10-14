@@ -21,9 +21,13 @@
 #include "Helpers/PCGExActorHelpers.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 #if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Containers/Ticker.h"
 #include "Editor.h"
 #include "Helpers/PCGDynamicTrackingHelpers.h"
+#include "Misc/ObjectThumbnail.h"
+#include "ObjectTools.h"
 #include "PackageTools.h"
 #include "UObject/Package.h"
 #include "UObject/ReferencerFinder.h"
@@ -1506,6 +1510,17 @@ namespace PCGExCollections
 		PCGExHelpers::EnsureWorldTransformsCurrent(Actor->GetWorld());
 		return Actor;
 	}
+
+	bool IsEditorOnlyActorClass(const UClass* Class)
+	{
+		if (!Class || !Class->IsChildOf<AActor>())
+		{
+			return false;
+		}
+		// Editor and uncooked-only module packages are flagged by UHT; the CDO check covers the per-class toggle.
+		return Class->GetPackage()->HasAnyPackageFlags(PKG_EditorOnly | PKG_UncookedOnly)
+			|| Class->GetDefaultObject<AActor>()->IsEditorOnly();
+	}
 }
 
 #pragma endregion
@@ -1701,6 +1716,71 @@ namespace PCGExCollections
 		LevelReadRelease::RetryTickerHandle.Reset();
 		LevelReadRelease::PendingPackages.Reset();
 		LevelReadRelease::HeldPackages.Reset();
+#endif
+	}
+}
+
+#pragma endregion
+
+#pragma region Stored thumbnails
+
+namespace PCGExCollections
+{
+#if WITH_EDITOR
+	namespace StoredThumbnails
+	{
+		struct FDiskProbe
+		{
+			FIoHash SavedHash;
+			bool bHasThumbnail = false;
+		};
+
+		// Game thread only.
+		TMap<FSoftObjectPath, FDiskProbe> DiskProbes;
+	}
+#endif
+
+	bool HasStoredThumbnail(const FSoftObjectPath& AssetPath)
+	{
+#if WITH_EDITOR
+		if (!AssetPath.IsValid() || !IsInGameThread())
+		{
+			return false;
+		}
+
+		// A loaded package's map is the session's latest word: a capture not saved yet (the asset may never have been
+		// saved), or the empty placeholder a save writes for an asset nobody captured.
+		if (const UObject* Loaded = AssetPath.ResolveObject())
+		{
+			if (const FObjectThumbnail* InMemory = ThumbnailTools::FindCachedThumbnail(Loaded->GetFullName()))
+			{
+				return !InMemory->IsEmpty();
+			}
+		}
+
+		const IAssetRegistry* AssetRegistry = IAssetRegistry::Get();
+		const FAssetData AssetData = AssetRegistry ? AssetRegistry->GetAssetByObjectPath(AssetPath, /*bIncludeOnlyOnDiskAssets=*/ true) : FAssetData();
+		if (!AssetData.IsValid())
+		{
+			return false;
+		}
+
+		const FString FullName = AssetData.GetFullName();
+
+		// The file's answer only changes with its bytes. Tile refreshes ask on every edit; read the header once per version.
+		const TOptional<FAssetPackageData> PackageData = AssetRegistry->GetAssetPackageDataCopy(AssetData.PackageName);
+		const FIoHash SavedHash = PackageData.IsSet() ? PackageData->GetPackageSavedHash() : FIoHash();
+
+		if (const StoredThumbnails::FDiskProbe* Cached = StoredThumbnails::DiskProbes.Find(AssetPath); Cached && Cached->SavedHash == SavedHash)
+		{
+			return Cached->bHasThumbnail;
+		}
+
+		const bool bHasThumbnail = ThumbnailTools::AssetHasCustomThumbnail(FullName);
+		StoredThumbnails::DiskProbes.Add(AssetPath, StoredThumbnails::FDiskProbe{SavedHash, bHasThumbnail});
+		return bHasThumbnail;
+#else
+		return false;
 #endif
 	}
 }

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetData.h"
 
+class FProperty;
 class IPropertyHandle;
 class UPCGExAssetCollection;
 class UPCGExVariantCollection;
@@ -19,6 +20,13 @@ namespace PCGExCollectionEditorUtils
 {
 	/** Host collection of the entry a handle belongs to: an outer object, else the package a struct-on-scope panel stamps. Null when neither. */
 	PCGEXCOLLECTIONSEDITOR_API const UPCGExAssetCollection* FindHostCollection(const TSharedRef<IPropertyHandle>& PropertyHandle);
+
+	/**
+	 * Whether a struct-on-scope panel may write this entry member back: it is editable there (CPF_Edit, not EditConst).
+	 * Everything else -- exports, capture buffers, slot collections, ids -- belongs to the live entry. The panel's copy
+	 * of it goes stale on the next restage, and writing it back reinstates objects that restage retired.
+	 */
+	PCGEXCOLLECTIONSEDITOR_API bool IsPanelOwnedMember(const FProperty* Property);
 
 	/**
 	 * Resolve an entry's thumbnail/source path to FAssetData without loading. Falls back to stripping

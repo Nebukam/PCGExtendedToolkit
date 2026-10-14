@@ -207,6 +207,10 @@ private:
 		const uint8* OldData, const uint8* NewData, uint8* DstData,
 		const UStruct* Struct, bool bCheckEnabledGate = false);
 
+	/** One changed top-level member, Src over Dst: a reflected struct sub-property by sub-property against Old,
+	 *  anything else (FInstancedStruct included, its payload is opaque) copied whole. */
+	static void CopyChangedMember(const FProperty* Prop, const uint8* Old, const uint8* Src, uint8* Dst);
+
 	bool bIsSyncing = false;
 	bool bIsBatchOperation = false;
 	bool bPendingCategoryRefresh = false;

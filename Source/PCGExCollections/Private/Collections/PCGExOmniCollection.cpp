@@ -600,8 +600,8 @@ int32 UPCGExOmniCollection::EDITOR_AppendCollections(TConstArrayView<UPCGExAsset
 
 			FPCGExAssetCollectionEntry* Payload = Row.GetPayload();
 
-			// Payload copy is SHALLOW for Instanced subobjects -- duplicate into this asset.
-			PCGExCollectionHelpers::DuplicateInstancedSubobjects(PayloadStruct, Payload, this);
+			// Payload copy is SHALLOW: its Instanced subobjects and per-entry export state are still the source's.
+			PCGExCollectionHelpers::DetachCopiedEntry(PayloadStruct, Payload, Entry, this);
 
 			// New identity: fresh EntryId on the next SyncEntryIds pass.
 			Payload->EntryId = 0;
@@ -722,6 +722,17 @@ void UPCGExOmniCollection::EDITOR_OnPostStagingRebuild()
 	}
 
 	EDITOR_RunTypeStatesPostStaging();
+}
+
+void UPCGExOmniCollection::EDITOR_RunTypeStatesPreStaging()
+{
+	for (const TObjectPtr<UPCGExCollectionTypeState>& State : TypeStates)
+	{
+		if (State)
+		{
+			State->EDITOR_OnHostPreStagingRebuild(this);
+		}
+	}
 }
 
 void UPCGExOmniCollection::EDITOR_RunTypeStatesPostStaging()
