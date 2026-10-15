@@ -5,8 +5,10 @@
 
 #include "PCGExAssemblyRoot.h"
 #include "Engine/Level.h"
+#include "Engine/LevelStreaming.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "LevelUtils.h"
 
 #if WITH_EDITOR
 #include "Editor/GroupActor.h"
@@ -20,6 +22,15 @@ FPCGExLevelExportSource FPCGExLevelExportSource::FromWorld(UWorld* InWorld)
 	Source.World = InWorld;
 	if (InWorld && InWorld->PersistentLevel)
 	{
+		// A level streamed into another world (a Level Instance edited in place) carries the instance transform; export in level space.
+		if (InWorld->PersistentLevel->bAlreadyMovedActors)
+		{
+			if (const ULevelStreaming* StreamingLevel = FLevelUtils::FindStreamingLevel(InWorld->PersistentLevel))
+			{
+				Source.Frame = StreamingLevel->LevelTransform;
+			}
+		}
+
 		Source.Actors.Reserve(InWorld->PersistentLevel->Actors.Num());
 		for (AActor* Actor : InWorld->PersistentLevel->Actors)
 		{
