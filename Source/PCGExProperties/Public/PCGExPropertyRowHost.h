@@ -9,6 +9,7 @@
 
 #include "PCGExPropertyRowHost.generated.h"
 
+class FStructOnScope;
 class UPCGExPropertySchemaAsset;
 struct FInstancedStruct;
 struct FPCGExPropertyOverrides;
@@ -110,5 +111,36 @@ namespace PCGExPropertyRowHost
 
 	/** Classify Event for such a host. A drag in progress (Interactive) asks for nothing: it commits once at its end. */
 	PCGEXPROPERTIES_API FEditKind ClassifyEdit(const FPropertyChangedEvent& Event, FName SchemaMember, FName RowsMember);
+
+	/**
+	 * The value PropertyName declares in Schema, resolved through FallbackChain with choices baked: the core of
+	 * EDITOR_ResolveInheritedValue. False, Out untouched, when Schema does not declare the name.
+	 */
+	PCGEXPROPERTIES_API bool ResolveDeclaredValue(
+		const FPCGExPropertySchemaCollection& Schema, TConstArrayView<const FPCGExPropertyOverrides*> FallbackChain, bool bIncludeOwnOverrides,
+		FName PropertyName, FInstancedStruct& Out);
+
+	/** Same question as EDITOR_ResolveInheritedValue, answered for rows a struct-scope panel edits with no host object. */
+	using FResolveInheritedValue = TFunction<bool(const FPCGExPropertyRowSite& Site, FName PropertyName, FInstancedStruct& Out)>;
+
+	/**
+	 * Registers how the rows under a struct scope inherit, for as long as this object lives. Declare it after the
+	 * scope it names and replace both together. Game thread only, like the panels that hold it.
+	 */
+	class PCGEXPROPERTIES_API FScopeResolverRegistration
+	{
+	public:
+		FScopeResolverRegistration(const TSharedRef<FStructOnScope>& InScope, FResolveInheritedValue InResolver);
+		~FScopeResolverRegistration();
+		FScopeResolverRegistration(const FScopeResolverRegistration&) = delete;
+		FScopeResolverRegistration& operator=(const FScopeResolverRegistration&) = delete;
+
+	private:
+		const FStructOnScope* Key = nullptr;
+		uint64 Serial = 0;
+	};
+
+	/** The resolver registered for a scope that is still alive; null otherwise. */
+	PCGEXPROPERTIES_API const FResolveInheritedValue* FindScopeResolver(const FStructOnScope* Scope);
 }
 #endif

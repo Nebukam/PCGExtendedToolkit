@@ -190,13 +190,29 @@ FPCGExPropertyRowSite FPCGExPropertyOverrideEntryCustomization::BuildRowSite() c
 
 bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(FInstancedStruct& Out) const
 {
-	const IPCGExPropertyRowHost* Host = Cast<IPCGExPropertyRowHost>(WeakRowHost.Get());
 	const FPCGExPropertyOverrideEntry* Entry = AccessEntry();
-	if (!Host || !Entry)
+	if (!Entry)
 	{
 		return false;
 	}
-	return Host->EDITOR_ResolveInheritedValue(BuildRowSite(), Entry->GetPropertyName(), Out);
+	const FName PropertyName = Entry->GetPropertyName();
+
+	if (const IPCGExPropertyRowHost* Host = Cast<IPCGExPropertyRowHost>(WeakRowHost.Get()))
+	{
+		return Host->EDITOR_ResolveInheritedValue(BuildRowSite(), PropertyName, Out);
+	}
+
+	// No host object: a struct-scope panel may have registered how the rows under its scope inherit.
+	const TSharedPtr<IPropertyHandle> Handle = PropertyHandlePtr.Pin();
+	TArray<TSharedPtr<FStructOnScope>> Scopes;
+	if (Handle.IsValid())
+	{
+		Handle->GetOuterStructs(Scopes);
+	}
+	const PCGExPropertyRowHost::FResolveInheritedValue* Resolver = Scopes.Num() == 1
+		? PCGExPropertyRowHost::FindScopeResolver(Scopes[0].Get())
+		: nullptr;
+	return Resolver && (*Resolver)(BuildRowSite(), PropertyName, Out);
 }
 
 bool FPCGExPropertyOverrideEntryCustomization::IsOverrideEnabled() const
