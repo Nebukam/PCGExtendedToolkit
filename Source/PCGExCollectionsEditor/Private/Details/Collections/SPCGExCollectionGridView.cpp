@@ -1576,6 +1576,9 @@ bool SPCGExCollectionGridView::UpdateDetailForCategoryOverrides()
 	CurrentStructScope = MakeShared<FStructOnScope>(RowStruct);
 	RowStruct->CopyScriptStruct(CurrentStructScope->GetStructMemory(), Row);
 
+	// The copy has no outer; the package lets customizations reach the host (IPropertyHandle::GetOuterPackages).
+	CurrentStructScope->SetPackage(Coll->GetPackage());
+
 	// Keeps every entry-index consumer -- sync-back, push -- inert while this mode is up.
 	CurrentDetailIndex = INDEX_NONE;
 	CurrentStructBaseline.Reset();

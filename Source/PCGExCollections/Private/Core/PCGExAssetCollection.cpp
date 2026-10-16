@@ -2181,6 +2181,38 @@ void UPCGExAssetCollection::EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaA
 	PostEditChangeProperty(Event);
 }
 
+bool UPCGExAssetCollection::EDITOR_ResolveInheritedValue(const FPCGExPropertyRowSite& Site, const FName PropertyName, FInstancedStruct& Out) const
+{
+	if (Site.bIsImportLayer)
+	{
+		return IPCGExPropertyRowHost::EDITOR_ResolveInheritedValue(Site, PropertyName, Out);
+	}
+
+	// A category row contributes no layer of its own; an entry row names its category. The site is a panel copy as
+	// often as live storage, so the category is read off the view, never looked up in Entries.
+	FName Category = NAME_None;
+	if (Site.Outer.IsValid())
+	{
+		const UScriptStruct* OuterStruct = Site.Outer.GetScriptStruct();
+		if (OuterStruct->IsChildOf(FPCGExAssetCollectionEntry::StaticStruct()))
+		{
+			Category = Site.Outer.Get<FPCGExAssetCollectionEntry>().Category;
+		}
+		else if (!OuterStruct->IsChildOf(FPCGExCategoryOverrides::StaticStruct()))
+		{
+			return IPCGExPropertyRowHost::EDITOR_ResolveInheritedValue(Site, PropertyName, Out);
+		}
+	}
+
+	const FInstancedStruct* Slot = ResolveCategoryPropertySlot(Category, PropertyName, FPCGExProperty::StaticStruct());
+	if (!Slot)
+	{
+		return false;
+	}
+	Out = *Slot;
+	return true;
+}
+
 void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
 {
 	// Remap must happen before the SyncToSchema loop below -- SyncToSchema's HeaderId index

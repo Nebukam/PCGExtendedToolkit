@@ -519,6 +519,22 @@ namespace PCGExProperties
 	}
 }
 
+FInstancedStruct FPCGExPropertyResolved::MakeEffectiveCopy() const
+{
+	FInstancedStruct Copy = GetEffectiveProperty();
+#if WITH_EDITORONLY_DATA
+	// A declaration nothing patches already carries the effective list; an override row's is a mirror that may be stale.
+	if (OverrideValue || !ChoicePatches.IsEmpty())
+	{
+		if (FPCGExProperty* Property = Copy.GetMutablePtr<FPCGExProperty>())
+		{
+			GetEffectiveChoices(Property->Choices);
+		}
+	}
+#endif
+	return Copy;
+}
+
 #if WITH_EDITORONLY_DATA
 void FPCGExPropertyResolved::GetEffectiveChoices(FPCGExPropertyChoices& Out) const
 {
@@ -1382,18 +1398,7 @@ TArray<FInstancedStruct> FPCGExPropertySchemaCollection::BuildSchema(TConstArray
 	Result.Reserve(Resolved.Num());
 	for (const FPCGExPropertyResolved& Entry : Resolved)
 	{
-		FInstancedStruct& Copy = Result.Add_GetRef(Entry.GetEffectiveProperty());
-#if WITH_EDITORONLY_DATA
-		// A declaration copied as is already carries the effective list. An override row's is a mirror that may be
-		// stale, and a patch makes the effective list differ from both: bake it then.
-		if (Entry.OverrideValue || !Entry.ChoicePatches.IsEmpty())
-		{
-			if (FPCGExProperty* Property = Copy.GetMutablePtr<FPCGExProperty>())
-			{
-				Entry.GetEffectiveChoices(Property->Choices);
-			}
-		}
-#endif
+		Result.Add(Entry.MakeEffectiveCopy());
 	}
 	return Result;
 }
