@@ -6,12 +6,39 @@
 #if WITH_EDITOR
 
 #include "PCGExProperty.h"
+#include "PCGExPropertySchema.h"
 #include "PCGExPropertySchemaAsset.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/UObjectHash.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/UnrealType.h"
+
+bool IPCGExPropertyRowHost::EDITOR_ResolveInheritedValue(const FPCGExPropertyRowSite& Site, const FName PropertyName, FInstancedStruct& Out) const
+{
+	const FPCGExPropertySchemaCollection* Schema = EDITOR_GetRowSchema();
+	if (!Schema || PropertyName.IsNone())
+	{
+		return false;
+	}
+
+	FLayerChain Chain;
+	EDITOR_GetRowSchemaFallbackChain(Chain);
+
+	TArray<FPCGExPropertyResolved> Resolved;
+	Schema->Resolve(Resolved, MakeArrayView(Chain), /*bIncludeOwnOverrides=*/!Site.bIsImportLayer);
+	const FPCGExPropertyResolved* Match = Resolved.FindByPredicate([PropertyName](const FPCGExPropertyResolved& Candidate)
+	{
+		return Candidate.Source->Name == PropertyName;
+	});
+	if (!Match)
+	{
+		return false;
+	}
+
+	Out = Match->MakeEffectiveCopy();
+	return Out.IsValid();
+}
 
 namespace PCGExPropertyRowHost
 {

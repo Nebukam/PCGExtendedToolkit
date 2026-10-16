@@ -4,14 +4,34 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StructUtils/StructView.h"
 #include "UObject/Interface.h"
 
 #include "PCGExPropertyRowHost.generated.h"
 
 class UPCGExPropertySchemaAsset;
+struct FInstancedStruct;
 struct FPCGExPropertyOverrides;
 struct FPCGExPropertySchemaCollection;
 struct FPropertyChangedEvent;
+
+#if WITH_EDITOR
+/**
+ * Where a row container sits in its host, as the details tree sees it. Built by the row customization from handles,
+ * so it describes a panel copy as well as live storage; a host reads it to pick the layers below those rows.
+ */
+struct FPCGExPropertyRowSite
+{
+	/** The struct holding the rows member (an entry, a category row, a schema collection). Invalid for a UObject member or an array element. */
+	FConstStructView Outer;
+
+	/** Name of the FPCGExPropertyOverrides member the rows are. */
+	FName RowsMember = NAME_None;
+
+	/** True when the rows are the schema's own ImportOverrides. */
+	bool bIsImportLayer = false;
+};
+#endif
 
 UINTERFACE()
 class PCGEXPROPERTIES_API UPCGExPropertyRowHost : public UInterface
@@ -50,6 +70,13 @@ public:
 
 	/** Row values were written in place: dirty, refresh views, re-run whatever the host derives from its rows. */
 	virtual void EDITOR_NotifyRowsChanged() = 0;
+
+	/**
+	 * The value PropertyName takes for the rows at Site while their own slot is disabled: what the host's consumers
+	 * fall through to, choices baked. The default resolves the row schema through the fallback chain, own layer left
+	 * out for the import layer. False, Out untouched, when nothing below Site declares the name.
+	 */
+	virtual bool EDITOR_ResolveInheritedValue(const FPCGExPropertyRowSite& Site, FName PropertyName, FInstancedStruct& Out) const;
 
 	/**
 	 * A schema asset this host's schema imports changed. Bring the rows back in line without reshaping the schema's
