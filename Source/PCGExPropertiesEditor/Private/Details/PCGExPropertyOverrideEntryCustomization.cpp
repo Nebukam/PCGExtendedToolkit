@@ -109,23 +109,38 @@ void FPCGExPropertyOverrideEntryCustomization::OnUserDefinedStructReinstanced(co
 		}
 	}
 
-	// Deferred refresh avoids tearing down the widget tree mid-event-handler stack.
-	if (TSharedPtr<IPropertyUtilities> Util = WeakPropertyUtilities.Pin())
-	{
-		Util->RequestRefresh();
-	}
+	// The nested field rows were built for the old layout: a rebuild, deferred past this event handler.
+	RequestRowsRebuild();
 }
 
 FPCGExPropertyOverrideEntry* FPCGExPropertyOverrideEntryCustomization::AccessEntry() const
 {
+	FPCGExPropertyOverrideEntry* First = nullptr;
+	ForEachEntry([&First](FPCGExPropertyOverrideEntry& Entry)
+	{
+		if (!First)
+		{
+			First = &Entry;
+		}
+	});
+	return First;
+}
+
+void FPCGExPropertyOverrideEntryCustomization::ForEachEntry(const TFunctionRef<void(FPCGExPropertyOverrideEntry&)> Visitor) const
+{
 	const TSharedPtr<IPropertyHandle> Handle = PropertyHandlePtr.Pin();
 	if (!Handle.IsValid() || !Handle->IsValidHandle())
 	{
-		return nullptr;
+		return;
 	}
-	TArray<void*> RawData;
-	Handle->AccessRawData(RawData);
-	return RawData.IsEmpty() ? nullptr : static_cast<FPCGExPropertyOverrideEntry*>(RawData[0]);
+	Handle->EnumerateRawData([&Visitor](void* Data, const int32, const int32)
+	{
+		if (Data)
+		{
+			Visitor(*static_cast<FPCGExPropertyOverrideEntry*>(Data));
+		}
+		return true;
+	});
 }
 
 const FPCGExProperty* FPCGExPropertyOverrideEntryCustomization::AccessEntryProperty() const
@@ -188,7 +203,7 @@ FPCGExPropertyRowSite FPCGExPropertyOverrideEntryCustomization::BuildRowSite() c
 	return Site;
 }
 
-bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(FInstancedStruct& Out) const
+bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(const FPCGExPropertyRowSite& Site, FInstancedStruct& Out) const
 {
 	const FPCGExPropertyOverrideEntry* Entry = AccessEntry();
 	if (!Entry)
@@ -199,7 +214,7 @@ bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(FInstancedS
 
 	if (const IPCGExPropertyRowHost* Host = Cast<IPCGExPropertyRowHost>(WeakRowHost.Get()))
 	{
-		return Host->EDITOR_ResolveInheritedValue(BuildRowSite(), PropertyName, Out);
+		return Host->EDITOR_ResolveInheritedValue(Site, PropertyName, Out);
 	}
 
 	// No host object: a struct-scope panel may have registered how the rows under its scope inherit.
@@ -212,31 +227,46 @@ bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(FInstancedS
 	const PCGExPropertyRowHost::FResolveInheritedValue* Resolver = Scopes.Num() == 1
 		? PCGExPropertyRowHost::FindScopeResolver(Scopes[0].Get())
 		: nullptr;
-	return Resolver && (*Resolver)(BuildRowSite(), PropertyName, Out);
+	return Resolver && (*Resolver)(Site, PropertyName, Out);
+}
+
+bool FPCGExPropertyOverrideEntryCustomization::ResolveInheritedValue(FInstancedStruct& Out) const
+{
+	return ResolveInheritedValue(BuildRowSite(), Out);
+}
+
+bool FPCGExPropertyOverrideEntryCustomization::IsOverrideEnabled(const FPCGExPropertyOverrideEntry& Entry) const
+{
+	if (const UPCGExPropertyCollectionComponent* Live = WeakLiveComponent.Get())
+	{
+		const FName Name = Entry.GetPropertyName();
+		return !Name.IsNone() && Live->EnabledOverrides.Contains(Name);
+	}
+	return Entry.bEnabled;
 }
 
 bool FPCGExPropertyOverrideEntryCustomization::IsOverrideEnabled() const
 {
 	const FPCGExPropertyOverrideEntry* Entry = AccessEntry();
-	if (!Entry)
-	{
-		return false;
-	}
-	if (const UPCGExPropertyCollectionComponent* Live = WeakLiveComponent.Get())
-	{
-		const FName Name = Entry->GetPropertyName();
-		return !Name.IsNone() && Live->EnabledOverrides.Contains(Name);
-	}
-	return Entry->bEnabled;
+	return Entry && IsOverrideEnabled(*Entry);
 }
 
 ECheckBoxState FPCGExPropertyOverrideEntryCustomization::GetToggleState() const
 {
-	if (!AccessEntry())
+	// Mixed across a multi-object selection reads as undetermined, as the handle-bound checkbox did.
+	TOptional<bool> Common;
+	bool bMixed = false;
+	ForEachEntry([this, &Common, &bMixed](const FPCGExPropertyOverrideEntry& Entry)
+	{
+		const bool bEnabled = IsOverrideEnabled(Entry);
+		bMixed |= Common.IsSet() && *Common != bEnabled;
+		Common = bEnabled;
+	});
+	if (!Common.IsSet() || bMixed)
 	{
 		return ECheckBoxState::Undetermined;
 	}
-	return IsOverrideEnabled() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return *Common ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void FPCGExPropertyOverrideEntryCustomization::OnToggleStateChanged(const ECheckBoxState NewState)
@@ -244,11 +274,41 @@ void FPCGExPropertyOverrideEntryCustomization::OnToggleStateChanged(const ECheck
 	SetOverrideEnabled(NewState == ECheckBoxState::Checked);
 }
 
+void FPCGExPropertyOverrideEntryCustomization::ApplyOverrideEnabled(const bool bEnable)
+{
+	// Resolved once, off the first entry: every entry the handle edits stands for the same property.
+	FInstancedStruct Inherited;
+	const bool bHasInherited = ResolveInheritedValue(Inherited);
+
+	UPCGExPropertyCollectionComponent* Live = WeakLiveComponent.Get();
+	ForEachEntry([bEnable, bHasInherited, &Inherited, Live](FPCGExPropertyOverrideEntry& Entry)
+	{
+		// A row of another type than its property is left to SyncToSchema: reassigning it here would free the memory
+		// the live value rows alias before the rebuild lands.
+		if (bHasInherited)
+		{
+			PCGExProperties::AdoptValue(Entry.Value, Inherited);
+		}
+
+		// The set first, so the mirror re-derived in the component's PostEditChangeChainProperty agrees. A None-named
+		// row on an instance has no set entry to agree with: the mirror would revert at once, so it is left alone.
+		const FName Name = Entry.GetPropertyName();
+		if (Live)
+		{
+			if (Name.IsNone())
+			{
+				return;
+			}
+			Live->SetOverrideEnabled(Name, bEnable);
+		}
+		Entry.bEnabled = bEnable;
+	});
+}
+
 void FPCGExPropertyOverrideEntryCustomization::SetOverrideEnabled(const bool bEnable)
 {
 	const TSharedPtr<IPropertyHandle> Handle = PropertyHandlePtr.Pin();
-	FPCGExPropertyOverrideEntry* Entry = Handle.IsValid() ? AccessEntry() : nullptr;
-	if (!Entry)
+	if (!Handle.IsValid() || !AccessEntry())
 	{
 		return;
 	}
@@ -259,29 +319,17 @@ void FPCGExPropertyOverrideEntryCustomization::SetOverrideEnabled(const bool bEn
 
 	// PreEditChange reaches every outer object (UObject::PreEditChange calls Modify); the grid's sync-back covers a copy.
 	Handle->NotifyPreChange();
-
-	// The slot lands on the value its consumers use either way: the seed an enabled row starts from, the mirror a
-	// disabled one keeps. A row of another type than its property takes the resolved type; the refresh below rebinds.
-	FInstancedStruct Inherited;
-	if (ResolveInheritedValue(Inherited) && !PCGExProperties::AdoptValue(Entry->Value, Inherited))
-	{
-		Entry->Value = Inherited;
-	}
-
-	// The set first, so the mirror re-derived in the component's PostEditChangeChainProperty agrees. The direct write
-	// is the only flag on every other host and covers a None-named row the set skips.
-	if (UPCGExPropertyCollectionComponent* Live = WeakLiveComponent.Get())
-	{
-		Live->SetOverrideEnabled(Entry->GetPropertyName(), bEnable);
-	}
-	Entry->bEnabled = bEnable;
-
+	ApplyOverrideEnabled(bEnable);
 	Handle->NotifyPostChange(EPropertyChangeType::ValueSet);
 	Handle->NotifyFinishedChangingProperties();
 
-	// The value rows alias one memory, the inherited copy or the slot; only a rebuild swaps it. RequestRefresh does not
-	// rebuild (it refreshes the Slate tree over the same rows); RequestForceRefresh does, next tick.
-	if (TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
+	RequestRowsRebuild();
+}
+
+void FPCGExPropertyOverrideEntryCustomization::RequestRowsRebuild() const
+{
+	// RequestRefresh refreshes the Slate tree over the same rows; RequestForceRefresh rebuilds them, next tick.
+	if (const TSharedPtr<IPropertyUtilities> Utils = WeakPropertyUtilities.Pin())
 	{
 		Utils->RequestForceRefresh();
 	}
@@ -402,9 +450,12 @@ bool FPCGExPropertyOverrideEntryCustomization::IsResetToInheritedVisible(TShared
 
 void FPCGExPropertyOverrideEntryCustomization::ResetToInherited(TSharedPtr<IPropertyHandle>)
 {
+	// The engine runs this inside its own transaction and pre/post notify bracket (FPropertyHandleBase::
+	// OnCustomResetToDefault): a second NotifyPreChange would hit UActorComponent::PreEditChange's re-entry check.
 	if (bComponentHasArchetypeChain)
 	{
-		SetOverrideEnabled(false);
+		ApplyOverrideEnabled(false);
+		RequestRowsRebuild();
 	}
 }
 
@@ -445,11 +496,13 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 		return;
 	}
 
+	const FPCGExPropertyRowSite Site = BuildRowSite();
+
 	// A disabled slot shows what its consumers resolve to, off a copy this customization owns: its stored value is
 	// never shown. The slot itself is shown while enabled, or when nothing below declares the property in its type.
 	uint8* StructMemory = Instance->GetMutableMemory();
 	InheritedValue.Reset();
-	if (!IsOverrideEnabled() && ResolveInheritedValue(InheritedValue) && InheritedValue.GetScriptStruct() == InnerStruct)
+	if (!IsOverrideEnabled() && ResolveInheritedValue(Site, InheritedValue) && InheritedValue.GetScriptStruct() == InnerStruct)
 	{
 		StructMemory = InheritedValue.GetMutableMemory();
 	}
@@ -478,12 +531,13 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	// An import entry authors this importer's rewrite of the inherited choices through the arrow's popover. Not under
 	// a locked schema (values-only host), and not on a Blueprint-built component instance, which keeps no patch of
 	// its own: its class chain's applies. Consumer rows (a Tuple's, an entry's) get no entry: the arrow stays a pick.
+	// The patch session needs the entry's own Value as its host (it checks the memory matches), never the display copy.
 	const bool bKeepsPatch = !(WeakLiveComponent.IsValid() && bComponentHasArchetypeChain);
 	if (bKeepsPatch
-		&& BuildRowSite().bIsImportLayer
+		&& Site.bIsImportLayer
 		&& !PCGExPropertyChoicesUI::IsUnderReadOnlySchema(PropertyHandle))
 	{
-		Choices.EditChoices = PCGExPropertyChoicesUI::MakePatchEditor(PropertyHandle, Choices.Host);
+		Choices.EditChoices = PCGExPropertyChoicesUI::MakePatchEditor(PropertyHandle, FPCGExPropertyHostRef(ValueHandlePtr, EPCGExPropertyHostKind::Instanced));
 	}
 
 	const TAttribute<bool> IsEnabledAttr = TAttribute<bool>::Create(

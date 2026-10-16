@@ -51,8 +51,10 @@ public:
 private:
 	void OnUserDefinedStructReinstanced(const UUserDefinedStruct& Struct);
 
-	/** The entry the handle edits (its first instance), null when unreachable. */
+	/** The entry the handle edits (its first instance), null when unreachable. No allocation: read every paint. */
 	FPCGExPropertyOverrideEntry* AccessEntry() const;
+	/** Every entry the handle edits, one per selected object. */
+	void ForEachEntry(TFunctionRef<void(FPCGExPropertyOverrideEntry&)> Visitor) const;
 	const FPCGExProperty* AccessEntryProperty() const;
 	FText GetEntryNameText() const;
 	FText GetEntryTypeText() const;
@@ -61,18 +63,26 @@ private:
 	FPCGExPropertyRowSite BuildRowSite() const;
 
 	/** What the entry resolves to while disabled; false when the host or the declaration cannot be reached. */
+	bool ResolveInheritedValue(const FPCGExPropertyRowSite& Site, FInstancedStruct& Out) const;
 	bool ResolveInheritedValue(FInstancedStruct& Out) const;
 
 	/** On a component instance the EnabledOverrides set, which its bEnabled mirrors with a lag; bEnabled elsewhere. */
+	bool IsOverrideEnabled(const FPCGExPropertyOverrideEntry& Entry) const;
 	bool IsOverrideEnabled() const;
 	ECheckBoxState GetToggleState() const;
 	void OnToggleStateChanged(ECheckBoxState NewState);
 
 	/**
-	 * Enable or disable the override, landing the slot on the inherited value first. One transaction, notified through
-	 * the entry handle so hosts and the grid's sync-back see one change; then a refresh so the value rows rebind.
+	 * The raw edit: every entry lands on the inherited value (the seed an enabled row starts from, the mirror a disabled
+	 * one keeps) and takes the flag. Runs inside a caller's transaction and pre/post notify bracket.
 	 */
+	void ApplyOverrideEnabled(bool bEnable);
+
+	/** The toggle: ApplyOverrideEnabled under its own transaction and entry-handle notify bracket, then a rebuild. */
 	void SetOverrideEnabled(bool bEnable);
+
+	/** The value rows alias one memory, the inherited copy or the slot; only a rebuild swaps it. */
+	void RequestRowsRebuild() const;
 
 	/** The toggle checkbox, one widget for every host. */
 	TSharedRef<SWidget> BuildOverrideToggleWidget();
