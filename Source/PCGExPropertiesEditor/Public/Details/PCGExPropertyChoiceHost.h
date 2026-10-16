@@ -8,6 +8,7 @@
 #include "StructUtils/StructView.h"
 #include "Templates/SharedPointer.h"
 
+class FStructOnScope;
 class IPropertyHandle;
 struct FPCGExPropertyChoice;
 
@@ -20,23 +21,27 @@ enum class EPCGExPropertyHostKind : uint8
 	Instanced,
 	/** The handle's value is an FPCGExPropertyOverrideEntry; the host is its Value. */
 	Entry,
+	/** No handle: a property struct in a scope the row's owner holds for the row's whole lifetime. */
+	Owned,
 };
 
 /**
  * Reaches the property struct a row edits through a property handle, on demand. A host can be freed and reallocated
  * between two frames (undo, a row sync, a retype): the handle either follows it or reports that it could not, which a
  * cached pointer does not. Build it from a handle rooted in the edited object, never from an external-structure row's
- * own handle: that one aliases the very memory this exists not to trust.
+ * own handle: that one aliases the very memory this exists not to trust. The one scope form is for a display copy the
+ * row's owner allocates itself and outlives the row with.
  */
 class PCGEXPROPERTIESEDITOR_API FPCGExPropertyHostRef
 {
 public:
 	FPCGExPropertyHostRef() = default;
 	FPCGExPropertyHostRef(const TSharedPtr<IPropertyHandle>& InHandle, EPCGExPropertyHostKind InKind);
+	explicit FPCGExPropertyHostRef(const TSharedPtr<FStructOnScope>& InOwnedScope);
 
 	bool IsSet() const
 	{
-		return Handle.IsValid();
+		return Handle.IsValid() || OwnedScope.IsValid();
 	}
 
 	/** The host as it is now; invalid when the handle is gone, edits several objects, or holds no property. */
@@ -52,6 +57,7 @@ public:
 
 private:
 	TSharedPtr<IPropertyHandle> Handle;
+	TSharedPtr<FStructOnScope> OwnedScope;
 	EPCGExPropertyHostKind Kind = EPCGExPropertyHostKind::Property;
 };
 

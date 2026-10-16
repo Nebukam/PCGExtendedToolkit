@@ -631,6 +631,9 @@ struct PCGEXPROPERTIES_API FPCGExPropertyResolved
 	{
 		return OverrideValue ? *OverrideValue : Source->Property;
 	}
+
+	/** A copy of the effective property carrying the effective choices: an override row's list is a mirror that may be stale. */
+	FInstancedStruct MakeEffectiveCopy() const;
 };
 
 /**
