@@ -1043,6 +1043,8 @@ public:
 	virtual void EDITOR_ForEachPropertyRows(TFunctionRef<void(FPCGExPropertyOverrides& Rows, bool bIsImportLayer)> Visitor) override;
 	virtual void EDITOR_NotifyRowsChanged() override;
 	virtual void EDITOR_OnImportedSchemaChanged(UPCGExPropertySchemaAsset* Asset) override;
+	/** Entry rows fall through the category tier, category rows through the collection default; the import layer as the base. */
+	virtual bool EDITOR_ResolveInheritedValue(const FPCGExPropertyRowSite& Site, FName PropertyName, FInstancedStruct& Out) const override;
 	//~End IPCGExPropertyRowHost
 #endif
 

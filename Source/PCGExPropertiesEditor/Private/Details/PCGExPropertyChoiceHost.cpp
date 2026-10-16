@@ -6,6 +6,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "PCGExProperty.h"
 #include "PropertyHandle.h"
+#include "UObject/StructOnScope.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPropertyChoiceHost"
 
@@ -22,6 +23,12 @@ namespace PCGExPropertyChoiceHost
 FPCGExPropertyHostRef::FPCGExPropertyHostRef(const TSharedPtr<IPropertyHandle>& InHandle, const EPCGExPropertyHostKind InKind)
 	: Handle(InHandle)
 	, Kind(InKind)
+{
+}
+
+FPCGExPropertyHostRef::FPCGExPropertyHostRef(const TSharedPtr<FStructOnScope>& InOwnedScope)
+	: OwnedScope(InOwnedScope)
+	, Kind(EPCGExPropertyHostKind::Owned)
 {
 }
 
@@ -46,6 +53,14 @@ void* FPCGExPropertyHostRef::GetSingleRawData(const TSharedPtr<IPropertyHandle>&
 
 FStructView FPCGExPropertyHostRef::Resolve() const
 {
+	if (Kind == EPCGExPropertyHostKind::Owned)
+	{
+		const UScriptStruct* Struct = OwnedScope.IsValid() ? Cast<UScriptStruct>(OwnedScope->GetStruct()) : nullptr;
+		return Struct && Struct->IsChildOf(FPCGExProperty::StaticStruct())
+			? FStructView(Struct, OwnedScope->GetStructMemory())
+			: FStructView();
+	}
+
 	void* Raw = GetSingleRawData(Handle);
 	if (!Raw)
 	{

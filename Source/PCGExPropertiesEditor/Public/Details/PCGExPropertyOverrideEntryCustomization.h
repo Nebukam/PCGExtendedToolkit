@@ -5,30 +5,30 @@
 
 #include "IDetailPropertyRow.h"
 #include "IPropertyTypeCustomization.h"
+#include "PCGExPropertyRowHost.h"
 #include "StructUtils/InstancedStruct.h"
+#include "Styling/SlateTypes.h"
 #include "UObject/WeakObjectPtr.h"
 
 class FStructOnScope;
 class IPropertyUtilities;
 class SWidget;
 class UPCGExPropertyCollectionComponent;
+struct FPCGExProperty;
+struct FPCGExPropertyOverrideEntry;
 
 
 /**
- * Customizes FPCGExPropertyOverrideEntry to show PropertyName label + Value widget.
- * Uses dynamic text for PropertyName to update when schema changes.
+ * One override row: toggle, name label and value editor for an FPCGExPropertyOverrideEntry.
  *
- * Lifetime-critical state (InnerScope, ValueHandlePtr, EnabledHandlePtr) is held as
- * members so every widget / lambda created in CustomizeHeader / CustomizeChildren is
- * guaranteed to outlive its backing data by being transitively owned by this
- * customization instance. The detail panel releases customizations only after its
- * Slate subtree is torn down, which makes the lifetime coupling structural rather
- * than relying on ref-count ordering between the detail tree and child widgets.
+ * A disabled row shows the value its host's consumers resolve to (IPCGExPropertyRowHost::EDITOR_ResolveInheritedValue),
+ * off a copy this customization owns; the stored slot is shown only while enabled, or when nothing below declares the
+ * property. The toggle lands the slot on that inherited value either way: the seed an enabled row starts from, the
+ * mirror a disabled one keeps.
  *
- * InnerScope is intentionally non-owning (aliases FInstancedStruct::GetMutableMemory)
- * so edits flow directly into the outer struct scope the detail panel already owns.
- * The inner type is pinned by the collection schema for the lifetime of the detail
- * session, so the aliased pointer is stable.
+ * Every widget and lambda built here reads through members, so their backing data outlives them: the detail panel
+ * releases customizations only after their Slate subtree is torn down. InnerScope is a non-owning alias of memory
+ * the panel (the slot) or this instance (the inherited copy) keeps alive for the session.
  */
 class FPCGExPropertyOverrideEntryCustomization : public IPropertyTypeCustomization
 {
@@ -46,51 +46,66 @@ public:
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
 private:
-	const struct FPCGExProperty* AccessEntryProperty() const;
+	/** The entry the handle edits (its first instance), null when unreachable. No allocation: read every paint. */
+	FPCGExPropertyOverrideEntry* AccessEntry() const;
+	/** Every entry the handle edits, one per selected object. */
+	void ForEachEntry(TFunctionRef<void(FPCGExPropertyOverrideEntry&)> Visitor) const;
+	const FPCGExProperty* AccessEntryProperty() const;
 	FText GetEntryNameText() const;
 	FText GetEntryTypeText() const;
 
-	TWeakPtr<IPropertyHandle> PropertyHandlePtr;
-	TSharedPtr<IPropertyHandle> ValueHandlePtr;
-	TSharedPtr<IPropertyHandle> EnabledHandlePtr;
-	TSharedPtr<FStructOnScope> InnerScope;
+	/** Where the rows sit in the host, rebuilt from the handles on each call: the panel may rebind its scope between them. */
+	FPCGExPropertyRowSite BuildRowSite() const;
 
-	// Captured at CustomizeHeader (inline external-structure rows expose no outers, so the reset
-	// delegates can't re-derive it). Set for EVERY non-template component outer, Instance-created
-	// included -- it drives the authoritative EnabledOverrides TSet the toggle checkbox writes.
-	// Null for non-component owners (Tuple node, level exporter, asset rows).
-	TWeakObjectPtr<UPCGExPropertyCollectionComponent> WeakLiveComponent;
+	/** What the entry resolves to while disabled; false when the host or the declaration cannot be reached. */
+	bool ResolveInheritedValue(const FPCGExPropertyRowSite& Site, FInstancedStruct& Out) const;
+	bool ResolveInheritedValue(FInstancedStruct& Out) const;
 
-	// True only when the component has a BP archetype/class chain to reset toward
-	// (CreationMethod != Instance). Gates the reset arrow ONLY -- kept separate from
-	// WeakLiveComponent because Instance-created components drive the TSet but have no chain.
-	bool bComponentHasArchetypeChain = false;
-
-	// First non-template outer captured at CustomizeHeader. Covers component AND asset-collection
-	// owners; drives the inline row's owner-change hook so external-struct edits dirty + signal PCG.
-	TWeakObjectPtr<UObject> WeakOwner;
-
-	int32 CachedOverrideIndex = INDEX_NONE;
-
-	// Asset-default resolved once at CustomizeHeader (imports tree is stable for the detail
-	// session). Invalid = "no asset default exists" -- FindResetSource relies on the distinction.
-	FInstancedStruct CachedAssetDefaultValue;
-
-	// Defensive-only: a type-mismatch reset reallocates and would invalidate InnerScope's alias.
-	// Same-type copy preserves the alias and needs no refresh, which is the common case under
-	// ReconcileImportOverrides.
-	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
-
-	FResetToDefaultOverride MakeArchetypeResetOverride() const;
+	/** On a component instance the EnabledOverrides set, which its bEnabled mirrors with a lag; bEnabled elsewhere. */
+	bool IsOverrideEnabled(const FPCGExPropertyOverrideEntry& Entry) const;
+	bool IsOverrideEnabled() const;
+	ECheckBoxState GetToggleState() const;
+	void OnToggleStateChanged(ECheckBoxState NewState);
 
 	/**
-	 * Build the toggle widget for the override's enable flag. In component context, returns a
-	 * custom SCheckBox that writes EnabledOverrides directly via SetOverrideEnabled -- bypasses
-	 * UE's property edit chain so CDO->instance propagation never fires for inspector toggles.
-	 * Non-component owners get the standard handle-bound widget.
+	 * The raw edit: every entry lands on the inherited value (the seed an enabled row starts from, the mirror a disabled
+	 * one keeps) and takes the flag. Runs inside a caller's transaction and pre/post notify bracket.
 	 */
-	TSharedRef<SWidget> BuildOverrideToggleWidget() const;
+	void ApplyOverrideEnabled(bool bEnable);
 
-	/** Read the entry's PropertyName at the current OverrideIndex on the owning component. */
-	FName GetOverrideEntryName() const;
+	/** The toggle: ApplyOverrideEnabled under its own transaction and entry-handle notify bracket, then a rebuild. */
+	void SetOverrideEnabled(bool bEnable);
+
+	/** The value rows alias one memory, the inherited copy or the slot; only a rebuild swaps it. */
+	void RequestRowsRebuild() const;
+
+	/** The toggle checkbox, one widget for every host. */
+	TSharedRef<SWidget> BuildOverrideToggleWidget();
+
+	/** Reset = defer to the Blueprint chain, i.e. disable. Installed everywhere: UE's default reset would blank the entry. */
+	FResetToDefaultOverride MakeArchetypeResetOverride();
+	bool IsResetToInheritedVisible(TSharedPtr<IPropertyHandle> Handle) const;
+	void ResetToInherited(TSharedPtr<IPropertyHandle> Handle);
+
+	TWeakPtr<IPropertyHandle> PropertyHandlePtr;
+	TSharedPtr<IPropertyHandle> ValueHandlePtr;
+	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
+
+	// The inherited copy the value rows alias while the slot is disabled. Declared before the scope that aliases it.
+	FInstancedStruct InheritedValue;
+	TSharedPtr<FStructOnScope> InnerScope;
+
+	// The row host (IPCGExPropertyRowHost) these rows belong to: an outer, or the asset of the outer package when the
+	// panel edits an outer-less copy (the collection grid). Templates included: a template resolves through its own chain.
+	TWeakObjectPtr<UObject> WeakRowHost;
+
+	// Set for EVERY non-template component outer, Instance-created included: its EnabledOverrides set is the toggle's truth.
+	TWeakObjectPtr<UPCGExPropertyCollectionComponent> WeakLiveComponent;
+
+	// True only when the component has a Blueprint class chain to reset toward (CreationMethod != Instance). Gates the
+	// reset arrow only: Instance-created components drive the set but have no chain.
+	bool bComponentHasArchetypeChain = false;
+
+	// First non-template outer. Drives the inline row's owner-change hook so external-struct edits dirty + signal PCG.
+	TWeakObjectPtr<UObject> WeakOwner;
 };
