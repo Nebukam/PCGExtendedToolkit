@@ -10,6 +10,8 @@
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Math/PCGExMath.h"
 
+#include <atomic>
+
 #include "PCGExPathResample.generated.h"
 
 namespace PCGExPaths
@@ -23,6 +25,14 @@ enum class EPCGExResampleMode : uint8
 {
 	Sweep        = 0 UMETA(DisplayName = "Sweep", ToolTip="Walk the path at a fixed interval and emit a new point at each step. Output point count comes from the resolution, and attributes are blended between the two source points each sample falls between."),
 	Redistribute = 1 UMETA(DisplayName = "Redistribute", ToolTip="Keep the input points and only move them, spreading them evenly along the original polyline. Point count and attributes are left alone, so the blending settings do not apply."),
+};
+
+UENUM()
+enum class EPCGExResampleResolutionMode : uint8
+{
+	Distance          = 0 UMETA(DisplayName = "Distance", ToolTip="Resolution is the spacing between samples. The point count is the number of whole steps that fit the path length (length / resolution), one fewer than needed to hold both endpoints of an open path at exactly that spacing."),
+	Fixed             = 1 UMETA(DisplayName = "Count", ToolTip="Resolution is a fixed number of output points, spread evenly along the path."),
+	DistanceFencePost = 2 UMETA(DisplayName = "Distance (Fence-post)", ToolTip="Like Distance, but open paths get one extra point so N steps yield N+1 points and both endpoints sit at the requested spacing. Closed loops behave exactly like Distance."),
 };
 
 /**
@@ -52,16 +62,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
 
-	/** Resolution mode */
+	/** How the Resolution value is read: a spacing between samples, a point count, or a spacing that also keeps the last point of open paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
-	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
+	EPCGExResampleResolutionMode ResolutionMode = EPCGExResampleResolutionMode::Distance;
 
 	/** Adjust sample spacing so all samples are evenly distributed across the path length. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode != EPCGExResampleResolutionMode::Fixed", EditConditionHides))
 	bool bRedistributeEvenly = true;
 
 	/** (ignored for closed loops) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep && ResolutionMode != EPCGExResampleResolutionMode::Fixed", EditConditionHides))
 	bool bPreserveLastPoint = false;
 
 	UPROPERTY()
@@ -75,6 +85,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 
+	/** Paths shorter than the resolution output their first and last point instead of being omitted. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode != EPCGExResampleResolutionMode::Fixed", EditConditionHides))
+	bool bKeepShortPaths = false;
+
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Lerp, EPCGExBlendingType::None);
@@ -82,11 +96,18 @@ public:
 	/** Ensure each resampled point gets a unique random seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bEnsureUniqueSeeds = true;
+
+	/** Suppress the warning raised when paths shorter than the resolution are omitted. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
+	bool bQuietShortPathWarning = false;
 };
 
 struct FPCGExResamplePathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExResamplePathElement;
+
+	// Set by processors running in parallel; read once by the element after the batch completes.
+	std::atomic<bool> bHasShortPaths{false};
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
