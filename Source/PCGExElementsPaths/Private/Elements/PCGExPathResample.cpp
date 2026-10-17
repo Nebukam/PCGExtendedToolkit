@@ -5,6 +5,7 @@
 
 
 #include "PCGExVersion.h"
+#include "PCGModule.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExRandomHelpers.h"
@@ -80,6 +81,11 @@ bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
+	if (Context->bHasShortPaths && !Settings->bQuietShortPathWarning)
+	{
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are shorter than the resolution and were omitted. Enable Keep Short Paths to output their endpoints instead."));
+	}
+
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
@@ -115,17 +121,37 @@ namespace PCGExResamplePath
 
 		if (Settings->Mode == EPCGExResampleMode::Sweep)
 		{
-			if (Settings->ResolutionMode == EPCGExResolutionMode::Fixed)
+			switch (Settings->ResolutionMode)
 			{
+			case EPCGExResampleResolutionMode::Fixed:
 				NumSamples = SampleLength;
 				bAutoSampleSize = true;
-			}
-			else
-			{
+				break;
+			case EPCGExResampleResolutionMode::Distance:
+			case EPCGExResampleResolutionMode::DistanceFencePost:
 				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / SampleLength, Settings->Truncate);
 				bAutoSampleSize = Settings->bRedistributeEvenly;
-			}
 
+				// Closed loops already get one point per step; only open paths need the extra endpoint.
+				if (Settings->ResolutionMode == EPCGExResampleResolutionMode::DistanceFencePost && !Path->IsClosedLoop())
+				{
+					NumSamples++;
+				}
+
+				if (NumSamples < 2)
+				{
+					if (!Settings->bKeepShortPaths)
+					{
+						Context->bHasShortPaths = true;
+						return false;
+					}
+					NumSamples = 2;
+				}
+				break;
+			default:
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Unsupported resolution mode."));
+				return false;
+			}
 
 			if (NumSamples < 2)
 			{
