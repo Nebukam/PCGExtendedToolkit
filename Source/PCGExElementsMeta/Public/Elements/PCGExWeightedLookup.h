@@ -175,6 +175,10 @@ public:
 	/** Name of the attribute the picked weight is written to. 0 when no row was picked. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bOutputWeight"))
 	FName WeightAttributeName = "LookupWeight";
+
+	/** Suppress the error emitted when a key attribute (Map Key, Weights Key, Point Key) is missing. The affected data is still skipped. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
+	bool bQuietMissingKeyWarning = false;
 };
 
 struct FPCGExWeightedLookupContext final : FPCGExPointsProcessorContext

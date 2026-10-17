@@ -90,7 +90,10 @@ bool FPCGExWeightedLookupElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::TBuffer<FName>> MapKeyReader = Context->MapFacade->GetBroadcaster<FName>(Settings->MapKey);
 	if (!MapKeyReader)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(Context, Map Key, Settings->MapKey)
+		if (!Settings->bQuietMissingKeyWarning)
+		{
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Map Key, Settings->MapKey)
+		}
 		return false;
 	}
 
@@ -133,7 +136,10 @@ bool FPCGExWeightedLookupElement::Boot(FPCGExContext* InContext) const
 		const TSharedPtr<PCGExData::IBuffer> WeightsKeyReader = Context->WeightsFacade->GetDefaultReadable(KeyIdentifier, PCGExData::EIOSide::In, false);
 		if (!WeightsKeyReader)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, Weights Key, Settings->WeightsKey)
+			if (!Settings->bQuietMissingKeyWarning)
+			{
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Weights Key, Settings->WeightsKey)
+			}
 			return false;
 		}
 
@@ -272,7 +278,10 @@ namespace PCGExWeightedLookup
 			PointKeyReader = PointDataFacade->GetDefaultReadable(KeyIdentifier, PCGExData::EIOSide::In, true);
 			if (!PointKeyReader)
 			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, Point Key, Settings->PointKey)
+				if (!Settings->bQuietMissingKeyWarning)
+				{
+					PCGEX_LOG_INVALID_SELECTOR_C(Context, Point Key, Settings->PointKey)
+				}
 				return false;
 			}
 
