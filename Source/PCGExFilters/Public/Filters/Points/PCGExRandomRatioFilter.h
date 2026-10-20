@@ -71,7 +71,7 @@ namespace PCGExPointFilter
 	class FRandomRatioFilter final : public ISimpleFilter
 	{
 	protected:
-		TSet<int32> PointPicks;
+		TBitArray<> PointPicks;
 
 		// Data-level draw: one for the whole pin, built on first use and immutable once published.
 		mutable FCriticalSection CollectionPicksLock;

@@ -85,7 +85,7 @@ bool FPCGExInputShorthandSelector##_NAME::CanSupportDataOnly() const { return In
 
 #define PCGEX_TPL_SHORTHAND_NAME_COMMON(_TYPE, _NAME, ...)\
 bool FPCGExInputShorthandName##_NAME::SerializeFromMismatchedTag(const FPropertyTag& Tag, FStructuredArchive::FSlot Slot){ if (!PCGExInputShorthandsDetails::LoadMismatchedConstant(Tag, Slot, Constant)) { return false; } Input = EPCGExInputValueType::Constant; return true; }\
-void FPCGExInputShorthandName##_NAME::RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const { if (Input == EPCGExInputValueType::Attribute) { FacadePreloader.Register<_TYPE>(InContext, Attribute); } }\
+void FPCGExInputShorthandName##_NAME::RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const bool bFullRead) const { if (Input == EPCGExInputValueType::Attribute) { FacadePreloader.Register<_TYPE>(InContext, Attribute, false, bFullRead); } }\
 PCGEX_SHORTHAND_UPDATE__NAME_IMPL(_TYPE, _NAME)
 
 #define PCGEX_TPL_SHORTHAND_NAME(_TYPE, _NAME, ...)\
@@ -97,7 +97,7 @@ PCGEX_TPL_SHORTHAND_NAME_COMMON(_TYPE, _NAME)
 
 #define PCGEX_TPL_SHORTHAND_SELECTOR_COMMON(_TYPE, _NAME, ...)\
 bool FPCGExInputShorthandSelector##_NAME::SerializeFromMismatchedTag(const FPropertyTag& Tag, FStructuredArchive::FSlot Slot){ if (!PCGExInputShorthandsDetails::LoadMismatchedConstant(Tag, Slot, Constant)) { return false; } Input = EPCGExInputValueType::Constant; return true; }\
-void FPCGExInputShorthandSelector##_NAME::RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const { if (Input == EPCGExInputValueType::Attribute) { FacadePreloader.Register<_TYPE>(InContext, Attribute); } }\
+void FPCGExInputShorthandSelector##_NAME::RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const bool bFullRead) const { if (Input == EPCGExInputValueType::Attribute) { FacadePreloader.Register<_TYPE>(InContext, Attribute, false, bFullRead); } }\
 PCGEX_SHORTHAND_UPDATE__SELECTOR_IMPL(_TYPE, _NAME)
 
 #define PCGEX_TPL_SHORTHAND_SELECTOR(_TYPE, _NAME, ...)\

@@ -145,30 +145,44 @@ namespace PCGExRandomHelpers
 			bool bPositive;
 		};
 
-		TArray<FKeyedIndex> Keyed;
-		Keyed.SetNumUninitialized(NumItems);
-
-		for (int32 i = 0; i < NumItems; ++i)
-		{
-			// GetFraction is in [0,1), so 1-u is in (0,1] and the exponential draw stays finite.
-			const double Exp = -FMath::Loge(1.0 - static_cast<double>(Random.GetFraction()));
-			const double W = Weights[i];
-			const bool bPositive = W > 0.0;
-			Keyed[i] = FKeyedIndex{bPositive ? Exp / W : Exp, i, bPositive};
-		}
-
-		Algo::Sort(Keyed, [](const FKeyedIndex& A, const FKeyedIndex& B)
+		auto Before = [](const FKeyedIndex& A, const FKeyedIndex& B)
 		{
 			if (A.bPositive != B.bPositive)
 			{
 				return A.bPositive;
 			}
 			return A.Key < B.Key;
-		});
+		};
+		// Max-heap under Before: the worst retained key sits on top.
+		auto Worse = [&Before](const FKeyedIndex& A, const FKeyedIndex& B) { return Before(B, A); };
 
-		for (int32 i = 0; i < Count; ++i)
+		TArray<FKeyedIndex> Best;
+		Best.Reserve(Count);
+
+		for (int32 i = 0; i < NumItems; ++i)
 		{
-			OutPicks.Add(Keyed[i].Index);
+			// 1-u is in (0,1], so the exponential draw stays finite.
+			const double Exp = -FMath::Loge(1.0 - GetFraction53(Random));
+			const double W = Weights[i];
+			const bool bPositive = W > 0.0;
+			const FKeyedIndex Candidate{bPositive ? Exp / W : Exp, i, bPositive};
+
+			if (Best.Num() < Count)
+			{
+				Best.HeapPush(Candidate, Worse);
+			}
+			else if (Before(Candidate, Best.HeapTop()))
+			{
+				Best.HeapPopDiscard(Worse, EAllowShrinking::No);
+				Best.HeapPush(Candidate, Worse);
+			}
+		}
+
+		Algo::Sort(Best, Before);
+
+		for (const FKeyedIndex& Pick : Best)
+		{
+			OutPicks.Add(Pick.Index);
 		}
 	}
 }

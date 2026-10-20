@@ -18,6 +18,8 @@ namespace PCGExData
 		: Mode(Other.Mode)
 		  , Selector(Other.Selector)
 		  , Identity(Other.Identity)
+		  , bFullRead(Other.bFullRead)
+		  , bCaptureMinMax(Other.bCaptureMinMax)
 	{
 	}
 
@@ -84,7 +86,7 @@ namespace PCGExData
 						Reader = InFacade->GetBroadcaster<T>(Identity.Name, true);
 						break;
 					case EBufferPreloadType::BroadcastFromSelector:
-						Reader = InFacade->GetBroadcaster<T>(Selector, true);
+						Reader = InFacade->GetBroadcaster<T>(Selector, !bFullRead, bCaptureMinMax);
 						break;
 					}
 
@@ -131,7 +133,7 @@ namespace PCGExData
 					Reader = InFacade->GetBroadcaster<T>(Identity.Name);
 					break;
 				case EBufferPreloadType::BroadcastFromSelector:
-					Reader = InFacade->GetBroadcaster<T>(Selector);
+					Reader = InFacade->GetBroadcaster<T>(Selector, false, bCaptureMinMax);
 					break;
 				}
 			},
@@ -201,18 +203,22 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	void FFacadePreloader::Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax)
+	void FFacadePreloader::Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax, bool bFullRead)
 	{
 		EPCGMetadataTypes Type = PCGExTypes::TTraits<T>::Type;
-		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		for (FReadableBufferConfig& ExistingConfig : BufferConfigs)
 		{
 			if (ExistingConfig.Selector == InSelector && ExistingConfig.Identity.ValueType == Type)
 			{
+				ExistingConfig.bFullRead = ExistingConfig.bFullRead || bFullRead;
+				ExistingConfig.bCaptureMinMax = ExistingConfig.bCaptureMinMax || bCaptureMinMax;
 				return;
 			}
 		}
 
-		BufferConfigs.Emplace(InSelector, Type);
+		FReadableBufferConfig& Config = BufferConfigs.Emplace_GetRef(InSelector, Type);
+		Config.bFullRead = bFullRead;
+		Config.bCaptureMinMax = bCaptureMinMax;
 	}
 
 	template <typename T>
@@ -231,7 +237,7 @@ namespace PCGExData
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax); \
+template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax, bool bFullRead); \
 template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL

@@ -35,7 +35,7 @@ void UPCGExRandomRatioFilterFactory::RegisterBuffersDependencies(FPCGExContext* 
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 	if (Config.bWeighted)
 	{
-		Config.Weight.RegisterBufferDependencies(InContext, FacadePreloader);
+		Config.Weight.RegisterBufferDependencies(InContext, FacadePreloader, true);
 	}
 }
 
@@ -80,7 +80,7 @@ void PCGExPointFilter::FRandomRatioFilter::BuildCollectionPicks(const TSharedPtr
 	const TSharedPtr<PCGExData::FPointIO> DrawSource = (*ParentCollection)[0];
 	const int32 NumDatasets = ParentCollection->Num();
 
-	TSet<int32> Picks;
+	TArray<int32> Picks;
 	if (Config.bWeighted)
 	{
 		bool bValid = true;
@@ -101,7 +101,14 @@ void PCGExPointFilter::FRandomRatioFilter::BuildCollectionPicks(const TSharedPtr
 	{
 		bCollectionPicksValid = Config.Random.GetPicks(DrawSource->GetContext(), DrawSource->GetIn(), NumDatasets, Picks, PCGEX_QUIET_HANDLING);
 	}
-	CollectionPicks = MoveTemp(Picks);
+
+	// Picks are positions in the collection; Test looks datasets up by IOIndex.
+	CollectionPicks.Reset();
+	CollectionPicks.Reserve(Picks.Num());
+	for (const int32 Pick : Picks)
+	{
+		CollectionPicks.Add((*ParentCollection)[Pick]->IOIndex);
+	}
 	BuiltForCollection = ParentCollection.Get();
 
 	bCollectionPicksBuilt.store(true, std::memory_order_release);
@@ -121,33 +128,42 @@ bool PCGExPointFilter::FRandomRatioFilter::Init(FPCGExContext* InContext, const 
 	const FPCGExRandomRatioFilterConfig& Config = TypedFilterFactory->Config;
 	const int32 NumPoints = InPointDataFacade->GetNum();
 
-	if (!Config.bWeighted)
+	TArray<int32> Picks;
+	if (Config.bWeighted)
 	{
-		Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), NumPoints, PointPicks);
-		return true;
+		// Full (unscoped) read: every weight is needed before the first Test.
+		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
+		if (!InitSettingValue(WeightBuffer, Config.Weight.GetValueSetting(PCGEX_QUIET_HANDLING), InPointDataFacade, false))
+		{
+			return false;
+		}
+
+		TArray<double> Weights;
+		Weights.SetNumUninitialized(NumPoints);
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			Weights[i] = PCGExRandomRatioFilter::ShapeWeight(WeightBuffer->Read(i), Config.WeightContrast);
+		}
+
+		Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), Weights, Picks);
+	}
+	else
+	{
+		Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), NumPoints, Picks);
 	}
 
-	// Full (unscoped) read: every weight is needed before the first Test.
-	TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
-	if (!InitSettingValue(WeightBuffer, Config.Weight.GetValueSetting(PCGEX_QUIET_HANDLING), InPointDataFacade, false))
+	PointPicks.Init(false, NumPoints);
+	for (const int32 Pick : Picks)
 	{
-		return false;
+		PointPicks[Pick] = true;
 	}
-
-	TArray<double> Weights;
-	Weights.SetNumUninitialized(NumPoints);
-	for (int32 i = 0; i < NumPoints; ++i)
-	{
-		Weights[i] = PCGExRandomRatioFilter::ShapeWeight(WeightBuffer->Read(i), Config.WeightContrast);
-	}
-
-	Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), Weights, PointPicks);
 	return true;
 }
 
 bool PCGExPointFilter::FRandomRatioFilter::Test(const int32 PointIndex) const
 {
-	return TypedFilterFactory->Config.bInvertResult ? !PointPicks.Contains(PointIndex) : PointPicks.Contains(PointIndex);
+	const bool bPicked = PointPicks.IsValidIndex(PointIndex) && PointPicks[PointIndex];
+	return TypedFilterFactory->Config.bInvertResult ? !bPicked : bPicked;
 }
 
 bool PCGExPointFilter::FRandomRatioFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const

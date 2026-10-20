@@ -59,7 +59,7 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::
 void UPCGExNumericCompareNearestFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
-	Config.OperandBValue.RegisterBufferDependencies(InContext, FacadePreloader);
+	Config.OperandBValue.RegisterBufferDependencies(InContext, FacadePreloader, true);
 }
 
 #if WITH_EDITOR

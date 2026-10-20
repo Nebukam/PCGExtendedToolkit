@@ -128,11 +128,19 @@ namespace PCGExRandomHelpers
 		return N - 1;
 	}
 
+	/** Uniform double in [0, 1) with 53 random bits; GetFraction carries 23, which ties equal-weight keys. Two draws, in this order. */
+	FORCEINLINE double GetFraction53(const FRandomStream& Random)
+	{
+		const uint64 Hi = Random.GetUnsignedInt() >> 5;
+		const uint64 Lo = Random.GetUnsignedInt() >> 6;
+		return static_cast<double>((Hi << 26) | Lo) * (1.0 / 9007199254740992.0);
+	}
+
 	/**
-	 * Weighted sampling without replacement (Efraimidis-Spirakis): each item draws key = -ln(u) / weight and the
+	 * Weighted sampling without replacement (Efraimidis-Spirakis): each item draws key = -ln(1 - u) / weight and the
 	 * NumPicks smallest keys win, so pick probabilities follow the weights while the count stays exact.
-	 * Items with a weight <= 0 rank after every positive-weight item, in uniform order, and are only picked
-	 * when NumPicks exceeds the positive-weight pool. OutPicks is written in pick order (best key first).
+	 * Items whose weight is not > 0 (zero, negative, NaN) rank after every positive-weight item, in uniform order,
+	 * and are only picked when NumPicks exceeds the positive-weight pool. OutPicks is written in pick order.
 	 */
 	PCGEXCORE_API void WeightedPicksWithoutReplacement(FRandomStream& Random, TConstArrayView<double> Weights, const int32 NumPicks, TArray<int32>& OutPicks);
 }
