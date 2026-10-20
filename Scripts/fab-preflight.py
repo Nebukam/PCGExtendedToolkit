@@ -1084,13 +1084,19 @@ WALL_PATTERNS = [
     # Leading operand of a logical expression: 'return &X && ...', 'b = &X || ...', 'Foo(&X && ...)'.
     (re.compile(r'(?:^|[(=,]|\breturn\b)\s*&\s*[A-Za-z_][\w.]*(?:\[[^\]]*\])?\s*(?:&&|\|\|)', re.M),
      "address-of used as a logical operand (-Wpointer-bool-conversion)", "an address is never null; test the value"),
+    # 5.8 keys FJsonObject::Values on UE::FSharedString, so a TPair<FString, ...>& loop variable binds a
+    # converted temporary (PCGExToolset mediators, 5.8 Clang gate, 2026-10-18). MSVC copies silently.
+    (re.compile(r'\bfor\s*\(\s*const\s+TPair\s*<\s*FString\s*,\s*TSharedPtr\s*<\s*FJsonValue\s*>\s*>\s*&'),
+     "TPair<FString, TSharedPtr<FJsonValue>>& loop variable over FJsonObject::Values binds a temporary "
+     "(-Wrange-loop-construct)", "take the pair by value, or iterate 'const auto&' and convert Pair.Key"),
 ]
 
 
 @check("clang-wall", "error",
        "A Clang default-on diagnostic that -Werror promotes and UBT does not silence: a null test on "
        "'this', on an address-of expression, on a FUNCTION_NON_NULL_RETURN callee (NewObject, "
-       "CastChecked) or on a dereferenced TObjectIterator. MSVC says nothing; FAB's Clang build fails.")
+       "CastChecked) or on a dereferenced TObjectIterator, or a TPair<FString, ...>& range-for over "
+       "FJsonObject::Values (a converted temporary since 5.8). MSVC says nothing; FAB's Clang build fails.")
 def check_clang_wall(tree):
     out = []
     for p in tree.headers + tree.sources:
@@ -2099,6 +2105,7 @@ SELFTEST = {
         "\t{\n"
         "\t\tif (*It) { }\n"
         "\t}\n"
+        "\tfor (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Values) { (void)Pair; }\n"
         "\tif (!NewObject<UObject>()) { }\n"
         "\tcheck(CastChecked<UObject>(nullptr));\n"
         "}\n"),
@@ -2964,7 +2971,7 @@ SELFTEST.update(rules_fixtures())
 SELFTEST_EXPECT = {
     "missing-include": 1, "editor-guard": 1, "nsdmi-default-arg": 1, "extern-template-api": 1,
     "unity-collision": 2, "msvc-only": 1, "include-case": 1, "generated-last": 1, "fwd-decl-deref": 1,
-    "subclassof-incomplete": 1, "editor-guard-free": 2, "clang-wall": 6, "ctor-reorder": 18,
+    "subclassof-incomplete": 1, "editor-guard-free": 2, "clang-wall": 7, "ctor-reorder": 18,
     "iwyu-symbol": 1, "instanced-in-instancedstruct": 1, "deprecated-unconsumed": 1,
     "value-member-include": 1, "log-category-include": 1, "mac-reserved-global": 3,
     "functionref-dangling": 2, "weakobjectptr-fwd-only": 1, "clang-loop-once": 1,

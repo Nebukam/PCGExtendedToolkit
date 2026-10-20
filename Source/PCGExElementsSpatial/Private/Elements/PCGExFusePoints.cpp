@@ -14,6 +14,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/PCGExMathBounds.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints
@@ -114,6 +116,58 @@ namespace PCGExFusePoints
 		return BestIndex;
 	}
 
+	// Linear reduce over the span: rules first, then distance to the span centroid, then lowest index.
+	// Centroid and distances are only computed once a rule tie actually shows up.
+	int32 GetBestCandidateIndex(const TConstArrayView<PCGExData::FElement>& Span, const PCGExSorting::FSortCache& SortCache, const TConstPCGValueRange<FTransform>& InTransforms)
+	{
+		int32 BestIndex = Span[0].Index;
+		if (Span.Num() == 1)
+		{
+			return BestIndex;
+		}
+
+		FVector Center = FVector::ZeroVector;
+		bool bHasCenter = false;
+		double BestDist = -1;
+
+		for (int32 e = 1; e < Span.Num(); ++e)
+		{
+			const int32 Index = Span[e].Index;
+			const int32 Order = SortCache.CompareSigned(Index, BestIndex);
+
+			if (Order < 0)
+			{
+				BestIndex = Index;
+				BestDist = -1;
+				continue;
+			}
+
+			if (Order > 0)
+			{
+				continue;
+			}
+
+			if (BestDist < 0)
+			{
+				if (!bHasCenter)
+				{
+					Center = ComputeSpanCentroid(Span, InTransforms);
+					bHasCenter = true;
+				}
+				BestDist = FVector::DistSquared(Center, InTransforms[BestIndex].GetLocation());
+			}
+
+			const double Dist = FVector::DistSquared(Center, InTransforms[Index].GetLocation());
+			if (Dist < BestDist || (Dist == BestDist && Index < BestIndex))
+			{
+				BestIndex = Index;
+				BestDist = Dist;
+			}
+		}
+
+		return BestIndex;
+	}
+
 	void EnforceMinExtent(FBox& Bounds, const double MinExtent)
 	{
 		if (MinExtent <= 0)
@@ -151,6 +205,36 @@ namespace PCGExFusePoints
 	}
 }
 
+#if WITH_EDITOR
+EPCGChangeType UPCGExFusePointsSettings::GetChangeTypeForProperty(FPropertyChangedEvent& PropertyChangedEvent) const
+{
+	EPCGChangeType ChangeType = Super::GetChangeTypeForProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.GetMemberPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExFusePointsSettings, Mode))
+	{
+		ChangeType |= EPCGChangeType::Structural;
+	}
+
+	return ChangeType;
+}
+#endif
+
+TArray<FPCGPinProperties> UPCGExFusePointsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, Mode == EPCGExFusedPointOutput::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
+	return PinProperties;
+}
+
+bool UPCGExFusePointsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules)
+	{
+		return Mode == EPCGExFusedPointOutput::BestCandidate;
+	}
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(FusePoints)
 
@@ -172,6 +256,16 @@ bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
+	if (Settings->Mode == EPCGExFusedPointOutput::BestCandidate)
+	{
+		Context->SortRuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules);
+		if (Context->SortRuleConfigs.IsEmpty())
+		{
+			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing or invalid sort rules for Keep Best Candidate mode"))
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -190,7 +284,7 @@ bool FPCGExFusePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			},
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral ||
+				NewBatch->bRequiresWriteStep = Settings->Mode == EPCGExFusedPointOutput::Blend ||
 					Settings->PointPointIntersectionDetails.PointUnionData.WriteAny();
 			}))
 		{
@@ -223,6 +317,25 @@ namespace PCGExFusePoints
 			return false;
 		}
 
+		if (Settings->Mode == EPCGExFusedPointOutput::BestCandidate)
+		{
+			// Rules bind Direct proxies (metadata reads), so the cache can be built here regardless of scoped gets.
+			Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, Context->SortRuleConfigs);
+			Sorter->SortDirection = Settings->SortDirection;
+
+			if (!Sorter->Init(Context))
+			{
+				PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some dataset have no valid sorting rules, they will be omitted from the output."))
+				return false;
+			}
+
+			SortCache = Sorter->BuildCache(PointDataFacade->GetNum());
+			if (!SortCache)
+			{
+				return false;
+			}
+		}
+
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		IOIndex = PointDataFacade->Source->IOIndex;
@@ -238,11 +351,13 @@ namespace PCGExFusePoints
 
 		UnionTable = MakeShared<PCGExData::FUnionTable>();
 
-		// Register fetch-able buffers for chunked reads.
-		TArray<PCGExData::FAttributeIdentity> SourceAttributes;
-		PCGExBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
-
-		PointDataFacade->CreateReadables(SourceAttributes);
+		// Blend mode only: register the blender's inputs for chunked reads. Keep-one modes copy entry keys instead.
+		if (Settings->Mode == EPCGExFusedPointOutput::Blend)
+		{
+			TArray<PCGExData::FAttributeIdentity> SourceAttributes;
+			PCGExBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
+			PointDataFacade->CreateReadables(SourceAttributes);
+		}
 
 		const int32 NumIn = PointDataFacade->GetNum();
 
@@ -484,7 +599,7 @@ namespace PCGExFusePoints
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutData, NumUnionEntries, OutAllocations);
 
-		if (Settings->Mode == EPCGExFusedPointOutput::MostCentral)
+		if (Settings->Mode != EPCGExFusedPointOutput::Blend)
 		{
 			TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping(NumUnionEntries);
 			const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
@@ -492,17 +607,20 @@ namespace PCGExFusePoints
 			// Local non-null reference for the parallel-for body to capture cleanly.
 			const TSharedRef<PCGExData::FUnionTable> Table = UnionTable.ToSharedRef();
 
-			// No blender in this mode, so writables can be created up-front and filled by the mapping pass.
+			// No blender in these modes, so writables can be created up-front and filled by the mapping pass.
 			InitUnionMetadataWriters();
+
+			const PCGExSorting::FSortCache* Cache = Settings->Mode == EPCGExFusedPointOutput::BestCandidate ? SortCache.Get() : nullptr;
 
 			PCGExMT::ParallelOrSequential(
 				NumUnionEntries,
 				[&](const int32 i)
 				{
-
 					const TConstArrayView<PCGExData::FElement> Span = Table->Get(i);
 
-					IdxMapping[i] = GetMostCentralIndex(Span, ComputeSpanCentroid(Span, InTransforms), InTransforms);
+					IdxMapping[i] = Cache ?
+						GetBestCandidateIndex(Span, *Cache, InTransforms) :
+						GetMostCentralIndex(Span, ComputeSpanCentroid(Span, InTransforms), InTransforms);
 
 					if (IsUnionWriter)
 					{
@@ -513,6 +631,9 @@ namespace PCGExFusePoints
 						UnionSizeWriter->SetValue(i, Span.Num());
 					}
 				});
+
+			SortCache.Reset();
+			Sorter.Reset();
 
 			PointDataFacade->Source->ConsumeIdxMapping(PointDataFacade->GetAllocations());
 
