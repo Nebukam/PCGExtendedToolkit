@@ -132,6 +132,12 @@ namespace PCGExSorting
 		/** Fast comparison using cached values. No virtual calls. */
 		FORCEINLINE bool Compare(const int32 A, const int32 B) const
 		{
+			return CompareSigned(A, B) < 0;
+		}
+
+		/** Same ordering as Compare, as a signed result: negative when A sorts before B, zero when the rules can't tell them apart. */
+		FORCEINLINE int32 CompareSigned(const int32 A, const int32 B) const
+		{
 			int32 Result = 0;
 			const FRuleCache* RulePtr = Rules.GetData();
 
@@ -158,7 +164,7 @@ namespace PCGExSorting
 			{
 				Result = -Result;
 			}
-			return Result < 0;
+			return Result;
 		}
 	};
 }

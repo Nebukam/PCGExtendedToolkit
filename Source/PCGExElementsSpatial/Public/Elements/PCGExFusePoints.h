@@ -14,6 +14,7 @@
 #include "Details/PCGExFuseDetails.h"
 #include "Details/PCGExIntersectionDetails.h"
 #include "Math/PCGExMathAxis.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 
 #include "PCGExFusePoints.generated.h"
@@ -25,11 +26,18 @@ namespace PCGExData
 	class FUnionRegistry;
 }
 
+namespace PCGExSorting
+{
+	class FSorter;
+	class FSortCache;
+}
+
 UENUM()
 enum class EPCGExFusedPointOutput : uint8
 {
-	Blend       = 0 UMETA(DisplayName = "Blend", ToolTip="Blend all points within a radius"),
-	MostCentral = 1 UMETA(DisplayName = "Keep Most Central", ToolTip="Keep the existing point that's most central to the sample group"),
+	Blend         = 0 UMETA(DisplayName = "Blend", ToolTip="Blend all points within a radius"),
+	MostCentral   = 1 UMETA(DisplayName = "Keep Most Central", ToolTip="Keep the existing point that's most central to the sample group"),
+	BestCandidate = 2 UMETA(DisplayName = "Keep Best Candidate", ToolTip="Keep the existing point that ranks first according to sorting rules. Ties fall back to most central, then lowest index."),
 };
 
 UENUM()
@@ -57,6 +65,13 @@ public:
 #endif
 
 protected:
+#if WITH_EDITOR
+	/** Mode decides whether the SortRules pin is Required: culling is compiled, so the change is structural. */
+	virtual EPCGChangeType GetChangeTypeForProperty(FPropertyChangedEvent& PropertyChangedEvent) const override;
+#endif
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -64,6 +79,10 @@ public:
 	/** Mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExFusedPointOutput Mode = EPCGExFusedPointOutput::Blend;
+
+	/** Sort direction applied to the sorting rules when keeping the best candidate. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Sort Direction", EditCondition="Mode == EPCGExFusedPointOutput::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
@@ -106,6 +125,7 @@ struct FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExFusePointsElement;
 	const PCGExMath::IDistances* Distances = nullptr;
 	FPCGExCarryOverDetails CarryOverDetails;
+	TArray<FPCGExSortRuleConfig> SortRuleConfigs;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -143,6 +163,10 @@ namespace PCGExFusePoints
 		TSharedPtr<PCGExData::FUnionTable> UnionTable;
 
 		TSharedPtr<PCGExBlending::IUnionBlender> UnionBlender;
+
+		// BestCandidate mode only. Cache holds every rule value for the input, built once in Process.
+		TSharedPtr<PCGExSorting::FSorter> Sorter;
+		TSharedPtr<PCGExSorting::FSortCache> SortCache;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> IsUnionWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> UnionSizeWriter;
