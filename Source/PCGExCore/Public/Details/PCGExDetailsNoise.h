@@ -7,6 +7,7 @@
 #include "PCGExCommon.h"
 #include "PCGExInputShorthandsDetails.h"
 #include "Math/PCGExMathMean.h"
+#include "Math/RandomStream.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsNoise.generated.h"
@@ -128,9 +129,16 @@ struct PCGEXCORE_API FPCGExRandomRatioDetails
 	bool GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TSet<int32>& OutPicks, const bool bQuiet = false) const;
 	bool GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TArray<int32>& OutPicks, const bool bQuiet = false) const;
 
+	// Weighted draw over Weights.Num() items; see PCGExRandomHelpers::WeightedPicksWithoutReplacement for the zero-weight rule.
+	bool GetPicks(FPCGExContext* InContext, const UPCGData* InData, TConstArrayView<double> Weights, TSet<int32>& OutPicks, const bool bQuiet = false) const;
+	bool GetPicks(FPCGExContext* InContext, const UPCGData* InData, TConstArrayView<double> Weights, TArray<int32>& OutPicks, const bool bQuiet = false) const;
+
 #if WITH_EDITOR
 	void ApplyDeprecation();
 	/** Rewires the pre-shorthand override pins; call from the embedder's PCGExApplyDeprecationBeforeUpdatePins under the same version gate as ApplyDeprecation. */
 	void RenamePins(const UPCGSettings* InSettings, UPCGNode* InOutNode) const;
 #endif
+
+protected:
+	bool GetRandomStream(FPCGExContext* InContext, const UPCGData* InData, FRandomStream& OutStream, const bool bQuiet) const;
 };

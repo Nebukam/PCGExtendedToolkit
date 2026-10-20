@@ -6,14 +6,37 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataPreloader.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Misc/ScopeLock.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
+namespace PCGExRandomRatioFilter
+{
+	// Weights <= 0 stay 0 whatever the contrast, so pow(0, 0) never promotes an excluded element.
+	FORCEINLINE double ShapeWeight(const double Weight, const double Contrast)
+	{
+		if (Weight <= 0.0)
+		{
+			return 0.0;
+		}
+		return Contrast == 1.0 ? Weight : FMath::Pow(Weight, Contrast);
+	}
+}
+
 bool UPCGExRandomRatioFilterFactory::SupportsCollectionEvaluation() const
 {
 	return true;
+}
+
+void UPCGExRandomRatioFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.bWeighted)
+	{
+		Config.Weight.RegisterBufferDependencies(InContext, FacadePreloader);
+	}
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExRandomRatioFilterFactory::CreateFilter() const
@@ -52,11 +75,32 @@ void PCGExPointFilter::FRandomRatioFilter::BuildCollectionPicks(const TSharedPtr
 		return;
 	}
 
-	// One draw covers every dataset on the pin; attribute-driven inputs read the first dataset's @Data.
+	// One draw covers every dataset on the pin; seed and amount read the first dataset's @Data, weights read each dataset's.
+	const FPCGExRandomRatioFilterConfig& Config = TypedFilterFactory->Config;
 	const TSharedPtr<PCGExData::FPointIO> DrawSource = (*ParentCollection)[0];
+	const int32 NumDatasets = ParentCollection->Num();
 
 	TSet<int32> Picks;
-	bCollectionPicksValid = TypedFilterFactory->Config.Random.GetPicks(DrawSource->GetContext(), DrawSource->GetIn(), ParentCollection->Num(), Picks, PCGEX_QUIET_HANDLING);
+	if (Config.bWeighted)
+	{
+		bool bValid = true;
+		TArray<double> Weights;
+		Weights.Reserve(NumDatasets);
+		for (int32 i = 0; i < NumDatasets; ++i)
+		{
+			double Weight = Config.Weight.Constant;
+			if (!Config.Weight.TryReadDataValue((*ParentCollection)[i], Weight, PCGEX_QUIET_HANDLING))
+			{
+				bValid = false;
+			}
+			Weights.Add(PCGExRandomRatioFilter::ShapeWeight(Weight, Config.WeightContrast));
+		}
+		bCollectionPicksValid = Config.Random.GetPicks(DrawSource->GetContext(), DrawSource->GetIn(), Weights, Picks, PCGEX_QUIET_HANDLING) && bValid;
+	}
+	else
+	{
+		bCollectionPicksValid = Config.Random.GetPicks(DrawSource->GetContext(), DrawSource->GetIn(), NumDatasets, Picks, PCGEX_QUIET_HANDLING);
+	}
 	CollectionPicks = MoveTemp(Picks);
 	BuiltForCollection = ParentCollection.Get();
 
@@ -69,10 +113,35 @@ bool PCGExPointFilter::FRandomRatioFilter::Init(FPCGExContext* InContext, const 
 	{
 		return false;
 	}
-	if (!bWillBeUsedWithCollections)
+	if (bWillBeUsedWithCollections)
 	{
-		TypedFilterFactory->Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), InPointDataFacade->GetNum(), PointPicks);
+		return true;
 	}
+
+	const FPCGExRandomRatioFilterConfig& Config = TypedFilterFactory->Config;
+	const int32 NumPoints = InPointDataFacade->GetNum();
+
+	if (!Config.bWeighted)
+	{
+		Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), NumPoints, PointPicks);
+		return true;
+	}
+
+	// Full (unscoped) read: every weight is needed before the first Test.
+	TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
+	if (!InitSettingValue(WeightBuffer, Config.Weight.GetValueSetting(PCGEX_QUIET_HANDLING), InPointDataFacade, false))
+	{
+		return false;
+	}
+
+	TArray<double> Weights;
+	Weights.SetNumUninitialized(NumPoints);
+	for (int32 i = 0; i < NumPoints; ++i)
+	{
+		Weights[i] = PCGExRandomRatioFilter::ShapeWeight(WeightBuffer->Read(i), Config.WeightContrast);
+	}
+
+	Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), Weights, PointPicks);
 	return true;
 }
 
@@ -109,7 +178,7 @@ PCGEX_CREATE_FILTER_FACTORY(RandomRatio)
 #if WITH_EDITOR
 FString UPCGExRandomRatioFilterProviderSettings::GetDisplayName() const
 {
-	return PCGExCommon::FlagInvertLabel(TEXT("Random Ratio"), Config.bInvertResult);
+	return PCGExCommon::FlagInvertLabel(Config.bWeighted ? TEXT("Random Ratio (Weighted)") : TEXT("Random Ratio"), Config.bInvertResult);
 }
 #endif
 

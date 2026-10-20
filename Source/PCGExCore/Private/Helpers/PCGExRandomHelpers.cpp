@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGSettings.h"
+#include "Algo/Sort.h"
 #include "Helpers/PCGHelpers.h"
 
 namespace PCGExRandomHelpers
@@ -124,5 +125,50 @@ namespace PCGExRandomHelpers
 	int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset)
 	{
 		return PCGHelpers::ComputeSeed(PCGHelpers::ComputeSeedFromPosition(Origin), PCGHelpers::ComputeSeedFromPosition(Offset));
+	}
+
+	void WeightedPicksWithoutReplacement(FRandomStream& Random, TConstArrayView<double> Weights, const int32 NumPicks, TArray<int32>& OutPicks)
+	{
+		const int32 NumItems = Weights.Num();
+		const int32 Count = FMath::Clamp(NumPicks, 0, NumItems);
+
+		OutPicks.Reset(Count);
+		if (Count == 0)
+		{
+			return;
+		}
+
+		struct FKeyedIndex
+		{
+			double Key;
+			int32 Index;
+			bool bPositive;
+		};
+
+		TArray<FKeyedIndex> Keyed;
+		Keyed.SetNumUninitialized(NumItems);
+
+		for (int32 i = 0; i < NumItems; ++i)
+		{
+			// GetFraction is in [0,1), so 1-u is in (0,1] and the exponential draw stays finite.
+			const double Exp = -FMath::Loge(1.0 - static_cast<double>(Random.GetFraction()));
+			const double W = Weights[i];
+			const bool bPositive = W > 0.0;
+			Keyed[i] = FKeyedIndex{bPositive ? Exp / W : Exp, i, bPositive};
+		}
+
+		Algo::Sort(Keyed, [](const FKeyedIndex& A, const FKeyedIndex& B)
+		{
+			if (A.bPositive != B.bPositive)
+			{
+				return A.bPositive;
+			}
+			return A.Key < B.Key;
+		});
+
+		for (int32 i = 0; i < Count; ++i)
+		{
+			OutPicks.Add(Keyed[i].Index);
+		}
 	}
 }

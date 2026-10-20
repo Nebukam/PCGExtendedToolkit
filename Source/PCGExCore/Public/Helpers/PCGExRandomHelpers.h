@@ -127,4 +127,12 @@ namespace PCGExRandomHelpers
 		}
 		return N - 1;
 	}
+
+	/**
+	 * Weighted sampling without replacement (Efraimidis-Spirakis): each item draws key = -ln(u) / weight and the
+	 * NumPicks smallest keys win, so pick probabilities follow the weights while the count stays exact.
+	 * Items with a weight <= 0 rank after every positive-weight item, in uniform order, and are only picked
+	 * when NumPicks exceeds the positive-weight pool. OutPicks is written in pick order (best key first).
+	 */
+	PCGEXCORE_API void WeightedPicksWithoutReplacement(FRandomStream& Random, TConstArrayView<double> Weights, const int32 NumPicks, TArray<int32>& OutPicks);
 }

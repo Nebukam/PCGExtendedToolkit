@@ -5,6 +5,7 @@
 
 #include "Core/PCGExContext.h"
 #include "Helpers/PCGExArrayHelpers.h"
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Helpers/PCGHelpers.h"
 
 bool FPCGExRandomRatioDetails::GetNumPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, int32& OutNumPicks, const bool bQuiet) const
@@ -75,12 +76,11 @@ bool FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 
 	PCGExArrayHelpers::ArrayOfIndices(OutPicks, NumMaxItems);
 
-	int32 S = 0;
-	if (!BaseSeed.TryReadDataValue(InContext, InData, S, bQuiet))
+	FRandomStream Random;
+	if (!GetRandomStream(InContext, InData, Random, bQuiet))
 	{
 		bValid = false;
 	}
-	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(PCGHelpers::ComputeSeed(S), InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
 
 	for (int32 i = NumMaxItems - 1; i > 0; --i)
 	{
@@ -88,6 +88,38 @@ bool FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 	}
 	OutPicks.SetNum(NumPicks);
 
+	return bValid;
+}
+
+bool FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData* InData, TConstArrayView<double> Weights, TSet<int32>& OutPicks, const bool bQuiet) const
+{
+	TArray<int32> Picks;
+	const bool bValid = GetPicks(InContext, InData, Weights, Picks, bQuiet);
+	OutPicks.Append(Picks);
+	return bValid;
+}
+
+bool FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData* InData, TConstArrayView<double> Weights, TArray<int32>& OutPicks, const bool bQuiet) const
+{
+	int32 NumPicks = 0;
+	bool bValid = GetNumPicks(InContext, InData, Weights.Num(), NumPicks, bQuiet);
+
+	FRandomStream Random;
+	if (!GetRandomStream(InContext, InData, Random, bQuiet))
+	{
+		bValid = false;
+	}
+
+	PCGExRandomHelpers::WeightedPicksWithoutReplacement(Random, Weights, NumPicks, OutPicks);
+
+	return bValid;
+}
+
+bool FPCGExRandomRatioDetails::GetRandomStream(FPCGExContext* InContext, const UPCGData* InData, FRandomStream& OutStream, const bool bQuiet) const
+{
+	int32 S = 0;
+	const bool bValid = BaseSeed.TryReadDataValue(InContext, InData, S, bQuiet);
+	OutStream = PCGHelpers::GetRandomStreamFromSeed(PCGHelpers::ComputeSeed(S), InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
 	return bValid;
 }
 
