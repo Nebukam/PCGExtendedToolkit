@@ -80,10 +80,10 @@ namespace PCGExData
 					switch (Mode)
 					{
 					case EBufferPreloadType::RawAttribute:
-						Reader = InFacade->GetReadable<T>(Identity.GetIdentifier(), EIOSide::In, true);
+						Reader = InFacade->GetReadable<T>(Identity.GetIdentifier(), EIOSide::In, !bFullRead);
 						break;
 					case EBufferPreloadType::BroadcastFromName:
-						Reader = InFacade->GetBroadcaster<T>(Identity.Name, true);
+						Reader = InFacade->GetBroadcaster<T>(Identity.Name, !bFullRead);
 						break;
 					case EBufferPreloadType::BroadcastFromSelector:
 						Reader = InFacade->GetBroadcaster<T>(Selector, !bFullRead, bCaptureMinMax);
@@ -222,23 +222,24 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	void FFacadePreloader::Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode)
+	void FFacadePreloader::Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode, bool bFullRead)
 	{
 		EPCGMetadataTypes Type = PCGExTypes::TTraits<T>::Type;
-		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		for (FReadableBufferConfig& ExistingConfig : BufferConfigs)
 		{
 			if (ExistingConfig.Identity.Name == InName && ExistingConfig.Identity.ValueType == Type)
 			{
+				ExistingConfig.bFullRead = ExistingConfig.bFullRead || bFullRead;
 				return;
 			}
 		}
 
-		BufferConfigs.Emplace(InName, Type, InMode);
+		BufferConfigs.Emplace_GetRef(InName, Type, InMode).bFullRead = bFullRead;
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax, bool bFullRead); \
-template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode);
+template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode, bool bFullRead);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
