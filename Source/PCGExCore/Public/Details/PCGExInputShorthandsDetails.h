@@ -69,7 +69,8 @@ struct PCGEXCORE_API FPCGExInputShorthandBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Input == EPCGExInputValueType::Attribute"))
 	bool bCleanupAttribute = true;
 
-	void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+	/** bFullRead: the consumer reads unscoped, so the preloader reads every value up front instead of a scoped pass. */
+	void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const bool bFullRead = false) const
 	{
 	}
 };
@@ -114,7 +115,7 @@ bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)\
 PCGEX_SETTING_DATA_VALUE_DECL(, _TYPE)\
-void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;\
+void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const bool bFullRead = false) const;\
 PCGEX_SHORTHAND_UPDATE_DECL(_NAME, _TYPE)
 
 /** Name-based shorthand where attribute is specified by FName. */
@@ -418,7 +419,7 @@ bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)\
 PCGEX_SETTING_DATA_VALUE_DECL(, _TYPE)\
-void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;\
+void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const bool bFullRead = false) const;\
 PCGEX_SHORTHAND_UPDATE_DECL(_NAME, _TYPE)
 
 

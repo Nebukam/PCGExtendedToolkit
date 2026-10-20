@@ -14,6 +14,7 @@
 #include "Core/PCGExFilterFactoryProvider.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDetailsNoise.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 
 #include "PCGExRandomRatioFilter.generated.h"
 
@@ -29,6 +30,18 @@ struct FPCGExRandomRatioFilterConfig
 	/** Random selection settings (seed, ratio, mode). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExRandomRatioDetails Random;
+
+	/** Weight each element's chance of being picked. Amount and clamps still decide how many pass. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWeighted = false;
+
+	/** Pick weight, per point or per dataset (@Data). Zero-weight elements are drawn last, only if the amount requires it. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWeighted"))
+	FPCGExInputShorthandSelectorDoubleAbs Weight = FPCGExInputShorthandSelectorDoubleAbs(FName("Weight"), 1, true);
+
+	/** Exponent applied to the weights before the draw. Above 1 sharpens the contrast between weights, below 1 flattens it. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Contrast", EditCondition="bWeighted", EditConditionHides, ClampMin=0, UIMin=0))
+	double WeightContrast = 1;
 
 	/** Invert the filter result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -49,6 +62,7 @@ public:
 	FPCGExRandomRatioFilterConfig Config;
 
 	virtual bool SupportsCollectionEvaluation() const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
@@ -57,7 +71,7 @@ namespace PCGExPointFilter
 	class FRandomRatioFilter final : public ISimpleFilter
 	{
 	protected:
-		TSet<int32> PointPicks;
+		TBitArray<> PointPicks;
 
 		// Data-level draw: one for the whole pin, built on first use and immutable once published.
 		mutable FCriticalSection CollectionPicksLock;

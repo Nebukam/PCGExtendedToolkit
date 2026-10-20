@@ -50,6 +50,9 @@ namespace PCGExData
 		EBufferPreloadType Mode = EBufferPreloadType::RawAttribute;
 		FPCGAttributePropertyInputSelector Selector;
 		FAttributeIdentity Identity;
+		// Read every value up front (a consumer that reads unscoped would otherwise re-read the whole attribute); min/max capture is selector mode only.
+		bool bFullRead = false;
+		bool bCaptureMinMax = false;
 
 		FReadableBufferConfig(const FReadableBufferConfig& Other);
 		explicit FReadableBufferConfig(const FAttributeIdentity& InIdentity, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute);
@@ -92,10 +95,10 @@ namespace PCGExData
 		void TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector);
 
 		template <typename T>
-		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false);
+		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false, bool bFullRead = false);
 
 		template <typename T>
-		void Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute);
+		void Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute, bool bFullRead = false);
 
 		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope);
 		void Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const;
@@ -117,8 +120,8 @@ namespace PCGExData
 	};
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax); \
-extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode);
+extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax, bool bFullRead); \
+extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode, bool bFullRead);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 

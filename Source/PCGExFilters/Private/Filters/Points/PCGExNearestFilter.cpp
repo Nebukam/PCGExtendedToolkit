@@ -66,8 +66,8 @@ void UPCGExNearestFilterFactoryData::RegisterBuffersDependencies(FPCGExContext* 
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 	check(NearestConfig);
-	// MaxDistance is read per-point on the source, so preload it.
-	NearestConfig->MaxDistance.RegisterBufferDependencies(InContext, FacadePreloader);
+	// MaxDistance is read unscoped per point on the source, so preload it in full.
+	NearestConfig->MaxDistance.RegisterBufferDependencies(InContext, FacadePreloader, true);
 }
 
 void UPCGExNearestFilterFactoryData::BeginDestroy()
