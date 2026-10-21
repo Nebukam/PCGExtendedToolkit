@@ -649,8 +649,8 @@ namespace PCGExCollections
 		/**
 		 * Build point partitions from point data.
 		 *
-		 * Templated on the instance-list type so the same partitioning logic works for both
-		 * static (FPCGMeshInstanceList) and skinned (FPCGSkinnedMeshInstanceList) selectors.
+		 * Templated on the instance-list type so the same partitioning logic serves any consumer of
+		 * the static (FPCGMeshInstanceList) or skinned (FPCGSkinnedMeshInstanceList) list.
 		 * Field-name and PointData-type differences are absorbed by TInstanceListTraits<T>.
 		 * Explicit instantiations live in the .cpp for both built-in list types.
 		 */

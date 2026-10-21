@@ -10,24 +10,18 @@
 
 namespace PCGExManagedHelpers
 {
-	/** Find the first managed resource of type T matching CRC + validator. Mark as reused if found. */
+	/** Collect every managed resource of type T matching CRC + validator, in container order. Nothing is marked. */
 	template <typename T>
-	T* TryReuseManagedResource(UPCGComponent* Component, const FPCGCrc& Crc, TFunctionRef<bool(const T*)> Validator)
+	void FindManagedResources(UPCGComponent* Component, const FPCGCrc& Crc, TFunctionRef<bool(const T*)> Validator, TArray<T*>& OutResources)
 	{
 		if (!Component || !Crc.IsValid())
 		{
-			return nullptr;
+			return;
 		}
 
-		T* Found = nullptr;
 		Component->ForEachManagedResource(
 			[&](UPCGManagedResource* InResource)
 			{
-				if (Found)
-				{
-					return;
-				}
-
 				T* Typed = Cast<T>(InResource);
 				if (!Typed)
 				{
@@ -44,11 +38,23 @@ namespace PCGExManagedHelpers
 					return;
 				}
 
-				Typed->MarkAsReused();
-				Found = Typed;
+				OutResources.Add(Typed);
 			});
+	}
 
-		return Found;
+	/** Find the first managed resource of type T matching CRC + validator. Mark as reused if found. */
+	template <typename T>
+	T* TryReuseManagedResource(UPCGComponent* Component, const FPCGCrc& Crc, TFunctionRef<bool(const T*)> Validator)
+	{
+		TArray<T*> Found;
+		FindManagedResources<T>(Component, Crc, Validator, Found);
+		if (Found.IsEmpty())
+		{
+			return nullptr;
+		}
+
+		Found[0]->MarkAsReused();
+		return Found[0];
 	}
 
 	/** Overload without validator (CRC-only match). */

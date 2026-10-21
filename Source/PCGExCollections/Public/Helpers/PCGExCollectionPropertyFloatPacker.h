@@ -15,6 +15,14 @@ struct FPCGContext;
 
 namespace PCGExCollections
 {
+#if WITH_EDITOR
+	/** Debug-log formatting of packed floats */
+	inline FString DescribeFloats(TConstArrayView<float> InFloats)
+	{
+		return FString::JoinBy(InFloats, TEXT(", "), [](const float Value) { return FString::SanitizeFloat(Value); });
+	}
+#endif
+
 	/**
 	 * Collection-only glue over FPCGExPropertyFloatPacker, turning UPCGExAssetCollection* /
 	 * FPCGExAssetCollectionEntry* into the lookups the generic packer expects.
