@@ -185,6 +185,8 @@ POINT_KEYS_RES = (
 )
 # Words that make the class name a base, a declaration or an operand already matched above.
 POINT_KEYS_NOT_AFTER = ("public", "protected", "private", "virtual", "class", "struct", "friend", "new")
+# The helpers' own implementation file: the one place that builds these classes.
+POINT_KEYS_HOME = "/helpers/pcgexmetahelpers.cpp"
 LAST_WORD_RE = re.compile(r"(\w+)\s*$")
 
 
@@ -198,6 +200,8 @@ LAST_WORD_RE = re.compile(r"(\w+)\s*$")
 def check_point_keys_construction(tree):
     out = []
     for path in tree.files:
+        if path.replace("\\", "/").lower().endswith(POINT_KEYS_HOME):
+            continue
         code = tree.code(path)
         seen = set()
         for rx in POINT_KEYS_RES:
@@ -386,6 +390,12 @@ SELFTEST = {
             "\tconst TCHAR* Doc = TEXT(\"new FPCGAttributeAccessorKeysPointIndices(Data)\");\n"
             "\tMakeShared<FPCGAttributeAccessorKeysPointIndicesLike>(Data);\n"
             "\tFPCGAttributeAccessorKeysPointsLike Other(Data);\n"
+            "\tTUniquePtr<const IPCGAttributeAccessorKeys> E = PCGExMetaHelpers::MakeConstKeys(Data, Indices);\n"
+            "}\n"),
+        "Plugin/Source/Core/Private/Helpers/PCGExMetaHelpers.cpp": (
+            "TUniquePtr<const IPCGAttributeAccessorKeys> MakeConstKeys(const UPCGBasePointData* InData, TConstArrayView<int32> InPointIndices)\n"
+            "{\n"
+            "\treturn MakeUnique<const FPCGAttributeAccessorKeysPointsSubset>(InData, InPointIndices);\n"
             "}\n"),
     },
     "element-base-point-support": {
