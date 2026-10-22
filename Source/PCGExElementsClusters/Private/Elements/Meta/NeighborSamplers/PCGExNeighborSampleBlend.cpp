@@ -1,5 +1,6 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
+// * 22/10/26 Erik Spellerberg Fix edge-source blend sampling reading the neighbor vtx index
 
 #include "Elements/Meta/NeighborSamplers/PCGExNeighborSampleBlend.h"
 
@@ -49,7 +50,7 @@ void FPCGExNeighborSampleBlend::SampleNeighborNode(const PCGExClusters::FNode& T
 
 void FPCGExNeighborSampleBlend::SampleNeighborEdge(const PCGExClusters::FNode& TargetNode, const PCGExGraphs::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
-	BlendOpsManager->MultiBlend(Cluster->GetNodePointIndex(Lk), TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
+	BlendOpsManager->MultiBlend(Cluster->GetEdge(Lk)->PointIndex, TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
 void FPCGExNeighborSampleBlend::FinalizeNode(const PCGExClusters::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)
