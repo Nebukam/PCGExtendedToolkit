@@ -66,13 +66,6 @@ namespace PCGExMeshSelectorStaged
 			Mirrored.Instances.Emplace(InTransforms[PointIndex]);
 		}
 	}
-
-#if WITH_EDITOR
-	FString DescribeFloats(TConstArrayView<float> InFloats)
-	{
-		return FString::JoinBy(InFloats, TEXT(", "), [](const float Value) { return FString::SanitizeFloat(Value); });
-	}
-#endif
 }
 
 #if WITH_EDITOR
@@ -267,7 +260,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 					PCGE_LOG_C(Log, LogOnly, &Context, FText::Format(
 						           FTEXT("Custom Primitive Data for entry '{0}': {1}"),
 						           FText::FromString(Entry->Staging.Path.ToString()),
-						           FText::FromString(PCGExMeshSelectorStaged::DescribeFloats(InstanceList.CustomPrimitiveData))));
+						           FText::FromString(PCGExCollections::DescribeFloats(InstanceList.CustomPrimitiveData))));
 				}
 #endif
 			}

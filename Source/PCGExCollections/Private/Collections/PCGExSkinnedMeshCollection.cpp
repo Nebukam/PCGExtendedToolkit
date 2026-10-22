@@ -9,6 +9,7 @@
 
 
 #include "PCGExCollectionsSettingsCache.h"
+#include "Components/MeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Helpers/PCGExPropertyHelpers.h"
@@ -77,9 +78,11 @@ void FPCGExSkinnedMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutP
 		break;
 	}
 
-	// UE 5.8 note: FPCGSoftSkinnedMeshComponentDescriptor does not yet expose OverrideMaterials.
-	// Epic's own PCGSkinnedMeshSpawner gates that path under #if 0 // AB-TODO. When the engine
-	// adds the field, enumerate Descriptor.OverrideMaterials here for path collection.
+	// The local descriptor's provider only: a global descriptor's belongs to the collection asset.
+	if (!Descriptor.TransformProvider.IsNull())
+	{
+		OutPaths.Add(Descriptor.TransformProvider.ToSoftObjectPath());
+	}
 }
 
 void FPCGExSkinnedMeshCollectionEntry::GetMaterialPaths(int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const
@@ -112,13 +115,35 @@ void FPCGExSkinnedMeshCollectionEntry::GetMaterialPaths(int32 PickIndex, TSet<FS
 	}
 }
 
-void FPCGExSkinnedMeshCollectionEntry::ApplyMaterials(int32 PickIndex, FPCGSoftSkinnedMeshComponentDescriptor& InDescriptor) const
+// PickIndex comes from a serialized collection map and can outlive the variants it indexed.
+void FPCGExSkinnedMeshCollectionEntry::ApplyMaterials(int32 PickIndex, UMeshComponent* TargetComponent) const
 {
-	// UE 5.8 note: FPCGSoftSkinnedMeshComponentDescriptor does not yet expose OverrideMaterials,
-	// and Epic's PCGSkinnedMeshSpawner gates the material-override path under #if 0 // AB-TODO.
-	// The variants UI (MaterialOverrideVariants / MaterialOverrideVariantsList) is preserved so
-	// users can author against the eventual engine support; this function becomes a one-line
-	// edit once Epic ships the descriptor field.
+	if (PickIndex == -1 || MaterialVariants == EPCGExMaterialVariantsMode::None)
+	{
+		return;
+	}
+
+	if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
+	{
+		if (!MaterialOverrideVariants.IsValidIndex(PickIndex))
+		{
+			return;
+		}
+		const int32 WriteSlotIndex = SlotIndex == -1 ? 0 : SlotIndex;
+		TargetComponent->SetMaterial(WriteSlotIndex, MaterialOverrideVariants[PickIndex].Material.Get());
+	}
+	else if (MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+	{
+		if (!MaterialOverrideVariantsList.IsValidIndex(PickIndex))
+		{
+			return;
+		}
+		for (const FPCGExMaterialOverrideEntry& SEntry : MaterialOverrideVariantsList[PickIndex].Overrides)
+		{
+			const int32 WriteSlotIndex = SEntry.SlotIndex == -1 ? 0 : SEntry.SlotIndex;
+			TargetComponent->SetMaterial(WriteSlotIndex, SEntry.Material.Get());
+		}
+	}
 }
 
 bool FPCGExSkinnedMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)

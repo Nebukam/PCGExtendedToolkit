@@ -17,6 +17,7 @@
 
 class UPCGExSkinnedMeshCollection;
 class UInstancedSkinnedMeshComponent;
+class UMeshComponent;
 
 namespace PCGExSkinnedMeshCollection
 {
@@ -64,8 +65,8 @@ struct PCGEXCOLLECTIONS_API FPCGExSkinnedMeshCollectionGlobals : public FPCGExCo
  * feature-for-feature, but with a single skinned-mesh component descriptor
  * (FPCGSoftSkinnedMeshComponentDescriptor) used directly -- no PCGEx wrapper.
  *
- * AnimationIndex on each spawned FPCGSkinnedMeshInstance is a per-instance selector-scoped
- * concern handled by the staged selector, not by the collection entry.
+ * AnimationIndex on each spawned FPCGSkinnedMeshInstance is a per-point concern of the
+ * Staging : Spawn Skinned Meshes node, not of the collection entry.
  */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Skinned Mesh Collection Entry", meta=(ShortName="Skinned Mesh"))
 struct PCGEXCOLLECTIONS_API FPCGExSkinnedMeshCollectionEntry : public FPCGExAssetCollectionEntry
@@ -107,7 +108,8 @@ struct PCGEXCOLLECTIONS_API FPCGExSkinnedMeshCollectionEntry : public FPCGExAsse
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 	void GetMaterialPaths(int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
-	void ApplyMaterials(int32 PickIndex, FPCGSoftSkinnedMeshComponentDescriptor& InDescriptor) const;
+	/** Writes the pick's material variant onto a live component: the 5.8 skinned descriptor carries no override materials. */
+	void ApplyMaterials(int32 PickIndex, UMeshComponent* TargetComponent) const;
 
 	// Lifecycle
 
