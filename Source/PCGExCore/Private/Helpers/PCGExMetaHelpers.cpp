@@ -9,6 +9,7 @@
 #include "Data/PCGBasePointData.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Types/PCGExTypeOpsString.h"
 
@@ -84,6 +85,17 @@ namespace PCGExMetaHelpers
 			return MakeShared<FPCGAttributeAccessorKeysEntries>(InData->Metadata);
 		}
 		return nullptr;
+	}
+
+	TUniquePtr<const IPCGAttributeAccessorKeys> MakeConstKeys(const UPCGBasePointData* InData, TConstArrayView<int32> InPointIndices)
+	{
+		if (!InData)
+		{
+			return nullptr;
+		}
+
+		// The engine's subset keys serve both point families: GetPointKeys casts to legacy point data itself.
+		return MakeUnique<const FPCGAttributeAccessorKeysPointsSubset>(InData, InPointIndices);
 	}
 
 	void InitializeMetadataEntries(UPCGMetadata* Metadata, const TPCGValueRange<int64>& MetadataEntries, const bool bConservative)
