@@ -44,6 +44,10 @@ namespace PCGExMetaHelpers
 	 *  initializes entries itself, or must not allocate from the current thread. */
 	PCGEXCORE_API TSharedPtr<IPCGAttributeAccessorKeys> MakeMutableKeys(UPCGData* InData, const bool bAllocateEntries = true);
 	PCGEXCORE_API TSharedPtr<IPCGAttributeAccessorKeys> MakeConstKeys(const UPCGData* InData);
+
+	/** Read-only keys over a subset of a point data's points, in the order given, for readers that index their
+	 *  results by key position (the engine's instance data packers). Unique and never cached. */
+	PCGEXCORE_API TUniquePtr<const IPCGAttributeAccessorKeys> MakeConstKeys(const UPCGBasePointData* InData, TConstArrayView<int32> InPointIndices);
 	
 	PCGEXCORE_API void InitializeMetadataEntries(UPCGMetadata* Metadata, const TPCGValueRange<int64>& MetadataEntries, const bool bConservative);
 

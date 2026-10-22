@@ -19,6 +19,7 @@
 #include "Helpers/PCGExCollectionPropertyFloatPacker.h"
 #include "Helpers/PCGExFunctionPrototypes.h"
 #include "Helpers/PCGExManagedResourceHelpers.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "Helpers/PCGHelpers.h"
 #include "InstanceDataPackers/PCGSkinnedMeshInstanceDataPackerByRegex.h"
@@ -150,6 +151,7 @@ bool FPCGExStagingSpawnSkinnedMeshesElement::AdvanceWork(FPCGExContext* InContex
 			},
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
+				NewBatch->bSkipCompletion = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
@@ -215,7 +217,7 @@ namespace PCGExStagingSpawnSkinnedMeshes
 			return false;
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bOutputPoints ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
 		EntryHashGetter = PointDataFacade->GetReadable<int64>(Settings->GetEntryIdxAttributeName(), PCGExData::EIOSide::In, true);
 		if (!EntryHashGetter)
@@ -231,7 +233,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 
 		NumPoints = PointDataFacade->Source->GetNum(PCGExData::EIOSide::In);
 		ResolvedEntries.SetNum(NumPoints);
-		PartitionPerPoint.Init(-1, NumPoints);
 
 		if (!AnimationIndexSV->IsConstant())
 		{
@@ -340,7 +341,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 
 		BuildPartitions(UniquePaths);
 
-		// Nothing to spawn: the output still goes through CompleteWork.
 		if (Partitions.IsEmpty())
 		{
 			return;
@@ -396,7 +396,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 			}
 
 			Partitions[PartitionIndex].List.InstancePointIndices.Add(i);
-			PartitionPerPoint[i] = PartitionIndex;
 		}
 
 		if (Partitions.IsEmpty())
@@ -588,7 +587,7 @@ namespace PCGExStagingSpawnSkinnedMeshes
 			}
 
 			Accessors.Add(MoveTemp(Accessor));
-			Keys.Add(MakeUnique<const FPCGAttributeAccessorKeysPointsSubset>(InData, TArrayView<const int32>(Partition.List.InstancePointIndices)));
+			Keys.Add(PCGExMetaHelpers::MakeConstKeys(InData, Partition.List.InstancePointIndices));
 		}
 
 		Packer->PackCustomDataFromAccessors(Partition.List, MoveTemp(Accessors), MoveTemp(Keys), Packed);
@@ -611,13 +610,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 			if (Index == 0 && !This->PrepareSpawn())
 			{
 				This->TargetActor = nullptr;
-			}
-
-			// Bounds are read on the game thread, from the loaded asset: needed by the output whether or not anything spawns.
-			FPartition& Partition = This->Partitions[Index];
-			if (const USkinnedAsset* Asset = Partition.List.Descriptor.SkinnedAsset.Get())
-			{
-				Partition.Bounds = Asset->GetBounds().GetBox();
 			}
 
 			if (This->TargetActor && !This->bReused)
@@ -700,8 +692,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 			}
 			return;
 		}
-
-		Partition.Bounds = Asset->GetBounds().GetBox();
 
 		// Blueprint packers run here, on the game thread; the float count feeds the component match below.
 		if (!PacksNatively())
@@ -805,44 +795,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 		for (UPCGManagedISKMComponent* Resource : OwnedResources)
 		{
 			Resource->SetCrc(InputCrc);
-		}
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();
-		if (!OutData)
-		{
-			return;
-		}
-
-		PointDataFacade->Source->DeleteAttribute(FPCGAttributeIdentifier(Settings->GetEntryIdxAttributeName()));
-
-		if (!Settings->bApplyMeshBoundsToPoints || Partitions.IsEmpty())
-		{
-			return;
-		}
-
-		OutData->AllocateProperties(EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax);
-		TPCGValueRange<FVector> BoundsMin = OutData->GetBoundsMinValueRange(false);
-		TPCGValueRange<FVector> BoundsMax = OutData->GetBoundsMaxValueRange(false);
-
-		for (int32 i = 0; i < NumPoints; i++)
-		{
-			const int32 PartitionIndex = PartitionPerPoint[i];
-			if (PartitionIndex < 0)
-			{
-				continue;
-			}
-
-			const FBox& Bounds = Partitions[PartitionIndex].Bounds;
-			if (!Bounds.IsValid)
-			{
-				continue;
-			}
-
-			BoundsMin[i] = Bounds.Min;
-			BoundsMax[i] = Bounds.Max;
 		}
 	}
 }

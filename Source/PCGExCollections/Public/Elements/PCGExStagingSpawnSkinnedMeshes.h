@@ -32,7 +32,7 @@ namespace PCGExMT
 /**
  * Spawns instanced skinned mesh components from staged skinned mesh collection entries.
  * One component per (entry, material pick) and target actor; transforms are consumed as-is from upstream
- * staging nodes (fitting is their responsibility).
+ * staging nodes (fitting is their responsibility). Read-only: the input points are forwarded untouched.
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc",
 	meta=(Keywords = "spawn skinned mesh instanced staged collection", PCGExNodeLibraryDoc="staging/staging-spawn-skinned-meshes"))
@@ -75,10 +75,11 @@ protected:
 	}
 
 public:
+		
 	UFUNCTION(BlueprintCallable, Category = Settings)
 	void SetInstancePackerType(TSubclassOf<UPCGSkinnedMeshInstanceDataPackerBase> InInstancePackerType);
 
-	/** Staging layer this node reads staged picks from (and strips from output points). None = default layer (PCGEx/CollectionEntry); otherwise the layer name is appended (PCGEx/CollectionEntry/<layer>). */
+	/** Staging layer this node reads staged picks from. None = default layer (PCGEx/CollectionEntry); otherwise the layer name is appended (PCGEx/CollectionEntry/<layer>). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	FName StagingLayer = NAME_None;
 
@@ -87,34 +88,34 @@ public:
 	// --- Target ---
 
 	/** Actor the components are added to. Null = the PCG component's target actor. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
 	// --- Descriptor ---
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Descriptor", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bUseTemplateDescriptor = false;
 
 	/** Ignores per-entry collection descriptors, pushing only the skinned asset and tags from the entry onto this descriptor. */
-	UPROPERTY(EditAnywhere, Category = "Settings|Descriptor", meta=(DisplayName="Descriptor Override", EditCondition="bUseTemplateDescriptor"))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Descriptor Override", EditCondition="bUseTemplateDescriptor"))
 	FPCGSoftSkinnedMeshComponentDescriptor TemplateDescriptor;
 
 	/** Spawns every component with collision disabled, whatever its descriptor says. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Descriptor", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bForceDisableCollisions = false;
 
 	// --- Animation ---
 
 	/** Per-instance animation index: which of the descriptor's Transform Provider animations the instance plays (the sequence
 	 *  index on an Anim Sequence provider). An index past the provider's count plays animation 0. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Animation", meta=(PCG_Overridable, DisplayName="Animation Index"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Animation Index"))
 	FPCGExInputShorthandNameInteger32 AnimationIndex = FPCGExInputShorthandNameInteger32(FName("AnimationIndex"), 0);
 
 	// --- Materials ---
 
 	/** Applies the entry's picked material variant on the component. Off by default: Nanite skinning may not honour
 	 *  per-component material overrides on this engine version. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Materials", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bApplyMaterialOverrides = false;
 
 	// --- Custom data ---
@@ -138,21 +139,11 @@ public:
 	bool bDebugCustomPrimitiveData = false;
 #endif
 
-	// --- Output ---
-
-	/** Sets the BoundsMin and BoundsMax of each output point to the bounds of the skinned asset spawned at it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	bool bApplyMeshBoundsToPoints = true;
-
-	/** Forwards the input points, minus the consumed staging attribute. Off = no output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
-	bool bOutputPoints = true;
-
 	// --- Post process ---
 
 	/** Functions called on the target actor once every component is spawned. Functions need to be parameter-less and with
 	 *  "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Post Process")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	TArray<FName> PostProcessFunctionNames;
 
 	// --- Warnings ---
@@ -223,7 +214,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 		const UPCGExAssetCollection* Host = nullptr;
 		uint64 Hash = 0;
 		int16 MaterialPick = -1;
-		FBox Bounds = FBox(ForceInit);
 	};
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExStagingSpawnSkinnedMeshesContext, UPCGExStagingSpawnSkinnedMeshesSettings>
@@ -237,9 +227,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 
 		/** Pre-sized to NumPoints -- each parallel thread writes to its own index, no locks */
 		TArray<FResolvedEntry> ResolvedEntries;
-
-		/** Partition each point landed in, -1 for none. Drives the bounds write-back. */
-		TArray<int32> PartitionPerPoint;
 
 		TArray<FPartition> Partitions;
 
@@ -284,7 +271,6 @@ namespace PCGExStagingSpawnSkinnedMeshes
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
-		virtual void CompleteWork() override;
 
 	private:
 		/** Groups the resolved points per (entry, pick), builds each partition's descriptor and instances */
