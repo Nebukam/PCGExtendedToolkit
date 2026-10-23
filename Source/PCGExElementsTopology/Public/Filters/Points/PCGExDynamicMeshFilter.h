@@ -7,6 +7,7 @@
 #include "Core/PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
+#include "PCGCommon.h"
 #include "PCGExFilterCommon.h"
 #include "PCGExOctree.h"
 #include "Core/PCGExPointFilter.h"
@@ -40,7 +41,7 @@ namespace PCGExPointFilter
 		FGeometryScriptDynamicMeshBVH BVH;
 	};
 
-	/** One point's query shape: its position, and (unless the check is position-only) its oriented bounds. */
+	/** One point's query shape in mesh space: its position, and (unless the check is position-only) its oriented bounds. */
 	struct FMeshQuery
 	{
 		FVector Position = FVector::ZeroVector;
@@ -49,10 +50,10 @@ namespace PCGExPointFilter
 		bool bHasBox = false;
 
 		template <typename PointType>
-		void Build(const PointType& Point, const EPCGExPointBoundsSource BoundsSource, const double Expansion, const bool bWithBox)
+		void Build(const PointType& Point, const FTransform& WorldToMesh, const EPCGExPointBoundsSource BoundsSource, const double Expansion, const bool bWithBox)
 		{
 			const FTransform& Transform = Point.GetTransform();
-			Position = Transform.GetLocation();
+			Position = WorldToMesh.TransformPosition(Transform.GetLocation());
 			WorldBounds = FBox(Position, Position);
 			bHasBox = bWithBox;
 
@@ -62,8 +63,9 @@ namespace PCGExPointFilter
 			}
 
 			// Rotation + location only: every bounds source is already in the space it means to be in.
+			// WorldToMesh carries no scale (PCGExTopology::GetCoordinateSpaceTransform strips it), so extents are untouched.
 			const FBox Local = PCGExMath::GetLocalBounds(Point, BoundsSource);
-			const FQuat Rotation = Transform.GetRotation();
+			const FQuat Rotation = WorldToMesh.GetRotation() * Transform.GetRotation();
 			const FVector Extents = (Local.GetExtent() + Expansion).ComponentMax(FVector::ZeroVector);
 			Box = PCGExMath::OBB::FOBB(
 				PCGExMath::OBB::FBounds(Position + Rotation.RotateVector(Local.GetCenter()), Extents, -1),
@@ -86,6 +88,10 @@ struct FPCGExDynamicMeshFilterConfig
 	/** Type of containment check to perform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExMeshCheckType CheckType = EPCGExMeshCheckType::IsInside;
+
+	/** Space the mesh vertices live in. Points are world space; a component space offsets the test by that component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGCoordinateSpace CoordinateSpace = EPCGCoordinateSpace::World;
 
 	/** Bounds tested against the mesh surface. Ignored by 'Is Inside'. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CheckType != EPCGExMeshCheckType::IsInside", EditConditionHides))
@@ -123,6 +129,8 @@ public:
 
 	TArray<PCGExPointFilter::FCachedDynamicMesh> CachedMeshes;
 	TSharedPtr<PCGExOctree::FItemOctree> Octree;
+	// Inverse of the mesh coordinate-space offset, resolved in Prepare(); points are brought into mesh space.
+	FTransform WorldToMesh = FTransform::Identity;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool DomainCheck() override;
@@ -176,6 +184,7 @@ namespace PCGExPointFilter
 		double WindingIsoThreshold = 0.5;
 		bool bInvert = false;
 		bool bNeedsBox = false;
+		FTransform WorldToMesh = FTransform::Identity;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Expansion;
 	};

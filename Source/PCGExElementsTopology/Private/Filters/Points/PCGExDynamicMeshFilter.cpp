@@ -60,6 +60,8 @@ PCGExFactories::EPreparationResult UPCGExDynamicMeshFilterFactory::Prepare(FPCGE
 		return Result;
 	}
 
+	WorldToMesh = PCGExTopology::GetCoordinateSpaceTransform(Config.CoordinateSpace, InContext).Inverse();
+
 	const TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(PCGExTopology::Labels::SourceMeshLabel);
 
 	CachedMeshes.Reset();
@@ -181,6 +183,7 @@ bool PCGExPointFilter::FDynamicMeshFilter::Init(FPCGExContext* InContext, const 
 	WindingIsoThreshold = Cfg.WindingIsoThreshold;
 	bInvert = Cfg.bInvert;
 	bNeedsBox = Cfg.NeedsBox();
+	WorldToMesh = TypedFilterFactory->WorldToMesh;
 
 	if (bNeedsBox)
 	{
@@ -296,7 +299,7 @@ bool PCGExPointFilter::FDynamicMeshFilter::TestQuery(const FMeshQuery& Query, co
 bool PCGExPointFilter::FDynamicMeshFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
 	FMeshQuery Query;
-	Query.Build(Point, BoundsSource, bNeedsBox ? Expansion->Read(0) : 0.0, bNeedsBox);
+	Query.Build(Point, WorldToMesh, BoundsSource, bNeedsBox ? Expansion->Read(0) : 0.0, bNeedsBox);
 	return TestQuery(Query, *Octree, *CachedMeshes, CheckType, WindingIsoThreshold, bInvert);
 }
 
@@ -304,7 +307,7 @@ bool PCGExPointFilter::FDynamicMeshFilter::Test(const int32 PointIndex) const
 {
 	const PCGExData::FConstPoint Point = PointDataFacade->Source->GetInPoint(PointIndex);
 	FMeshQuery Query;
-	Query.Build(Point, BoundsSource, bNeedsBox ? Expansion->Read(PointIndex) : 0.0, bNeedsBox);
+	Query.Build(Point, WorldToMesh, BoundsSource, bNeedsBox ? Expansion->Read(PointIndex) : 0.0, bNeedsBox);
 	return TestQuery(Query, *Octree, *CachedMeshes, CheckType, WindingIsoThreshold, bInvert);
 }
 
@@ -333,7 +336,7 @@ bool PCGExPointFilter::FDynamicMeshFilter::Test(const TSharedPtr<PCGExData::FPoi
 	IO->GetDataAsProxyPoint(ProxyPoint);
 
 	FMeshQuery Query;
-	Query.Build(ProxyPoint, Cfg.BoundsSource, ExpansionValue, bWithBox);
+	Query.Build(ProxyPoint, TypedFilterFactory->WorldToMesh, Cfg.BoundsSource, ExpansionValue, bWithBox);
 	return TestQuery(Query, *MeshOctree, Meshes, Cfg.CheckType, Cfg.WindingIsoThreshold, Cfg.bInvert);
 }
 
