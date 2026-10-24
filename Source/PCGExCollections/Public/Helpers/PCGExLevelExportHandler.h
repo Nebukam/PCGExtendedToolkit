@@ -15,6 +15,7 @@ class AActor;
 class UPCGExAssetCollection;
 class UPCGExLevelDataExporter;
 class UPCGMetadata;
+class UStaticMeshComponent;
 struct FPCGExAssetCollectionEntry;
 struct FPCGExLevelExportSource;
 
@@ -105,6 +106,12 @@ struct PCGEXCOLLECTIONS_API FPCGExExportItem
 
 	/** Secondary pick (material variant); -1 = none. Ignored unless the slot supports secondaries. */
 	int16 SecondaryIndex = -1;
+
+	/** Static mesh component the point was harvested from (Mesh handler); null = not a static mesh point. */
+	const UStaticMeshComponent* SourceComponent = nullptr;
+
+	/** Instance of an instanced SourceComponent; INDEX_NONE for a plain static mesh component. */
+	int32 SourceInstanceIndex = INDEX_NONE;
 };
 
 /**

@@ -90,8 +90,7 @@ void FPCGExLevelCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 #endif
 
 	// The cold level this load brings in would otherwise stay resident as a rendered world.
-	PCGExCollections::TrackLevelRead(Level.ToSoftObjectPath().GetLongPackageFName());
-	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Level.ToSoftObjectPath());
+	TSharedPtr<FStreamableHandle> Handle = PCGExCollections::LoadLevelForRead(Level.ToSoftObjectPath());
 
 #if WITH_EDITOR
 	if (UWorld* World = Level.Get())
