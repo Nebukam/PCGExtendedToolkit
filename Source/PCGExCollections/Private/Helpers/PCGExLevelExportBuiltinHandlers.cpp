@@ -541,12 +541,17 @@ void UPCGExMeshExportHandler::Collect(const FPCGExExportCandidate& Candidate, co
 			{
 				FTransform InstanceWorld;
 				ISMC->GetInstanceTransform(Idx, InstanceWorld, /*bWorldSpace=*/true);
-				Writer.AddItem(Source.ToFrame(InstanceWorld), MeshBounds.Min, MeshBounds.Max, Actor, LocalIdx, VariantIdx).TagSource = TagSource;
+				FPCGExExportItem& Item = Writer.AddItem(Source.ToFrame(InstanceWorld), MeshBounds.Min, MeshBounds.Max, Actor, LocalIdx, VariantIdx);
+				Item.TagSource = TagSource;
+				Item.SourceComponent = SMC;
+				Item.SourceInstanceIndex = Idx;
 			}
 		}
 		else
 		{
-			Writer.AddItem(Source.ToFrame(SMC->GetComponentTransform()), MeshBounds.Min, MeshBounds.Max, Actor, LocalIdx, VariantIdx).TagSource = TagSource;
+			FPCGExExportItem& Item = Writer.AddItem(Source.ToFrame(SMC->GetComponentTransform()), MeshBounds.Min, MeshBounds.Max, Actor, LocalIdx, VariantIdx);
+			Item.TagSource = TagSource;
+			Item.SourceComponent = SMC;
 		}
 	}
 }

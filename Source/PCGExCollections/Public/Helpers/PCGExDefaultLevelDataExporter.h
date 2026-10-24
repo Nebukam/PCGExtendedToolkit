@@ -16,6 +16,7 @@
 class AActor;
 class UPCGBasePointData;
 class UPCGExLevelExportHandler;
+class UPCGMetadata;
 class UStaticMeshComponent;
 
 #if WITH_EDITOR
@@ -152,6 +153,24 @@ public:
 	 * subobjects were instanced from a class default built before the cache was filled. Never call it on an authored one.
 	 */
 	void ApplyProjectDefaults();
+
+protected:
+	/**
+	 * Runs once per point data holding static mesh points (the Meshes pin), after the points exist and before value
+	 * tags and OnMeshPointExported. Create the attributes OnMeshPointExported writes here, with their defaults: a value
+	 * tag of the same name is then skipped with a warning instead of taking the name.
+	 */
+	virtual void DeclareMeshPointAttributes(UPCGMetadata* Metadata) const
+	{
+	}
+
+	/**
+	 * Runs once per exported static mesh point, after every built-in attribute is written. MetadataEntry is the point's
+	 * entry key in Metadata. InstanceIndex is the instance of an instanced Component, INDEX_NONE for a plain one.
+	 */
+	virtual void OnMeshPointExported(const AActor* SourceActor, const UStaticMeshComponent* Component, int32 InstanceIndex, UPCGMetadata* Metadata, int64 MetadataEntry) const
+	{
+	}
 
 #if WITH_EDITOR
 
