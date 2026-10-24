@@ -52,13 +52,20 @@ namespace PCGExCollections
 	 * levels are refused outright: a cold-loaded one carries no actors. The returned world has had
 	 * PCGExHelpers::EnsureWorldTransformsCurrent run over it -- component transforms are readable.
 	 *
-	 * OutHandle keeps the cold world alive; release it as soon as the read is done and never cache it
-	 * (a resident, referenced world makes a later map open fail its unload).
+	 * OutHandle is set off the game thread only (see LoadLevelForRead); release it as soon as the read is done
+	 * and never cache it (a resident, referenced world makes a later map open fail its unload).
 	 */
 	PCGEXCOLLECTIONS_API AActor* ResolveLevelActor(
 		const FSoftObjectPath& ActorPath,
 		TSharedPtr<FStreamableHandle>& OutHandle,
 		FString* OutFailure = nullptr);
+
+	/**
+	 * Load a closed level, or an actor of one, for a synchronous read. Game thread: tracked by TrackLevelRead, loaded
+	 * outside the streamable manager (its item would hold the world until a garbage collection), returns null.
+	 * Other threads: untracked; the returned handle keeps the world alive, release it as soon as the read is done.
+	 */
+	PCGEXCOLLECTIONS_API TSharedPtr<FStreamableHandle> LoadLevelForRead(const FSoftObjectPath& Path);
 
 	/** True when instances of Class never exist in a cooked game: the class lives in an editor or uncooked-only module,
 	 *  or its defaults are editor-only (bIsEditorOnlyActor, or a native IsEditorOnly override such as AGroupActor). */
@@ -68,9 +75,9 @@ namespace PCGExCollections
 	 * Call right before loading a level package for reading. In the editor, a level asset loaded outside a Level Instance
 	 * becomes a resident, rendered inactive world (UEditorEngine::OnAssetLoaded); a package this read brings in is unloaded
 	 * on a following game-thread tick unless it is in use by then (dirty, edited, PIE, or streamed into another world).
-	 * A world something else still references (a streamable handle, the undo buffer) is left alone and retried for a
-	 * while. Editor and game thread only: an off-thread read's world may still be in use after this frame, so it is
-	 * not tracked.
+	 * A world something else still references (a streamable handle, the undo buffer) is left alone and checked again
+	 * after each of the next few garbage collections, the only point where such holders let go in the editor. Editor
+	 * and game thread only: an off-thread read's world may still be in use after this frame, so it is not tracked.
 	 */
 	PCGEXCOLLECTIONS_API void TrackLevelRead(FName LevelPackageName);
 

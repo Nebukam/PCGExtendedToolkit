@@ -382,6 +382,18 @@ UPCGBasePointData* UPCGExDefaultLevelDataExporter::EmitSlotPoints(const FPCGExEx
 		}
 	}
 
+	const bool bHasMeshPoints = Writer.Items.ContainsByPredicate([](const FPCGExExportItem& Item) { return Item.SourceComponent != nullptr; });
+	TArray<FName> DeclaredAttributes;
+	if (bHasMeshPoints)
+	{
+		TArray<FName> PriorAttributes;
+		TArray<EPCGMetadataTypes> AttributeTypes;
+		Meta->GetAttributes(PriorAttributes, AttributeTypes);
+		DeclareMeshPointAttributes(Meta);
+		Meta->GetAttributes(DeclaredAttributes, AttributeTypes);
+		DeclaredAttributes.RemoveAll([&PriorAttributes](const FName& Name) { return PriorAttributes.Contains(Name); });
+	}
+
 	// Value tags, parsed once per unique source (ISM actors contribute many points). The writer's tag sources
 	// register before any actor and are written after it: they win on a shared name, type conflict included.
 	if (ValueTagMode != EPCGExValueTagMode::NoParsing)
@@ -398,6 +410,7 @@ UPCGBasePointData* UPCGExDefaultLevelDataExporter::EmitSlotPoints(const FPCGExEx
 		TArray<FName> HandlerAttributes;
 		Handler->GetWrittenAttributeNames(this, !bGenerateCollections, HandlerAttributes);
 		Registry.Reserved.Append(HandlerAttributes);
+		Registry.Reserved.Append(DeclaredAttributes);
 
 		TArray<FParsedTags> ParsedSources;
 		ParsedSources.Reserve(Writer.TagSources.Num());
@@ -443,6 +456,18 @@ UPCGBasePointData* UPCGExDefaultLevelDataExporter::EmitSlotPoints(const FPCGExEx
 	if (!bGenerateCollections)
 	{
 		Handler->WriteRawAttributes(Meta, MetaEntries, Writer, this);
+	}
+
+	if (bHasMeshPoints)
+	{
+		for (int32 i = 0; i < NumPoints; i++)
+		{
+			const FPCGExExportItem& Item = Writer.Items[i];
+			if (Item.SourceComponent)
+			{
+				OnMeshPointExported(Item.SourceActor, Item.SourceComponent, Item.SourceInstanceIndex, Meta, MetaEntries[i]);
+			}
+		}
 	}
 
 	FPCGTaggedData& TaggedData = OutAsset->Data.TaggedData.Emplace_GetRef();

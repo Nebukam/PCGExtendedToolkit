@@ -19,6 +19,7 @@
 #include "GameFramework/Actor.h"
 #include "Helpers/PCGExActorHelpers.h"
 #include "Helpers/PCGExStreamingHelpers.h"
+#include "Misc/ScopeExit.h"
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/IAssetRegistry.h"
@@ -1423,8 +1424,7 @@ namespace PCGExCollections
 #endif
 
 			// The cold level this load brings in would otherwise stay resident as a rendered world (see TrackLevelRead).
-			TrackLevelRead(ActorPath.GetLongPackageFName());
-			OutHandle = PCGExHelpers::LoadBlocking_AnyThread(ActorPath);
+			OutHandle = LoadLevelForRead(ActorPath);
 			Actor = Cast<AActor>(ActorPath.ResolveObject());
 			if (!Actor)
 			{
@@ -1461,19 +1461,65 @@ namespace PCGExCollections
 	{
 		// Game thread only: TrackLevelRead ignores other threads.
 		TSet<FName> PendingPackages;
-		TMap<FName, int32> HeldPackages; // Still referenced at release time -> retries left
+		TMap<FName, int32> HeldPackages; // Still referenced at release time -> garbage collections left to wait for
 		FTSTicker::FDelegateHandle ReleaseTickerHandle;
-		FTSTicker::FDelegateHandle RetryTickerHandle;
+		FDelegateHandle PostGarbageCollectHandle;
 
-		// A holder is normally transient (a streamable handle, the warm resource cache at its 45 s TTL); a level still
-		// held after the last retry stays resident, as it did before tracking.
-		constexpr int32 MaxHeldRetries = 12;
-		constexpr float HeldRetryDelay = 10.f;
+		// A holder lets go only at a garbage collection: a released streamable handle (a read, the warm resource cache
+		// past its TTL) leaves its item, and the world, in FStreamableManager until OnPreGarbageCollect, and an idle
+		// editor never collects on its own (UEngine::ConditionalCollectGarbage needs a world that has begun play). Held
+		// levels are rechecked after each of the next few collections; one still held after the last stays resident.
+		constexpr int32 MaxHeldRetries = 4;
 
-		bool RetryTick(float DeltaTime);
+		bool ReleaseTick(float DeltaTime);
+		void OnPostGarbageCollect();
+
+		// Bound only while something is held: the delegate is global and outlives any one release.
+		void BindPostGarbageCollect(const bool bBind)
+		{
+			if (bBind == PostGarbageCollectHandle.IsValid())
+			{
+				return;
+			}
+
+			if (bBind)
+			{
+				PostGarbageCollectHandle = FCoreUObjectDelegates::GetPostGarbageCollect().AddStatic(&OnPostGarbageCollect);
+			}
+			else
+			{
+				FCoreUObjectDelegates::GetPostGarbageCollect().Remove(PostGarbageCollectHandle);
+				PostGarbageCollectHandle.Reset();
+			}
+		}
+
+		void ScheduleRelease()
+		{
+			if (!ReleaseTickerHandle.IsValid())
+			{
+				// Next tick: a batch (rebuild, restage flush) releases once, never from inside a load, a property edit or
+				// a garbage collection.
+				ReleaseTickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(&ReleaseTick));
+			}
+		}
+
+		void OnPostGarbageCollect()
+		{
+			if (HeldPackages.IsEmpty())
+			{
+				return;
+			}
+
+			TSet<FName> Held;
+			HeldPackages.GetKeys(Held);
+			PendingPackages.Append(Held);
+			ScheduleRelease();
+		}
 
 		void Release(const TSet<FName>& Batch)
 		{
+			ON_SCOPE_EXIT { BindPostGarbageCollect(!HeldPackages.IsEmpty()); };
+
 			if (!GEditor)
 			{
 				HeldPackages.Reset();
@@ -1566,17 +1612,12 @@ namespace PCGExCollections
 						continue;
 					}
 					HeldPackages.Remove(Candidate.Name);
-					UE_LOG(LogPCGEx, Verbose, TEXT("[PCGEx] Level '%s' is still referenced after staging; left resident."), *Candidate.Name.ToString());
+					UE_LOG(LogPCGEx, Verbose, TEXT("[PCGEx] Level '%s' is still referenced after staging and %d garbage collections; left resident."), *Candidate.Name.ToString(), MaxHeldRetries);
 					continue;
 				}
 
 				HeldPackages.Remove(Candidate.Name);
 				PackagesToUnload.Add(Candidate.Package);
-			}
-
-			if (!HeldPackages.IsEmpty() && !RetryTickerHandle.IsValid())
-			{
-				RetryTickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(&RetryTick), HeldRetryDelay);
 			}
 
 			if (PackagesToUnload.IsEmpty())
@@ -1595,15 +1636,6 @@ namespace PCGExCollections
 			ReleaseTickerHandle.Reset();
 			const TSet<FName> Batch = MoveTemp(PendingPackages);
 			PendingPackages.Reset();
-			Release(Batch);
-			return false;
-		}
-
-		bool RetryTick(float DeltaTime)
-		{
-			RetryTickerHandle.Reset();
-			TSet<FName> Batch;
-			HeldPackages.GetKeys(Batch);
 			Release(Batch);
 			return false;
 		}
@@ -1626,21 +1658,29 @@ namespace PCGExCollections
 		}
 
 		LevelReadRelease::PendingPackages.Add(LevelPackageName);
-		if (!LevelReadRelease::ReleaseTickerHandle.IsValid())
-		{
-			// Next tick: a batch (rebuild, restage flush) releases once, never from inside a load or a property edit.
-			LevelReadRelease::ReleaseTickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(&LevelReadRelease::ReleaseTick));
-		}
+		LevelReadRelease::ScheduleRelease();
 #endif
+	}
+
+	TSharedPtr<FStreamableHandle> LoadLevelForRead(const FSoftObjectPath& Path)
+	{
+		if (!IsInGameThread())
+		{
+			return PCGExHelpers::LoadBlocking_AnyThread(Path);
+		}
+
+		TrackLevelRead(Path.GetLongPackageFName());
+		// Not the streamable manager: its item would hold the world until the next garbage collection (see LevelReadRelease).
+		Path.TryLoad();
+		return nullptr;
 	}
 
 	void CancelPendingLevelReleases()
 	{
 #if WITH_EDITOR
 		FTSTicker::RemoveTicker(LevelReadRelease::ReleaseTickerHandle);
-		FTSTicker::RemoveTicker(LevelReadRelease::RetryTickerHandle);
 		LevelReadRelease::ReleaseTickerHandle.Reset();
-		LevelReadRelease::RetryTickerHandle.Reset();
+		LevelReadRelease::BindPostGarbageCollect(false);
 		LevelReadRelease::PendingPackages.Reset();
 		LevelReadRelease::HeldPackages.Reset();
 #endif
